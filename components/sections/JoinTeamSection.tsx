@@ -3,6 +3,7 @@
 import { FC, useState } from "react";
 import { Button } from "../ui";
 import { ApplySheet, JobRole } from "./ApplySheet";
+import { track } from "@/lib/mixpanel";
 
 const roles: JobRole[] = [
   {
@@ -176,7 +177,7 @@ export const JoinTeamSection: FC = () => {
                 <Button
                   variant="outline"
                   className="w-full border-neutral-500 text-white hover:bg-neutral-700 shadow-none"
-                  onClick={() => setSelectedRole(role)}
+                  onClick={() => { track("CTA Clicked", { button: "Apply Now", location: "join_team", role: role.title }); setSelectedRole(role); }}
                 >
                   Apply Now
                 </Button>

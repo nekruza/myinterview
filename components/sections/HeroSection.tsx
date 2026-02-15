@@ -3,6 +3,7 @@
 import { FC, useEffect, useState } from "react";
 import { Button } from "../ui";
 import { useComingSoon } from "../ComingSoonProvider";
+import { track } from "@/lib/mixpanel";
 
 export const HeroSection: FC = () => {
   const { openModal } = useComingSoon();
@@ -58,7 +59,7 @@ export const HeroSection: FC = () => {
               </strong>
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mb-10">
-              <Button size="lg" className="group" onClick={openModal}>
+              <Button size="lg" className="group" onClick={() => { track("CTA Clicked", { button: "Start Practicing Free", location: "hero" }); openModal(); }}>
                 Start Practicing Free
                 <svg
                   className="w-5 h-5 ml-2 group-hover:translate-x-1 transition"

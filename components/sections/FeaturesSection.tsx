@@ -3,6 +3,7 @@
 import { FC } from "react";
 import { Badge } from "../ui";
 import { useComingSoon } from "../ComingSoonProvider";
+import { track } from "@/lib/mixpanel";
 
 export const FeaturesSection: FC = () => {
   const { openModal } = useComingSoon();
@@ -107,7 +108,7 @@ export const FeaturesSection: FC = () => {
                           <p className="text-xs text-neutral-500">{partner.level}</p>
                         </div>
                       </div>
-                      <button className="w-full bg-primary text-white py-2 rounded-lg text-xs font-semibold group-hover:bg-secondary transition" onClick={openModal}>
+                      <button className="w-full bg-primary text-white py-2 rounded-lg text-xs font-semibold group-hover:bg-secondary transition" onClick={() => { track("CTA Clicked", { button: "Schedule", location: "features", partner: partner.name }); openModal(); }}>
                         Schedule
                       </button>
                     </div>

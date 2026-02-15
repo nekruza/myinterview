@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "./ui";
 import { useComingSoon } from "./ComingSoonProvider";
+import { track } from "@/lib/mixpanel";
 
 export const Navigation: FC = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -63,10 +64,10 @@ export const Navigation: FC = () => {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-4">
-            <button className="text-secondary hover:text-primary transition font-medium" onClick={openModal}>
+            <button className="text-secondary hover:text-primary transition font-medium" onClick={() => { track("CTA Clicked", { button: "Sign In", location: "nav_desktop" }); openModal(); }}>
               Sign In
             </button>
-            <Button size="md" onClick={openModal}>Join Free</Button>
+            <Button size="md" onClick={() => { track("CTA Clicked", { button: "Join Free", location: "nav_desktop" }); openModal(); }}>Join Free</Button>
           </div>
 
           {/* Mobile: hamburger */}
@@ -104,10 +105,10 @@ export const Navigation: FC = () => {
             ))}
           </div>
           <div className="flex flex-col gap-3 mt-6">
-            <button className="text-secondary hover:text-primary transition font-medium text-left py-2" onClick={openModal}>
+            <button className="text-secondary hover:text-primary transition font-medium text-left py-2" onClick={() => { track("CTA Clicked", { button: "Sign In", location: "nav_mobile" }); openModal(); }}>
               Sign In
             </button>
-            <Button size="md" className="w-full justify-center" onClick={openModal}>Join Free</Button>
+            <Button size="md" className="w-full justify-center" onClick={() => { track("CTA Clicked", { button: "Join Free", location: "nav_mobile" }); openModal(); }}>Join Free</Button>
           </div>
         </div>
       )}

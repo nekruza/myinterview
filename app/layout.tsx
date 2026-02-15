@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Sora } from "next/font/google";
 import "./globals.css";
 import { ComingSoonProvider } from "@/components/ComingSoonProvider";
+import { MixpanelInit } from "@/components/MixpanelInit";
 
 const sora = Sora({
   subsets: ["latin"],
@@ -110,6 +111,7 @@ export default function RootLayout({
         >
           Skip to main content
         </a>
+        <MixpanelInit />
         <ComingSoonProvider>{children}</ComingSoonProvider>
       </body>
     </html>
