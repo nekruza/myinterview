@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui";
+import { track } from "@/lib/mixpanel";
 
 interface ComingSoonContextType {
   openModal: () => void;
@@ -36,16 +37,34 @@ export const ComingSoonProvider: FC<{ children: ReactNode }> = ({
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const openModal = useCallback(() => {
     setSubmitted(false);
     setEmail("");
+    setError(null);
     setOpen(true);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (!res.ok) throw new Error("Failed");
+      track("Waitlist Signup", { email });
+      setSubmitted(true);
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -108,8 +127,11 @@ export const ComingSoonProvider: FC<{ children: ReactNode }> = ({
                     required
                     className="border-neutral-300 text-neutral-900 placeholder:text-neutral-400 h-11"
                   />
-                  <Button type="submit" size="lg" className="w-full">
-                    Notify Me at Launch
+                  {error && (
+                    <p className="text-sm text-red-500">{error}</p>
+                  )}
+                  <Button type="submit" size="lg" className="w-full" disabled={loading}>
+                    {loading ? "Saving..." : "Notify Me at Launch"}
                   </Button>
                 </form>
 

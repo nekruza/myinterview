@@ -39,20 +39,45 @@ export const ApplySheet: FC<ApplySheetProps> = ({ role, open, onClose }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) setFileName(file.name);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setLoading(true);
+    setError(null);
+    const form = e.currentTarget as HTMLFormElement;
+    const data = {
+      name: (form.elements.namedItem("apply-name") as HTMLInputElement).value,
+      email: (form.elements.namedItem("apply-email") as HTMLInputElement).value,
+      role: role?.title ?? "",
+      linkedinUrl: (form.elements.namedItem("apply-linkedin") as HTMLInputElement).value,
+      coverLetter: (form.elements.namedItem("apply-cover") as HTMLTextAreaElement).value,
+    };
+    try {
+      const res = await fetch("/api/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Failed");
+      setSubmitted(true);
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClose = () => {
     setSubmitted(false);
     setFileName(null);
+    setError(null);
     onClose();
   };
 
@@ -175,17 +200,17 @@ export const ApplySheet: FC<ApplySheetProps> = ({ role, open, onClose }) => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label htmlFor="apply-name">Full Name</Label>
-                    <Input id="apply-name" placeholder="Jane Smith" required />
+                    <Input id="apply-name" name="apply-name" placeholder="Jane Smith" required />
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="apply-email">Email</Label>
-                    <Input id="apply-email" type="email" placeholder="jane@example.com" required />
+                    <Input id="apply-email" name="apply-email" type="email" placeholder="jane@example.com" required />
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
                   <Label htmlFor="apply-linkedin">LinkedIn / Portfolio URL</Label>
-                  <Input id="apply-linkedin" type="url" placeholder="https://linkedin.com/in/..." />
+                  <Input id="apply-linkedin" name="apply-linkedin" type="url" placeholder="https://linkedin.com/in/..." />
                 </div>
 
                 {/* Resume upload */}
@@ -228,14 +253,19 @@ export const ApplySheet: FC<ApplySheetProps> = ({ role, open, onClose }) => {
                   <Label htmlFor="apply-cover">Why do you want to join? <span className="text-neutral-400 font-normal">(optional)</span></Label>
                   <Textarea
                     id="apply-cover"
+                    name="apply-cover"
                     placeholder="Tell us what excites you about this role and MyInterview..."
                     className="resize-none"
                     rows={4}
                   />
                 </div>
 
-                <Button type="submit" size="lg" className="w-full">
-                  Submit Application
+                {error && (
+                  <p className="text-sm text-red-500">{error}</p>
+                )}
+
+                <Button type="submit" size="lg" className="w-full" disabled={loading}>
+                  {loading ? "Submitting..." : "Submit Application"}
                 </Button>
               </form>
             </div>

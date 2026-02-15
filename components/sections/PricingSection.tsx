@@ -3,6 +3,7 @@
 import { FC } from "react";
 import { Button, Card } from "../ui";
 import { useComingSoon } from "../ComingSoonProvider";
+import { track } from "@/lib/mixpanel";
 
 export const PricingSection: FC = () => {
   const { openModal } = useComingSoon();
@@ -173,7 +174,7 @@ export const PricingSection: FC = () => {
                   className={`w-full py-4 text-lg ${
                     tier.popular ? "bg-white text-black hover:bg-neutral-100" : ""
                   }`}
-                  onClick={openModal}
+                  onClick={() => { track("CTA Clicked", { button: tier.cta, location: "pricing", plan: tier.name }); openModal(); }}
                 >
                   {tier.cta}
                 </Button>
