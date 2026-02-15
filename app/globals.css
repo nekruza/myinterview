@@ -6,10 +6,10 @@
 
 :root {
 
-  /* Brand Colors - InterviewPrep Palette */
-  --primary: oklch(0.205 0 0); /* Coral orange */
-  --primary-hover: #E55A48;
-  --secondary: oklch(0.97 0 0); /* Near black */
+  /* Brand Colors - MyInterview Palette */
+  --primary: #59ff5c; /* Coral orange */
+  --primary-hover: #48e57c;
+  --secondary: #111827; /* Near black */
   --cream: #FDF8F3; /* Warm cream background */
   --cream-dark: #F5EDE3; /* Darker cream */
 
