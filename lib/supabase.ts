@@ -1,7 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY!;
 
-// Server-only client using the service role key (never expose to browser)
-export const supabase = createClient(supabaseUrl, supabaseServiceKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
