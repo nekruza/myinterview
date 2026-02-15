@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InterviewPrep - Conquer Interview Anxiety | Build Real Confidence</title>
+    <meta name="description" content="Overcome interview anxiety with peer support and proven techniques. Practice with people who understand, build genuine confidence, and land your dream role.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FF6B59', // Coral orange like Jack & Jill
+                        secondary: '#1A1A1A', // Near black
+                        cream: '#FDF8F3', // Warm cream background
+                        'cream-dark': '#F5EDE3', // Darker cream
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            scroll-behavior: smooth;
+        }
+
+        .gradient-text {
+            color: #1A1A1A;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.8s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-slide-up {
+            animation: slideUp 1s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hover-lift {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .hover-lift:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .counter {
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #FDF8F3;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #FF6B59;
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #E55A48;
+        }
+
+        /* Video overlay */
+        .video-overlay {
+            position: relative;
+            overflow: hidden;
+            border-radius: 16px;
+        }
+
+        .video-overlay::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 107, 89, 0.05) 0%, rgba(26, 26, 26, 0.05) 100%);
+            pointer-events: none;
+        }
+
+        /* Animated gradient background */
+        .animated-gradient {
+            background: linear-gradient(-45deg, #FDF8F3, #FAF5EF, #FDF8F3, #F5EDE3);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Floating animation */
+        .float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* Pulse animation */
+        .pulse-slow {
+            animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-900 font-sans antialiased">
+    <!-- Navigation -->
+    <nav class="fixed w-full bg-cream/95 backdrop-blur-sm border-b border-gray-200 z-50 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+                            </svg>
+                        </div>
+                        <span class="text-2xl font-bold text-secondary">InterviewPrep</span>
+                    </div>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#features" class="text-secondary hover:text-primary transition font-medium">Features</a>
+                    <a href="#how-it-works" class="text-secondary hover:text-primary transition font-medium">How It Works</a>
+                    <a href="#pricing" class="text-secondary hover:text-primary transition font-medium">Pricing</a>
+                    <a href="#testimonials" class="text-secondary hover:text-primary transition font-medium">Stories</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="text-secondary hover:text-primary transition font-medium hidden sm:block">Sign In</button>
+                    <button class="bg-primary text-white px-6 py-3 rounded-xl hover:bg-opacity-90 transition font-semibold shadow-sm">
+                        Join Free
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="pt-32 pb-20 px-4 sm:px-6 lg:px-8 animated-gradient overflow-hidden">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid lg:grid-cols-2 gap-16 items-center">
+                <div class="animate-fade-in">
+                    <div class="inline-flex items-center bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-semibold mb-6 border border-gray-200">
+                        <span class="relative flex h-3 w-3 mr-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+                        </span>
+                        <span class="text-secondary">Join <span id="user-counter" class="counter font-bold">500</span>+ beta users practicing now</span>
+                    </div>
+                    <h1 class="text-6xl md:text-7xl font-black leading-tight mb-6 text-secondary">
+                        Conquer Your
+                        <span class="block">Interview</span>
+                        Anxiety
+                    </h1>
+                    <p class="text-xl md:text-2xl text-gray-800 mb-8 leading-relaxed">
+                        Practice behavioral & technical interviews with AI and peers.
+                        <span class="font-semibold text-secondary">Become confident and fluent.</span>
+                    </p>
+                    <p class="text-lg text-gray-700 mb-10 leading-relaxed">
+                        Fight anxiety through real practice, proven techniques, and supportive feedback.
+                        <span class="font-semibold">Start practicing today.</span>
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 mb-10">
+                        <button class="group bg-primary text-white px-10 py-5 rounded-xl hover:bg-opacity-90 transition font-bold text-lg shadow-sm flex items-center justify-center">
+                            Start Practicing Free
+                            <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                            </svg>
+                        </button>
+                        <button class="group bg-secondary text-white px-10 py-5 rounded-xl hover:bg-opacity-90 transition font-bold text-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"/>
+                            </svg>
+                            Watch How It Works
+                        </button>
+                    </div>
+                    <div class="flex items-center space-x-6 text-sm text-gray-600">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 text-secondary mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="font-medium text-secondary">Free forever plan</span>
+                        </div>
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 text-secondary mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="font-medium text-secondary">Cancel anytime</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hero Visual -->
+                <div class="relative animate-slide-up float">
+                    <div class="video-overlay bg-cream-dark rounded-2xl p-1">
+                        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                            <!-- Mock Video Player -->
+                            <div class="relative aspect-video bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
+                                <button class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/30 transition group">
+                                    <svg class="w-10 h-10 text-white group-hover:scale-110 transition ml-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
+                                    </svg>
+                                </button>
+                                <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                    <div class="text-center text-white p-8">
+                                        <div class="text-6xl font-bold mb-4">2:47</div>
+                                        <div class="text-xl opacity-80">Watch engineers practice in real-time</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Session Info Cards -->
+                            <div class="p-6 space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-12 h-12 bg-secondary rounded-full flex items-center justify-center text-white font-bold">P</div>
+                                        <div>
+                                            <p class="font-semibold text-secondary">Priya's Practice Session</p>
+                                            <p class="text-sm text-gray-500">Mock Interview • Anxiety Support</p>
+                                        </div>
+                                    </div>
+                                    <span class="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-semibold flex items-center">
+                                        <span class="w-2 h-2 bg-primary rounded-full mr-2 pulse-slow"></span>
+                                        Live
+                                    </span>
+                                </div>
+
+                                <div class="grid grid-cols-3 gap-3">
+                                    <div class="bg-cream rounded-lg p-3 text-center border border-gray-200">
+                                        <p class="text-2xl font-bold text-secondary">12</p>
+                                        <p class="text-xs text-gray-600 mt-1">Sessions</p>
+                                    </div>
+                                    <div class="bg-cream rounded-lg p-3 text-center border border-gray-200">
+                                        <p class="text-2xl font-bold text-secondary">+58%</p>
+                                        <p class="text-xs text-gray-600 mt-1">Improvement</p>
+                                    </div>
+                                    <div class="bg-cream rounded-lg p-3 text-center border border-gray-200">
+                                        <p class="text-2xl font-bold text-secondary">93%</p>
+                                        <p class="text-xs text-gray-600 mt-1">Had Anxiety</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Floating Stats Cards -->
+                    <div class="absolute -left-4 top-1/4 bg-white rounded-xl shadow-lg p-4 animate-fade-in hidden lg:block border border-gray-200">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-cream rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-2xl font-bold text-secondary">+58%</p>
+                                <p class="text-xs text-gray-600">Performance Gain</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="absolute -right-4 bottom-1/4 bg-white rounded-xl shadow-lg p-4 animate-fade-in hidden lg:block border border-gray-200" style="animation-delay: 0.2s;">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-cream rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-2xl font-bold text-secondary">24/7</p>
+                                <p class="text-xs text-gray-600">AI Practice Available</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Problem Statement (Redesigned) -->
+    <section class="py-16 px-4 sm:px-6 lg:px-8 bg-white">
+        <div class="max-w-6xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-12">
+                <p class="text-primary font-bold text-sm uppercase tracking-wider mb-3">THE REAL PROBLEM</p>
+                <h2 class="text-4xl md:text-5xl font-black mb-4 text-secondary">
+                    Interview Anxiety Affects Everyone
+                </h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                    You're qualified. You're prepared. But anxiety makes you doubt everything.
+                </p>
+            </div>
+
+            <!-- 3 Column Grid -->
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Problem 1 -->
+                <div class="group relative bg-cream rounded-2xl p-6 border-2 border-transparent hover:border-primary transition-all duration-300">
+                    <div class="absolute -top-4 left-6">
+                        <div class="w-14 h-14 bg-secondary rounded-xl flex items-center justify-center shadow-lg">
+                            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="pt-8">
+                        <h3 class="text-xl font-bold mb-3 text-secondary">Your Mind Goes Blank</h3>
+                        <p class="text-sm text-gray-700 italic mb-4 leading-relaxed">
+                            "I know the answers, but when the interviewer asks, my mind freezes. Everything I studied just disappears."
+                        </p>
+                        <div class="text-xs font-semibold text-primary">
+                            → 93% experience this
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Problem 2 -->
+                <div class="group relative bg-cream rounded-2xl p-6 border-2 border-transparent hover:border-primary transition-all duration-300">
+                    <div class="absolute -top-4 left-6">
+                        <div class="w-14 h-14 bg-secondary rounded-xl flex items-center justify-center shadow-lg">
+                            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="pt-8">
+                        <h3 class="text-xl font-bold mb-3 text-secondary">You Overthink Everything</h3>
+                        <p class="text-sm text-gray-700 italic mb-4 leading-relaxed">
+                            "Every question feels like a trap. I second-guess every word. Did I say too much? Too little?"
+                        </p>
+                        <div class="text-xs font-semibold text-primary">
+                            → Anxiety feedback loop
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Problem 3 -->
+                <div class="group relative bg-cream rounded-2xl p-6 border-2 border-transparent hover:border-primary transition-all duration-300">
+                    <div class="absolute -top-4 left-6">
+                        <div class="w-14 h-14 bg-secondary rounded-xl flex items-center justify-center shadow-lg">
+                            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="pt-8">
+                        <h3 class="text-xl font-bold mb-3 text-secondary">You Feel Alone</h3>
+                        <p class="text-sm text-gray-700 italic mb-4 leading-relaxed">
+                            "Everyone else seems confident. I feel like I'm the only one struggling. I don't know who to talk to."
+                        </p>
+                        <div class="text-xs font-semibold text-primary">
+                            → You're not alone
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how-it-works" class="py-24 px-4 sm:px-6 lg:px-8 bg-white">
+        <div class="max-w-5xl mx-auto">
+            <!-- CTA Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+                <button class="bg-primary text-secondary px-10 py-5 rounded-xl hover:bg-opacity-90 transition font-bold text-lg shadow-sm">
+                    Start Practicing
+                </button>
+                <button class="bg-secondary text-white px-10 py-5 rounded-xl hover:bg-opacity-90 transition font-bold text-lg shadow-sm">
+                    Join Beta Waitlist
+                </button>
+            </div>
+
+            <!-- Testimonial -->
+            <div class="text-center mb-12">
+                <div class="flex justify-center mb-3">
+                    <svg class="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg class="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg class="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg class="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg class="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                </div>
+                <p class="text-xl text-gray-800 italic max-w-3xl mx-auto">
+                    "I used to freeze up in every interview. After practicing with AI and peers here, I finally learned to manage my anxiety. Now I actually look forward to interviews instead of dreading them."
+                </p>
+            </div>
+
+            <!-- 3 Steps Box -->
+            <div class="border-4 border-primary rounded-3xl p-8 md:p-12 bg-cream">
+                <div class="grid md:grid-cols-3 gap-8">
+                    <!-- Step 1 -->
+                    <div class="flex flex-col items-start">
+                        <div class="flex items-center mb-4">
+                            <span class="text-3xl font-black text-secondary mr-3">1.</span>
+                            <div class="w-12 h-12 bg-cream-dark rounded-xl flex items-center justify-center">
+                                <svg class="w-7 h-7 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2 text-secondary">Tell us your interview goals</h3>
+                        <p class="text-gray-700 leading-relaxed">Share your target companies, role level, and what makes you anxious</p>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="flex flex-col items-start">
+                        <div class="flex items-center mb-4">
+                            <span class="text-3xl font-black text-secondary mr-3">2.</span>
+                            <div class="w-12 h-12 bg-cream-dark rounded-xl flex items-center justify-center">
+                                <svg class="w-7 h-7 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2 text-secondary">Practice with AI instantly</h3>
+                        <p class="text-gray-700 leading-relaxed">Get real-time feedback on behavioral & technical questions 24/7</p>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="flex flex-col items-start">
+                        <div class="flex items-center mb-4">
+                            <span class="text-3xl font-black text-secondary mr-3">3.</span>
+                            <div class="w-12 h-12 bg-cream-dark rounded-xl flex items-center justify-center">
+                                <svg class="w-7 h-7 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2 text-secondary">Join peer practice sessions</h3>
+                        <p class="text-gray-700 leading-relaxed">Get matched with engineers who understand your journey</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features (Redesigned) -->
+    <section id="features" class="py-24 px-4 sm:px-6 lg:px-8 bg-white">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-20">
+                <p class="text-primary font-bold text-sm uppercase tracking-wider mb-3">Platform Features</p>
+                <h2 class="text-5xl md:text-6xl font-black mb-6 text-secondary">Everything You Need to Succeed</h2>
+                <p class="text-xl text-gray-700 max-w-3xl mx-auto">
+                    AI + peer practice + anxiety techniques + behavioral & technical prep + progress tracking
+                </p>
+            </div>
+
+            <div class="space-y-32">
+                <!-- Feature 1: AI & Peer Practice - Bento Box Style -->
+                <div class="relative">
+                    <!-- Main Title -->
+                    <div class="mb-12">
+                        <span class="inline-block bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-bold mb-4">
+                            AI + PEER PRACTICE
+                        </span>
+                        <h3 class="text-4xl md:text-5xl font-black text-secondary max-w-2xl">
+                            Practice Behavioral & Technical Interviews
+                        </h3>
+                    </div>
+
+                    <!-- Bento Grid Layout -->
+                    <div class="grid lg:grid-cols-3 gap-6">
+                        <!-- Large Card: AI Practice -->
+                        <div class="lg:col-span-2 bg-gradient-to-br from-secondary to-gray-900 rounded-3xl p-8 text-white relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl"></div>
+                            <div class="relative z-10">
+                                <div class="inline-flex items-center space-x-2 mb-6">
+                                    <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                                        </svg>
+                                    </div>
+                                    <span class="font-bold text-lg">AI Practice</span>
+                                    <span class="px-2 py-1 bg-green-500 text-white text-xs rounded-full font-bold">INSTANT</span>
+                                </div>
+                                <p class="text-xl mb-6 text-white/90">
+                                    Start practicing immediately with AI for behavioral & technical questions. Available 24/7.
+                                </p>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
+                                        <p class="text-3xl font-black mb-1">∞</p>
+                                        <p class="text-sm text-white/70">Practice Sessions</p>
+                                    </div>
+                                    <div class="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
+                                        <p class="text-3xl font-black mb-1">24/7</p>
+                                        <p class="text-sm text-white/70">Available</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Practice Partners Card -->
+                        <div class="bg-cream rounded-3xl p-6 border-2 border-gray-200">
+                            <div class="flex items-center justify-between mb-6">
+                                <h4 class="font-bold text-lg text-secondary">Practice Partners</h4>
+                                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">3 Live</span>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="group bg-white rounded-xl p-3 border border-gray-200 hover:border-primary hover:shadow-md transition cursor-pointer">
+                                    <div class="flex items-center space-x-3 mb-2">
+                                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm">M</div>
+                                        <div class="flex-1">
+                                            <p class="font-bold text-sm">Marcus T.</p>
+                                            <p class="text-xs text-gray-500">Senior • Google</p>
+                                        </div>
+                                    </div>
+                                    <button class="w-full bg-primary text-white py-2 rounded-lg text-xs font-semibold group-hover:bg-secondary transition">
+                                        Schedule
+                                    </button>
+                                </div>
+                                <div class="group bg-white rounded-xl p-3 border border-gray-200 hover:border-primary hover:shadow-md transition cursor-pointer">
+                                    <div class="flex items-center space-x-3 mb-2">
+                                        <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-sm">S</div>
+                                        <div class="flex-1">
+                                            <p class="font-bold text-sm">Sarah L.</p>
+                                            <p class="text-xs text-gray-500">Staff • Stripe</p>
+                                        </div>
+                                    </div>
+                                    <button class="w-full bg-primary text-white py-2 rounded-lg text-xs font-semibold group-hover:bg-secondary transition">
+                                        Schedule
+                                    </button>
+                                </div>
+                                <div class="group bg-white rounded-xl p-3 border border-gray-200 hover:border-primary hover:shadow-md transition cursor-pointer">
+                                    <div class="flex items-center space-x-3 mb-2">
+                                        <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-sm">A</div>
+                                        <div class="flex-1">
+                                            <p class="font-bold text-sm">Alex K.</p>
+                                            <p class="text-xs text-gray-500">Mid • Amazon</p>
+                                        </div>
+                                    </div>
+                                    <button class="w-full bg-primary text-white py-2 rounded-lg text-xs font-semibold group-hover:bg-secondary transition">
+                                        Schedule
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Interview Types Card -->
+                        <div class="bg-primary/5 rounded-3xl p-6 border-2 border-primary/20">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <div class="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
+                                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+                                    </svg>
+                                </div>
+                                <h4 class="font-bold text-lg text-secondary">Behavioral</h4>
+                            </div>
+                            <p class="text-sm text-gray-700 mb-4">Master storytelling with the STAR method for behavioral questions</p>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-3 py-1 bg-white rounded-full text-xs font-semibold text-secondary border border-gray-200">Leadership</span>
+                                <span class="px-3 py-1 bg-white rounded-full text-xs font-semibold text-secondary border border-gray-200">Conflict</span>
+                                <span class="px-3 py-1 bg-white rounded-full text-xs font-semibold text-secondary border border-gray-200">Impact</span>
+                            </div>
+                        </div>
+
+                        <!-- Technical Card -->
+                        <div class="lg:col-span-2 bg-cream rounded-3xl p-6 border-2 border-gray-200">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <div class="w-12 h-12 bg-secondary rounded-xl flex items-center justify-center">
+                                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                                    </svg>
+                                </div>
+                                <h4 class="font-bold text-lg text-secondary">Technical Problem-Solving</h4>
+                            </div>
+                            <p class="text-sm text-gray-700 mb-4">Practice coding, system design, and problem-solving with real-time feedback</p>
+                            <div class="grid grid-cols-3 gap-3">
+                                <div class="bg-white rounded-lg p-3 border border-gray-200 text-center">
+                                    <p class="font-bold text-secondary text-lg mb-1">Data</p>
+                                    <p class="text-xs text-gray-600">Structures</p>
+                                </div>
+                                <div class="bg-white rounded-lg p-3 border border-gray-200 text-center">
+                                    <p class="font-bold text-secondary text-lg mb-1">Algo</p>
+                                    <p class="text-xs text-gray-600">rithms</p>
+                                </div>
+                                <div class="bg-white rounded-lg p-3 border border-gray-200 text-center">
+                                    <p class="font-bold text-secondary text-lg mb-1">System</p>
+                                    <p class="text-xs text-gray-600">Design</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature 2: Anxiety Management -->
+                <div class="grid lg:grid-cols-2 gap-16 items-center">
+                    <div>
+                        <div class="bg-cream-dark rounded-3xl p-8 shadow-lg">
+                            <div class="bg-white rounded-2xl p-6">
+                                <h4 class="font-bold text-xl mb-6 text-secondary">Proven Anxiety Techniques</h4>
+                                <div class="space-y-4">
+                                    <div class="flex items-start space-x-4 p-4 bg-cream rounded-xl border border-gray-200">
+                                        <div class="w-10 h-10 bg-secondary text-white rounded-full flex items-center justify-center font-bold flex-shrink-0 text-sm">1</div>
+                                        <div>
+                                            <p class="font-bold text-secondary">Breathing Techniques</p>
+                                            <p class="text-sm text-gray-600">Calm your nervous system before and during interviews</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start space-x-4 p-4 bg-cream rounded-xl border border-gray-200">
+                                        <div class="w-10 h-10 bg-secondary text-white rounded-full flex items-center justify-center font-bold flex-shrink-0 text-sm">2</div>
+                                        <div>
+                                            <p class="font-bold text-secondary">Cognitive Reframing</p>
+                                            <p class="text-sm text-gray-600">Transform negative thoughts into productive ones</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start space-x-4 p-4 bg-cream rounded-xl border border-gray-200">
+                                        <div class="w-10 h-10 bg-secondary text-white rounded-full flex items-center justify-center font-bold flex-shrink-0 text-sm">3</div>
+                                        <div>
+                                            <p class="font-bold text-secondary">Grounding Exercises</p>
+                                            <p class="text-sm text-gray-600">Stay present instead of spiraling into overthinking</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start space-x-4 p-4 bg-cream rounded-xl border border-gray-200">
+                                        <div class="w-10 h-10 bg-secondary text-white rounded-full flex items-center justify-center font-bold flex-shrink-0 text-sm">4</div>
+                                        <div>
+                                            <p class="font-bold text-secondary">Exposure Practice</p>
+                                            <p class="text-sm text-gray-600">Gradually build comfort through safe practice</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start space-x-4 p-4 bg-cream rounded-xl border border-gray-200">
+                                        <div class="w-10 h-10 bg-secondary text-white rounded-full flex items-center justify-center font-bold flex-shrink-0 text-sm">5</div>
+                                        <div>
+                                            <p class="font-bold text-secondary">Self-Compassion</p>
+                                            <p class="text-sm text-gray-600">Replace self-criticism with understanding</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-6 p-4 bg-cream rounded-xl border border-gray-200">
+                                    <p class="text-xs font-bold text-secondary mb-2">EVIDENCE-BASED APPROACH</p>
+                                    <ul class="text-sm space-y-1 text-gray-700">
+                                        <li>✓ Reviewed by licensed therapists</li>
+                                        <li>✓ Proven to reduce interview anxiety</li>
+                                        <li>✓ Practiced by thousands of engineers</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="inline-block bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-bold mb-6">
+                            ANXIETY MANAGEMENT
+                        </div>
+                        <h3 class="text-4xl md:text-5xl font-black mb-6 text-secondary">Fight Anxiety Through Practice</h3>
+                        <p class="text-xl text-gray-700 mb-8 leading-relaxed">
+                            Learn proven anxiety management techniques through AI and peer practice sessions. Build genuine confidence by practicing in a safe, supportive environment.
+                        </p>
+                        <ul class="space-y-4">
+                            <li class="flex items-start">
+                                <div class="w-6 h-6 bg-secondary rounded-full flex items-center justify-center flex-shrink-0 mr-4 mt-1">
+                                    <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-lg mb-1 text-secondary">Pre-Interview Prep</p>
+                                    <p class="text-gray-700">Calming exercises to do before your interview starts</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <div class="w-6 h-6 bg-secondary rounded-full flex items-center justify-center flex-shrink-0 mr-4 mt-1">
+                                    <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-lg mb-1 text-secondary">In-the-Moment Tools</p>
+                                    <p class="text-gray-700">Quick techniques when you feel anxiety rising during the interview</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <div class="w-6 h-6 bg-secondary rounded-full flex items-center justify-center flex-shrink-0 mr-4 mt-1">
+                                    <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-lg mb-1 text-secondary">Long-Term Strategies</p>
+                                    <p class="text-gray-700">Build lasting confidence that goes beyond one interview</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Feature 3: Progress Tracking -->
+                <div class="grid lg:grid-cols-2 gap-16 items-center">
+                    <div class="order-2 lg:order-1">
+                        <div class="inline-block bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-bold mb-6">
+                            PROGRESS TRACKING
+                        </div>
+                        <h3 class="text-4xl md:text-5xl font-black mb-6">See Your Confidence Grow</h3>
+                        <p class="text-xl text-gray-600 mb-8 leading-relaxed">
+                            Engineers are measurement-oriented. Track your improvement with confidence scores,
+                            competency radar charts, and milestone celebrations.
+                        </p>
+                        <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-200">
+                            <div class="grid grid-cols-2 gap-4 mb-4">
+                                <div class="text-center">
+                                    <p class="text-4xl font-black text-green-600 mb-1">55-60%</p>
+                                    <p class="text-sm text-gray-600">Performance Improvement</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-4xl font-black text-green-600 mb-1">40%</p>
+                                    <p class="text-sm text-gray-600">Confidence Affects Hiring</p>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-600 text-center">
+                                Research shows 55-60% improvement with consistent mock interview practice
+                            </p>
+                        </div>
+                    </div>
+                    <div class="order-1 lg:order-2">
+                        <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-3xl p-8 shadow-2xl">
+                            <div class="bg-white rounded-2xl p-6">
+                                <h4 class="font-bold text-xl mb-6">Your Progress Dashboard</h4>
+                                <div class="space-y-6">
+                                    <div>
+                                        <div class="flex items-center justify-between mb-2">
+                                            <span class="text-sm font-semibold text-gray-700">Leadership</span>
+                                            <span class="text-sm font-bold text-green-600">85%</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-3">
+                                            <div class="bg-gradient-to-r from-green-500 to-emerald-500 h-3 rounded-full" style="width: 85%"></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center justify-between mb-2">
+                                            <span class="text-sm font-semibold text-gray-700">Conflict Resolution</span>
+                                            <span class="text-sm font-bold text-blue-600">72%</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-3">
+                                            <div class="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full" style="width: 72%"></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center justify-between mb-2">
+                                            <span class="text-sm font-semibold text-gray-700">Ownership</span>
+                                            <span class="text-sm font-bold text-purple-600">91%</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-3">
+                                            <div class="bg-gradient-to-r from-purple-500 to-pink-500 h-3 rounded-full" style="width: 91%"></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center justify-between mb-2">
+                                            <span class="text-sm font-semibold text-gray-700">Failure Stories</span>
+                                            <span class="text-sm font-bold text-orange-600">68%</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-3">
+                                            <div class="bg-gradient-to-r from-orange-500 to-red-500 h-3 rounded-full" style="width: 68%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-6 pt-6 border-t border-gray-200">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-2xl font-black">18</p>
+                                            <p class="text-sm text-gray-600">Sessions Completed</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-2xl font-black text-green-600">+57%</p>
+                                            <p class="text-sm text-gray-600">Performance Gain</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-2xl font-black text-purple-600">93%</p>
+                                            <p class="text-sm text-gray-600">Had Anxiety</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section id="pricing" class="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 to-gray-100">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <p class="text-primary font-bold text-sm uppercase tracking-wider mb-3">Pricing</p>
+                <h2 class="text-5xl md:text-6xl font-black mb-6">Start Free, Upgrade When Ready</h2>
+                <p class="text-xl text-gray-600">Join our beta community. Practice for free. Upgrade for unlimited sessions.</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <!-- Free Tier -->
+                <div class="bg-white rounded-3xl p-8 shadow-lg hover-lift border-2 border-gray-200">
+                    <div class="text-center mb-8">
+                        <h3 class="text-2xl font-bold mb-4">Free</h3>
+                        <div class="mb-2">
+                            <span class="text-6xl font-black">$0</span>
+                        </div>
+                        <p class="text-gray-600">Perfect to get started</p>
+                    </div>
+                    <ul class="space-y-4 mb-8">
+                        <li class="flex items-start">
+                            <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-gray-700"><strong>Unlimited AI practice</strong></span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-gray-700"><strong>3 peer sessions</strong> /month</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-gray-700">Behavioral & technical questions</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-gray-700">Basic anxiety techniques library</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-gray-700">Community access</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-gray-700">Progress dashboard</span>
+                        </li>
+                    </ul>
+                    <button class="w-full border-2 border-primary text-primary py-4 rounded-xl hover:bg-primary hover:text-white transition font-bold text-lg">
+                        Start Free
+                    </button>
+                </div>
+
+                <!-- Pro Tier (Most Popular) -->
+                <div class="bg-gradient-to-br from-primary to-secondary text-white rounded-3xl p-8 shadow-2xl transform scale-105 relative border-2 border-primary">
+                    <div class="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-accent text-white px-6 py-2 rounded-full text-sm font-black shadow-lg">
+                        MOST POPULAR
+                    </div>
+                    <div class="text-center mb-8">
+                        <h3 class="text-2xl font-bold mb-4">Pro</h3>
+                        <div class="mb-2">
+                            <span class="text-6xl font-black">$19</span>
+                            <span class="text-xl opacity-80">/mo</span>
+                        </div>
+                        <p class="text-blue-100">Everything you need</p>
+                    </div>
+                    <ul class="space-y-4 mb-8">
+                        <li class="flex items-start">
+                            <svg class="w-6 h-6 text-green-300 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-white"><strong>Unlimited AI & peer sessions</strong></span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-6 h-6 text-green-300 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-white">Behavioral & technical prep</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-6 h-6 text-green-300 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2 a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-white">Full anxiety management techniques</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-6 h-6 text-green-300 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-white">Advanced analytics</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-6 h-6 text-green-300 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-white">Priority access</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-6 h-6 text-green-300 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-white">Anxiety resources</span>
+                        </li>
+                    </ul>
+                    <button class="w-full bg-white text-primary py-4 rounded-xl hover:bg-gray-100 transition font-bold text-lg shadow-xl">
+                        Start 7-Day Trial
+                    </button>
+                </div>
+
+                <!-- Premium Tier -->
+                <div class="bg-white rounded-3xl p-8 shadow-lg hover-lift border-2 border-gray-200">
+                    <div class="text-center mb-8">
+                        <h3 class="text-2xl font-bold mb-4">Premium</h3>
+                        <div class="mb-2">
+                            <span class="text-6xl font-black">$39</span>
+                            <span class="text-xl text-gray-600">/mo</span>
+                        </div>
+                        <p class="text-gray-600">For staff+ engineers</p>
+                    </div>
+                    <ul class="space-y-4 mb-8">
+                        <li class="flex items-start">
+                            <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-gray-700"><strong>Everything in Pro, plus:</strong></span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-gray-700">Staff-level behavioral & technical content</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-gray-700">Advanced AI interviewer modes</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-gray-700">Session recording & playback</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-6 h-6 text-green-500 mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="text-gray-700">1:1 mentor sessions</span>
+                        </li>
+                    </ul>
+                    <button class="w-full border-2 border-primary text-primary py-4 rounded-xl hover:bg-primary hover:text-white transition font-bold text-lg">
+                        Get Premium
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section id="testimonials" class="py-24 px-4 sm:px-6 lg:px-8 bg-white">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <p class="text-primary font-bold text-sm uppercase tracking-wider mb-3">Success Stories</p>
+                <h2 class="text-5xl md:text-6xl font-black mb-6">From Anxious to Confident</h2>
+                <p class="text-xl text-gray-600">Real stories from engineers who conquered their anxiety</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="hover-lift bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-8 border-2 border-blue-100">
+                    <div class="flex items-center mb-6">
+                        <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-2xl mr-4">P</div>
+                        <div>
+                            <p class="font-bold text-lg">Priya K.</p>
+                            <p class="text-sm text-gray-600">Mid-Level Engineer</p>
+                            <div class="flex mt-1">
+                                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-gray-800 text-lg leading-relaxed mb-4">
+                        "Started with AI practice to build confidence, then moved to peer sessions. After 8 practices total, I landed Amazon. The combination of behavioral prep and anxiety techniques actually worked—went from freezing up to feeling genuinely calm."
+                    </p>
+                    <div class="inline-flex items-center px-4 py-2 bg-white/60 rounded-full text-sm font-semibold text-primary">
+                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        Anxiety conquered
+                    </div>
+                </div>
+
+                <div class="hover-lift bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-8 border-2 border-purple-100">
+                    <div class="flex items-center mb-6">
+                        <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-2xl mr-4">M</div>
+                        <div>
+                            <p class="font-bold text-lg">Marcus T.</p>
+                            <p class="text-sm text-gray-600">Senior Engineer</p>
+                            <div class="flex mt-1">
+                                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-gray-800 text-lg leading-relaxed mb-4">
+                        "Practiced both behavioral and technical interviews with peers who understood my struggles. The anxiety techniques helped me go from rambling to delivering clear, confident answers. Worth every penny."
+                    </p>
+                    <div class="inline-flex items-center px-4 py-2 bg-white/60 rounded-full text-sm font-semibold text-purple-600">
+                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        Anxiety conquered
+                    </div>
+                </div>
+
+                <div class="hover-lift bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 border-2 border-green-100">
+                    <div class="flex items-center mb-6">
+                        <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-2xl mr-4">S</div>
+                        <div>
+                            <p class="font-bold text-lg">Sarah L.</p>
+                            <p class="text-sm text-gray-600">Staff Engineer</p>
+                            <div class="flex mt-1">
+                                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-gray-800 text-lg leading-relaxed mb-4">
+                        "The breathing techniques and exposure practice completely changed my interview experience. I went from panic attacks to actually enjoying conversations. Landed at Stripe feeling confident for the first time."
+                    </p>
+                    <div class="inline-flex items-center px-4 py-2 bg-white/60 rounded-full text-sm font-semibold text-green-600">
+                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        Now at Stripe
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-primary to-secondary text-white">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div class="text-center">
+                    <p class="text-6xl font-black mb-3">93%</p>
+                    <p class="text-blue-100 text-lg">Experience Interview Anxiety</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-6xl font-black mb-3">55-60%</p>
+                    <p class="text-blue-100 text-lg">Performance Improvement</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-6xl font-black mb-3">40%</p>
+                    <p class="text-blue-100 text-lg">Say Confidence Affects Hiring</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-6xl font-black mb-3">75%</p>
+                    <p class="text-blue-100 text-lg">Cite Nervousness as Mistake</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="py-32 px-4 sm:px-6 lg:px-8 animated-gradient">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="text-5xl md:text-7xl font-black mb-8 leading-tight text-secondary">
+                Ready to Overcome<br/>
+                <span class="text-secondary">Interview Anxiety?</span>
+            </h2>
+            <p class="text-2xl text-gray-700 mb-12 leading-relaxed">
+                Practice with AI and peers. Master behavioral & technical interviews.<br/>
+                Join <span class="font-bold counter" id="cta-counter">500</span>+ beta users becoming confident and fluent.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-6 justify-center mb-10">
+                <button class="group bg-primary text-white px-12 py-6 rounded-xl hover:bg-secondary transition font-black text-xl shadow-2xl hover:shadow-primary/50 transform hover:scale-105 flex items-center justify-center">
+                    Start Practicing Free
+                    <svg class="w-6 h-6 ml-3 group-hover:translate-x-2 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                    </svg>
+                </button>
+                <button class="group glass-morphism text-gray-900 px-12 py-6 rounded-xl hover:bg-white/90 transition font-black text-xl flex items-center justify-center">
+                    <svg class="w-7 h-7 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"/>
+                    </svg>
+                    Watch Demo
+                </button>
+            </div>
+            <div class="flex items-center justify-center space-x-8 text-gray-700">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-secondary mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="font-semibold">Free forever plan</span>
+                </div>
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-secondary mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="font-semibold">No credit card required</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-300 py-16 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid md:grid-cols-5 gap-12 mb-12">
+                <div class="md:col-span-2">
+                    <div class="flex items-center space-x-2 mb-4">
+                        <div class="w-10 h-10 bg-gradient-to-br from-primary to-purple-600 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+                            </svg>
+                        </div>
+                        <span class="text-2xl font-bold text-white">InterviewPrep</span>
+                    </div>
+                    <p class="text-gray-400 mb-6 leading-relaxed">
+                        Practice behavioral & technical interviews with AI and peers. Fight anxiety and become confident and fluent through real practice.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-primary transition">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-primary transition">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-primary transition">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold mb-4 text-lg">Product</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#features" class="hover:text-white transition">Features</a></li>
+                        <li><a href="#pricing" class="hover:text-white transition">Pricing</a></li>
+                        <li><a href="#how-it-works" class="hover:text-white transition">How It Works</a></li>
+                        <li><a href="#" class="hover:text-white transition">Techniques</a></li>
+                        <li><a href="#" class="hover:text-white transition">Roadmap</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold mb-4 text-lg">Resources</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="hover:text-white transition">Blog</a></li>
+                        <li><a href="#" class="hover:text-white transition">Guides</a></li>
+                        <li><a href="#" class="hover:text-white transition">Community</a></li>
+                        <li><a href="#" class="hover:text-white transition">Help Center</a></li>
+                        <li><a href="#" class="hover:text-white transition">API Docs</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold mb-4 text-lg">Company</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="hover:text-white transition">About</a></li>
+                        <li><a href="#" class="hover:text-white transition">Careers</a></li>
+                        <li><a href="#" class="hover:text-white transition">Contact</a></li>
+                        <li><a href="#" class="hover:text-white transition">Privacy</a></li>
+                        <li><a href="#" class="hover:text-white transition">Terms</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-400 text-sm">&copy; 2026 InterviewPrep. All rights reserved.</p>
+                <p class="text-gray-400 text-sm mt-4 md:mt-0">Built with ❤️ for engineers who deserve better</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('shadow-lg');
+            } else {
+                navbar.classList.remove('shadow-lg');
+            }
+        });
+
+        // User counter animation
+        function animateCounter(elementId, start, end, duration) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            const range = end - start;
+            const increment = range / (duration / 16);
+            let current = start;
+
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= end) {
+                    element.textContent = end.toLocaleString() + '+';
+                    clearInterval(timer);
+                } else {
+                    element.textContent = Math.floor(current).toLocaleString() + '+';
+                }
+            }, 16);
+        }
+
+        // Start counter animation when page loads
+        window.addEventListener('load', () => {
+            animateCounter('user-counter', 400, 500, 2000);
+            animateCounter('cta-counter', 400, 500, 2000);
+        });
+
+        // Increment user counter every 5 minutes (realistic for beta)
+        setInterval(() => {
+            const counters = document.querySelectorAll('#user-counter, #cta-counter');
+            counters.forEach(counter => {
+                const current = parseInt(counter.textContent.replace(/,/g, '').replace('+', ''));
+                counter.textContent = (current + 1).toLocaleString() + '+';
+            });
+        }, 247000);
+
+        // CTA button handlers
+        document.querySelectorAll('button').forEach(button => {
+            if (button.textContent.includes('Start') ||
+                button.textContent.includes('Join') ||
+                button.textContent.includes('Get') ||
+                button.textContent.includes('Watch') ||
+                button.textContent.includes('Demo')) {
+                button.addEventListener('click', () => {
+                    alert('🎉 Thanks for your interest! This is a demo landing page.\n\nIn production, this button would:\n✓ Open signup/waitlist form\n✓ Start onboarding flow\n✓ Play demo video\n\nHelping people overcome interview anxiety.');
+                });
+            }
+        });
+
+        // GSAP ScrollTrigger animations (if needed)
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Fade in sections on scroll
+        gsap.utils.toArray('section').forEach(section => {
+            gsap.from(section, {
+                opacity: 0,
+                y: 50,
+                duration: 1,
+                scrollTrigger: {
+                    trigger: section,
+                    start: 'top 80%',
+                    end: 'top 50%',
+                    scrub: 1,
+                }
+            });
+        });
+    </script>
+</body>
+</html>
