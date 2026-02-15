@@ -7,11 +7,11 @@
 :root {
 
   /* Brand Colors - MyInterview Palette */
-  --primary: #59ff5c; /* Coral orange */
+  --primary: #2dec29; /* Coral orange */
   --primary-hover: #48e57c;
-  --secondary: #111827; /* Near black */
-  --cream: #FDF8F3; /* Warm cream background */
-  --cream-dark: #F5EDE3; /* Darker cream */
+  --secondary: #112715; /* Near black */
+  --cream: #f4fdf3; /* Warm cream background */ 
+  --cream-dark: #e3f5e6; /* Darker cream */
 
   /* Extended neutral palette */
   --neutral-50: #f9fafb;

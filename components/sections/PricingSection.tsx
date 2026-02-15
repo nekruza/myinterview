@@ -86,7 +86,7 @@ export const PricingSection: FC = () => {
               key={index}
               className={`relative ${
                 tier.popular
-                  ? "bg-primary text-white rounded-3xl p-8 shadow-2xl md:transform md:scale-105 border-2 border-primary"
+                  ? "bg-secondary text-white rounded-3xl p-8 shadow-2xl md:transform md:scale-105 border-2 border-primary"
                   : ""
               }`}
             >
@@ -167,7 +167,7 @@ export const PricingSection: FC = () => {
                 <Button
                   variant={tier.variant}
                   className={`w-full py-4 text-lg ${
-                    tier.popular ? "bg-white text-primary hover:bg-neutral-100" : ""
+                    tier.popular ? "bg-white text-black hover:bg-neutral-100" : ""
                   }`}
                   onClick={openModal}
                 >

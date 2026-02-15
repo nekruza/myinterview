@@ -12,7 +12,7 @@ export const Footer: FC = () => {
       { name: "Anxiety Guide", href: "/blog/how-to-stop-mind-going-blank-interview" },
     ],
     company: [
-      { name: "Careers", href: "#" },
+      { name: "Careers", href: "#join-team" },
       { name: "Contact", href: "/contact" },
       { name: "Privacy", href: "/privacy" },
       { name: "Terms", href: "/terms" },
