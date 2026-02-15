@@ -44,13 +44,13 @@ export const ProblemStatement: FC = () => {
           {problems.map((problem, index) => (
             <div
               key={index}
-              className="group bg-cream rounded-2xl p-6 border-2 border-transparent hover:border-primary transition-all duration-300"
+              className="group bg-cream rounded-2xl p-6 border-2 border-transparent hover:border-secondary transition-all duration-300"
             >
               <div className="mb-4 md:mb-0 md:relative md:-top-12">
                 <img
                   src={problem.img}
                   alt={problem.title}
-                  className="w-24 h-24 object-cover rounded-full border-4 border-primary"
+                  className="w-24 h-24 object-cover rounded-full border-4 border-secondary"
                 />
               </div>
               <div className="md:-mt-6">
@@ -60,7 +60,7 @@ export const ProblemStatement: FC = () => {
                 <p className="text-sm text-neutral-700 italic mb-4 leading-relaxed">
                   &quot;{problem.quote}&quot;
                 </p>
-                <div className="text-xs font-semibold text-primary">
+                <div className="text-xs font-semibold text-secondary">
                   {problem.stat}
                 </div>
               </div>

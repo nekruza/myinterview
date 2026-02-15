@@ -176,17 +176,6 @@ export const JoinTeamSection: FC = () => {
             ))}
           </div>
 
-          {/* Bottom note */}
-          <p className="text-center text-neutral-400 text-sm">
-            Don&apos;t see your role?{" "}
-            <a
-              href="mailto:jobs@myinterview.com"
-              className="text-primary hover:underline font-semibold"
-            >
-              Reach out anyway
-            </a>
-            {" "}— we&apos;re always looking for great people.
-          </p>
         </div>
       </section>
 
