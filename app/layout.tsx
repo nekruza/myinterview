@@ -10,8 +10,11 @@ const sora = Sora({
 });
 
 export const metadata: Metadata = {
-  title: "InterviewPrep - Conquer Interview Anxiety | Build Real Confidence",
+  title: "MyInterview - Conquer Interview Anxiety | Build Real Confidence",
   description: "Overcome interview anxiety with peer support and proven techniques. Practice with people who understand, build genuine confidence, and land your dream role.",
+  icons: {
+    icon: "/logo.jpg",
+  },
 };
 
 export default function RootLayout({
