@@ -1,5 +1,4 @@
 import { FC } from "react";
-import { Button } from "../ui";
 
 export const HowItWorks: FC = () => {
   const steps = [
@@ -51,18 +50,26 @@ export const HowItWorks: FC = () => {
   ];
 
   return (
-    <section id="how-it-works" className="py-24 px-4 sm:px-6 lg:px-8 bg-white">
+    <section
+      id="how-it-works"
+      aria-labelledby="how-it-works-heading"
+      className="py-24 px-4 sm:px-6 lg:px-8 bg-white"
+    >
       <div className="max-w-6xl mx-auto">
+        {/* Hidden heading for screen readers and SEO */}
+        <h2 id="how-it-works-heading" className="sr-only">
+          How MyInterview Works — 3 Steps to Interview Confidence
+        </h2>
         {/* 3 Steps Box */}
         <div className="border-4 border-primary rounded-3xl p-8 md:p-12 bg-cream">
-          <div className="grid md:grid-cols-3 gap-8">
+          <ol className="grid md:grid-cols-3 gap-8" aria-label="Steps to get started">
             {steps.map((step) => (
-              <div key={step.number} className="flex flex-col items-start">
+              <li key={step.number} className="flex flex-col items-start">
                 <div className="flex items-center mb-4">
-                  <span className="text-3xl font-black text-secondary mr-3">
+                  <span className="text-3xl font-black text-secondary mr-3" aria-hidden="true">
                     {step.number}.
                   </span>
-                  <div className="w-12 h-12 bg-cream-dark rounded-xl flex items-center justify-center">
+                  <div className="w-12 h-12 bg-cream-dark rounded-xl flex items-center justify-center" aria-hidden="true">
                     {step.icon}
                   </div>
                 </div>
@@ -72,9 +79,9 @@ export const HowItWorks: FC = () => {
                 <p className="text-neutral-700 leading-relaxed">
                   {step.description}
                 </p>
-              </div>
+              </li>
             ))}
-          </div>
+          </ol>
         </div>
       </div>
     </section>

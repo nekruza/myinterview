@@ -7,17 +7,24 @@ import { useComingSoon } from "../ComingSoonProvider";
 export const FeaturesSection: FC = () => {
   const { openModal } = useComingSoon();
   return (
-    <section id="features" className="py-24 px-4 sm:px-6 lg:px-8 bg-white">
+    <section
+      id="features"
+      aria-labelledby="features-heading"
+      className="py-24 px-4 sm:px-6 lg:px-8 bg-white"
+    >
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-20">
           <p className="text-primary font-bold text-sm uppercase tracking-wider mb-3">
             Our Solution
           </p>
-          <h2 className="text-5xl font-black mb-6 text-secondary">
+          <h2
+            id="features-heading"
+            className="text-5xl font-black mb-6 text-secondary"
+          >
             Everything You Need to Succeed
           </h2>
           <p className="text-xl text-neutral-700 max-w-3xl mx-auto">
-            AI + peer practice + anxiety techniques + behavioral & technical
+            AI + peer practice + anxiety techniques + behavioral &amp; technical
             prep + progress tracking
           </p>
         </div>

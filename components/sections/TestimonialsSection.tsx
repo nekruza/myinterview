@@ -49,6 +49,7 @@ export const TestimonialsSection: FC = () => {
   return (
     <section
       id="testimonials"
+      aria-labelledby="testimonials-heading"
       className="py-24 px-4 sm:px-6 lg:px-8 bg-white"
     >
       <div className="max-w-6xl mx-auto">
@@ -56,23 +57,29 @@ export const TestimonialsSection: FC = () => {
           <p className="text-primary font-bold text-sm uppercase tracking-wider mb-3">
             Success Stories
           </p>
-          <h2 className="text-5xl md:text-6xl font-black mb-6 text-secondary">
+          <h2
+            id="testimonials-heading"
+            className="text-5xl md:text-6xl font-black mb-6 text-secondary"
+          >
             From Anxious to Confident
           </h2>
           <p className="text-xl text-neutral-600">
-            Real stories from engineers who conquered their anxiety
+            Real stories from engineers who conquered their interview anxiety
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-3 gap-8" role="list" aria-label="User testimonials">
           {testimonials.map((testimonial, index) => (
-            <div
+            <article
               key={index}
+              role="listitem"
+              aria-label={`Review by ${testimonial.name}`}
               className={`hover-lift bg-gradient-to-br ${testimonial.bgGradient} rounded-2xl p-8 border-2 ${testimonial.borderColor}`}
             >
               <div className="flex items-center mb-6">
                 <div
                   className={`w-16 h-16 bg-gradient-to-br ${testimonial.gradient} rounded-full flex items-center justify-center text-white font-bold text-2xl mr-4`}
+                  aria-hidden="true"
                 >
                   {testimonial.initial}
                 </div>
@@ -81,16 +88,16 @@ export const TestimonialsSection: FC = () => {
                     {testimonial.name}
                   </p>
                   <p className="text-sm text-neutral-600">{testimonial.role}</p>
-                  <div className="flex mt-1">
+                  <div className="flex mt-1" aria-label="5 out of 5 stars">
                     {[1, 2, 3, 4, 5].map((i) => (
                       <Star key={i} />
                     ))}
                   </div>
                 </div>
               </div>
-              <p className="text-neutral-800 text-lg leading-relaxed mb-4">
+              <blockquote className="text-neutral-800 text-lg leading-relaxed mb-4">
                 &quot;{testimonial.quote}&quot;
-              </p>
+              </blockquote>
               <div
                 className={`inline-flex items-center px-4 py-2 bg-white/60 rounded-full text-sm font-semibold ${testimonial.badgeColor}`}
               >
@@ -107,7 +114,7 @@ export const TestimonialsSection: FC = () => {
                 </svg>
                 {testimonial.badge}
               </div>
-            </div>
+            </article>
           ))}
         </div>
       </div>

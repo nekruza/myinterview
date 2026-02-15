@@ -120,14 +120,21 @@ export const JoinTeamSection: FC = () => {
 
   return (
     <>
-      <section id="join-team" className="py-24 px-4 sm:px-6 lg:px-8 bg-secondary">
+      <section
+        id="join-team"
+        aria-labelledby="join-team-heading"
+        className="py-24 px-4 sm:px-6 lg:px-8 bg-secondary"
+      >
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="text-center mb-16">
             <p className="text-primary font-bold text-sm uppercase tracking-wider mb-3">
               We&apos;re Hiring
             </p>
-            <h2 className="text-4xl md:text-5xl font-black mb-6 text-white">
+            <h2
+              id="join-team-heading"
+              className="text-4xl md:text-5xl font-black mb-6 text-white"
+            >
               Help Us Build MyInterview
             </h2>
             <p className="text-xl text-neutral-300 max-w-2xl mx-auto">
@@ -137,10 +144,11 @@ export const JoinTeamSection: FC = () => {
           </div>
 
           {/* Role Cards */}
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
+          <div className="grid md:grid-cols-3 gap-6 mb-12" role="list" aria-label="Open positions">
             {roles.map((role, index) => (
-              <div
+              <article
                 key={index}
+                role="listitem"
                 className="group bg-neutral-800 rounded-2xl p-8 border-2 border-neutral-700 hover:border-primary transition-all duration-300"
               >
                 <div
@@ -172,7 +180,7 @@ export const JoinTeamSection: FC = () => {
                 >
                   Apply Now
                 </Button>
-              </div>
+              </article>
             ))}
           </div>
 

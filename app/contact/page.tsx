@@ -84,7 +84,7 @@ export default function ContactPage() {
   return (
     <>
       <Navigation />
-      <main className="bg-white min-h-screen">
+      <main id="main-content" className="bg-white min-h-screen">
         {/* Hero */}
         <section className="pt-36 pb-16 px-4 sm:px-6 lg:px-8 bg-cream">
           <div className="max-w-6xl mx-auto text-center">
