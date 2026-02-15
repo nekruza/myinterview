@@ -28,12 +28,15 @@ export const HeroSection: FC = () => {
   }, []);
 
   return (
-    <section className="min-h-screen flex items-center pt-28 md:pt-32 px-4 sm:px-6 lg:px-8 animated-gradient overflow-hidden">
+    <section
+      aria-label="Hero — Conquer Interview Anxiety"
+      className="min-h-screen flex items-center pt-28 md:pt-32 px-4 sm:px-6 lg:px-8 animated-gradient overflow-hidden"
+    >
       <div className="max-w-6xl mx-auto w-full">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <div className="animate-fade-in">
             <div className="inline-flex items-center bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-semibold mb-6 border border-neutral-200">
-              <span className="relative flex h-3 w-3 mr-2">
+              <span className="relative flex h-3 w-3 mr-2" aria-hidden="true">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
               </span>
@@ -49,10 +52,10 @@ export const HeroSection: FC = () => {
               </span>
             </h1>
             <p className="text-xl text-neutral-800 mb-8 leading-relaxed">
-              Practice behavioral & technical interviews with AI and peers.{" "}
-              <span className="font-semibold text-secondary">
+              Practice behavioral &amp; technical interviews with AI and peers.{" "}
+              <strong className="font-semibold text-secondary">
                 Become confident and fluent.
-              </span>
+              </strong>
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mb-10">
               <Button size="lg" className="group" onClick={openModal}>
@@ -121,11 +124,13 @@ export const HeroSection: FC = () => {
                     muted
                     playsInline
                     poster="/hero-image.png"
+                    aria-label="MyInterview platform demo showing a live AI mock interview session"
                   >
                     <source src="/hero-video.mp4" type="video/mp4" />
+                    {/* Fallback for browsers that don't support video */}
                     <img
                       src="/hero-image.png"
-                      alt="MyInterview hero"
+                      alt="MyInterview platform showing an AI mock interview session with real-time feedback and progress tracking"
                       className="w-full h-full object-cover"
                     />
                   </video>

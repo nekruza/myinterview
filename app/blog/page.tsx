@@ -1,13 +1,29 @@
+import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { posts } from "@/lib/blog";
 
-export const metadata = {
-  title: "Blog — MyInterview",
+export const metadata: Metadata = {
+  title: "Interview Anxiety & Prep Blog — MyInterview",
   description:
-    "Tips, research, and real stories on conquering interview anxiety and landing the roles you deserve.",
+    "Research-backed tips, real engineer success stories, and practical techniques to conquer interview anxiety and land your dream software engineering role. Free guides updated 2026.",
+  alternates: {
+    canonical: "https://myinterview.com/blog",
+  },
+  openGraph: {
+    title: "Interview Anxiety & Prep Blog — MyInterview",
+    description:
+      "Research-backed tips, real engineer stories, and proven techniques to conquer interview anxiety. Behavioral prep, technical interviews, system design, and more.",
+    url: "https://myinterview.com/blog",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Interview Anxiety & Prep Blog — MyInterview",
+    description:
+      "Research-backed guides to conquer interview anxiety and land your next software engineering role.",
+  },
 };
 
 const categoryColors: Record<string, string> = {
@@ -18,13 +34,54 @@ const categoryColors: Record<string, string> = {
   Mindset: "bg-orange-100 text-orange-700",
 };
 
+function BlogListSchema() {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    name: "MyInterview Blog — Interview Anxiety & Preparation",
+    description:
+      "Research-backed tips, real engineer success stories, and practical techniques to conquer interview anxiety and land your dream software engineering role.",
+    url: "https://myinterview.com/blog",
+    publisher: {
+      "@type": "Organization",
+      name: "MyInterview",
+      url: "https://myinterview.com",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://myinterview.com/logo.jpg",
+      },
+    },
+    blogPost: posts.map((post) => ({
+      "@type": "BlogPosting",
+      headline: post.title,
+      description: post.excerpt,
+      url: `https://myinterview.com/blog/${post.slug}`,
+      author: {
+        "@type": "Person",
+        name: post.author,
+        jobTitle: post.authorRole,
+      },
+      datePublished: new Date(post.date).toISOString(),
+      keywords: ["interview anxiety", "interview practice", post.category.toLowerCase()].join(", "),
+    })),
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
 export default function BlogPage() {
   const [featured, ...rest] = posts;
 
   return (
     <>
+      <BlogListSchema />
       <Navigation />
-      <main className="bg-white min-h-screen">
+      <main id="main-content" className="bg-white min-h-screen">
         {/* Hero */}
         <section className="pt-36 pb-16 px-4 sm:px-6 lg:px-8 bg-cream">
           <div className="max-w-6xl mx-auto text-center">

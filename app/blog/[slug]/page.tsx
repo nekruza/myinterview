@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { getPost, getAllSlugs, posts } from "@/lib/blog";
+import { ArticleSchema, BreadcrumbSchema } from "@/components/structured-data/ArticleSchema";
 
 export function generateStaticParams() {
   return getAllSlugs().map((slug) => ({ slug }));
@@ -19,6 +20,23 @@ export async function generateMetadata({
   return {
     title: `${post.title} — MyInterview Blog`,
     description: post.excerpt,
+    alternates: {
+      canonical: `https://myinterview.com/blog/${slug}`,
+    },
+    openGraph: {
+      title: `${post.title} — MyInterview Blog`,
+      description: post.excerpt,
+      url: `https://myinterview.com/blog/${slug}`,
+      type: "article",
+      publishedTime: new Date(post.date).toISOString(),
+      authors: [post.author],
+      tags: ["interview anxiety", "interview practice", post.category],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${post.title} — MyInterview Blog`,
+      description: post.excerpt,
+    },
   };
 }
 
@@ -113,8 +131,16 @@ export default async function BlogPostPage({
 
   return (
     <>
+      <ArticleSchema post={post} slug={slug} />
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: "https://myinterview.com" },
+          { name: "Blog", url: "https://myinterview.com/blog" },
+          { name: post.title, url: `https://myinterview.com/blog/${slug}` },
+        ]}
+      />
       <Navigation />
-      <main className="bg-white min-h-screen">
+      <main id="main-content" className="bg-white min-h-screen">
         {/* Hero */}
         <section className="pt-36 pb-12 px-4 sm:px-6 lg:px-8 bg-cream">
           <div className="max-w-3xl mx-auto">

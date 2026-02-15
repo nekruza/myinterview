@@ -2,9 +2,19 @@ import Link from "next/link";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 
-export const metadata = {
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
   title: "Privacy Policy — MyInterview",
-  description: "Learn how MyInterview collects, uses, and protects your personal data.",
+  description:
+    "Learn how MyInterview collects, uses, and protects your personal data. We do not sell your data. Read our full privacy policy.",
+  alternates: {
+    canonical: "https://myinterview.com/privacy",
+  },
+  robots: {
+    index: true,
+    follow: false,
+  },
 };
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -20,7 +30,7 @@ export default function PrivacyPage() {
   return (
     <>
       <Navigation />
-      <main className="bg-white min-h-screen">
+      <main id="main-content" className="bg-white min-h-screen">
         {/* Hero */}
         <section className="pt-36 pb-12 px-4 sm:px-6 lg:px-8 bg-cream">
           <div className="max-w-3xl mx-auto">

@@ -64,6 +64,7 @@ export const PricingSection: FC = () => {
   return (
     <section
       id="pricing"
+      aria-labelledby="pricing-heading"
       className="py-24 px-4 sm:px-6 lg:px-8 bg-neutral-50"
     >
       <div className="max-w-6xl mx-auto">
@@ -71,7 +72,10 @@ export const PricingSection: FC = () => {
           <p className="text-primary font-bold text-sm uppercase tracking-wider mb-3">
             Pricing
           </p>
-          <h2 className="text-5xl font-black mb-6 text-secondary">
+          <h2
+            id="pricing-heading"
+            className="text-5xl font-black mb-6 text-secondary"
+          >
             Start Free, Upgrade When Ready
           </h2>
           <p className="text-xl text-neutral-600">

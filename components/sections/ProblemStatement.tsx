@@ -1,4 +1,5 @@
 import { FC } from "react";
+import Image from "next/image";
 
 export const ProblemStatement: FC = () => {
   const problems = [
@@ -23,14 +24,20 @@ export const ProblemStatement: FC = () => {
   ];
 
   return (
-    <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
+    <section
+      aria-labelledby="problem-heading"
+      className="py-16 px-4 sm:px-6 lg:px-8 bg-white"
+    >
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
           <p className="text-primary font-bold text-sm uppercase tracking-wider mb-3">
-            THE REAL PROBLEM
+            The Real Problem
           </p>
-          <h2 className="text-4xl md:text-5xl font-black mb-4 text-secondary">
+          <h2
+            id="problem-heading"
+            className="text-4xl md:text-5xl font-black mb-4 text-secondary"
+          >
             Interview Anxiety Affects Everyone
           </h2>
           <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
@@ -47,10 +54,12 @@ export const ProblemStatement: FC = () => {
               className="group bg-cream rounded-2xl p-6 border-2 border-transparent hover:border-secondary transition-all duration-300"
             >
               <div className="mb-4 md:mb-0 md:relative md:-top-12">
-                <img
+                <Image
                   src={problem.img}
                   alt={problem.title}
-                  className="w-24 h-24 object-cover rounded-full border-4 border-secondary"
+                  width={96}
+                  height={96}
+                  className="object-cover rounded-full border-4 border-secondary"
                 />
               </div>
               <div className="md:-mt-6">
