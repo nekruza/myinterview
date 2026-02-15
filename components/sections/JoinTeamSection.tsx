@@ -150,25 +150,25 @@ export const JoinTeamSection: FC = () => {
               <article
                 key={index}
                 role="listitem"
-                className="group bg-neutral-800 rounded-2xl p-8 border-2 border-neutral-700 hover:border-primary transition-all duration-300"
+                className="group bg-[var(--cream)] rounded-2xl p-8 border-2 border-neutral-700 hover:border-primary transition-all duration-300"
               >
                 <div
                   className={`w-14 h-14 ${role.accent} rounded-xl flex items-center justify-center mb-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]`}
                 >
                   {role.icon}
                 </div>
-                <h3 className="text-xl font-bold text-white mb-1">{role.title}</h3>
+                <h3 className="text-xl font-bold text-secondary mb-1">{role.title}</h3>
                 <p className="text-xs font-semibold text-primary mb-4 uppercase tracking-wider">
                   {role.type}
                 </p>
-                <p className="text-neutral-300 text-sm leading-relaxed mb-6">
+                <p className="text-neutral-600 text-sm leading-relaxed mb-6">
                   {role.description}
                 </p>
                 <div className="flex flex-wrap gap-2 mb-6">
                   {role.skills.map((skill) => (
                     <span
                       key={skill}
-                      className="px-3 py-1 bg-neutral-700 text-neutral-200 rounded-full text-xs font-semibold"
+                      className="px-3 py-1 bg-neutral-200 text-neutral-700 rounded-full text-xs font-semibold"
                     >
                       {skill}
                     </span>
@@ -176,7 +176,7 @@ export const JoinTeamSection: FC = () => {
                 </div>
                 <Button
                   variant="outline"
-                  className="w-full border-neutral-500 text-white hover:bg-neutral-700 shadow-none"
+                  className="w-full border-neutral-400 text-secondary hover:bg-neutral-200 shadow-none"
                   onClick={() => { track("CTA Clicked", { button: "Apply Now", location: "join_team", role: role.title }); setSelectedRole(role); }}
                 >
                   Apply Now

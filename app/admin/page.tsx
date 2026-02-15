@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, Fragment } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
@@ -138,7 +139,15 @@ export default function AdminPage() {
       {/* Header */}
       <header className="bg-secondary shadow-[0_4px_0_0_#1A1A1A]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-white">Admin Dashboard</h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-xl font-bold text-white">Admin Dashboard</h1>
+            <Link
+              href="/"
+              className="text-sm text-neutral-300 hover:text-white transition-colors"
+            >
+              Home
+            </Link>
+          </div>
           <Button
             variant="outline"
             size="sm"
