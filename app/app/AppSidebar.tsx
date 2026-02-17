@@ -7,7 +7,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
   LayoutDashboard,
-  Users,
+  Sparkles,
+  TrendingUp,
   BookOpen,
   MessageSquare,
   Settings,
@@ -18,8 +19,8 @@ import {
 
 const navItems = [
   { href: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/app/practice", label: "Practice", icon: Users },
-  { href: "/app/frameworks", label: "Frameworks", icon: BookOpen },
+  { href: "/app/practice", label: "AI Practice", icon: Sparkles },
+  { href: "/app/progress", label: "Progress", icon: TrendingUp },
   { href: "/app/community", label: "Community", icon: MessageSquare },
   { href: "/app/settings", label: "Settings", icon: Settings },
 ];
