@@ -6,7 +6,6 @@ import {
   ArrowRight,
   Sparkles,
   Brain,
-  MessageSquare,
   TrendingUp,
   Zap,
 } from "lucide-react";
@@ -36,14 +35,8 @@ const frameworks = [
 const upcomingFeatures = [
   {
     icon: Brain,
-    title: "Peer Matching",
-    description: "Get matched with an engineer at your level for structured 45-min practice sessions.",
-    eta: "Coming Q2 2026",
-  },
-  {
-    icon: MessageSquare,
-    title: "Community",
-    description: "Connect with other engineers preparing for interviews. Share stories, get support.",
+    title: "AI-Powered Matching",
+    description: "Get automatically matched with engineers at your level based on availability and goals.",
     eta: "Coming Q3 2026",
   },
 ];
@@ -128,12 +121,12 @@ export default async function DashboardPage() {
       href: null,
     },
     {
-      label: "Peer Match",
-      value: "Coming soon",
+      label: "Peer Practice",
+      value: "Live",
       icon: Calendar,
-      sub: "Q2 2026",
+      sub: "Practice with others",
       color: "#8b5cf6",
-      href: null,
+      href: "/app/peer-practice",
     },
   ];
 

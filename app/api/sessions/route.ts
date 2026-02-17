@@ -93,6 +93,49 @@ export async function PATCH(req: NextRequest) {
     await supabase.from("progress_scores").insert(scoreRows);
   }
 
+  // Update streak tracking
+  const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+  const { data: existing } = await supabase
+    .from("user_streaks")
+    .select("current_streak, longest_streak, last_practice_date")
+    .eq("user_id", user.id)
+    .single();
+
+  if (existing) {
+    const lastDate = existing.last_practice_date;
+    const yesterday = new Date(Date.now() - 86400000)
+      .toISOString()
+      .split("T")[0];
+
+    let newStreak = existing.current_streak;
+    if (lastDate === today) {
+      // Already practiced today, no change
+    } else if (lastDate === yesterday) {
+      newStreak += 1;
+    } else {
+      newStreak = 1;
+    }
+
+    const newLongest = Math.max(existing.longest_streak, newStreak);
+
+    await supabase
+      .from("user_streaks")
+      .update({
+        current_streak: newStreak,
+        longest_streak: newLongest,
+        last_practice_date: today,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("user_id", user.id);
+  } else {
+    await supabase.from("user_streaks").insert({
+      user_id: user.id,
+      current_streak: 1,
+      longest_streak: 1,
+      last_practice_date: today,
+    });
+  }
+
   return NextResponse.json({ ok: true });
 }
 

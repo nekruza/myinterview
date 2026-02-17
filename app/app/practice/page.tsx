@@ -1,10 +1,8 @@
 "use client";
 
-import { FC, useState, useRef, useEffect, useCallback } from "react";
+import { FC, useState } from "react";
 import { toast } from "sonner";
 import {
-  Send,
-  RefreshCw,
   CheckCircle,
   ChevronDown,
   Sparkles,
@@ -12,80 +10,9 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import Link from "next/link";
-
-// ─── Data ───────────────────────────────────────────────────────────────────
-
-const CATEGORIES = [
-  {
-    id: "leadership",
-    label: "Leadership & Influence",
-    color: "#2dec29",
-    questions: [
-      "Tell me about a time you led a project through a significant technical challenge.",
-      "Describe a situation where you had to influence a team without formal authority.",
-      "Give me an example of when you mentored someone and the impact it had.",
-      "Tell me about a time you drove a technical decision that others disagreed with.",
-    ],
-  },
-  {
-    id: "ownership",
-    label: "Ownership & Initiative",
-    color: "#f59e0b",
-    questions: [
-      "Tell me about a time you took ownership of a problem that wasn't technically yours to solve.",
-      "Describe a situation where you identified and fixed a critical issue before it became a major problem.",
-      "Give me an example of when you went beyond your role to deliver better outcomes.",
-      "Tell me about a time you had to make a high-stakes decision with incomplete information.",
-    ],
-  },
-  {
-    id: "conflict",
-    label: "Conflict & Disagreement",
-    color: "#8b5cf6",
-    questions: [
-      "Tell me about a time you disagreed with your manager and how you handled it.",
-      "Describe a situation where two team members were in conflict and you helped resolve it.",
-      "Give me an example of when you had to push back on a product decision you believed was wrong.",
-      "Tell me about a time you had a difficult conversation with a stakeholder.",
-    ],
-  },
-  {
-    id: "failure",
-    label: "Failure & Growth",
-    color: "#ef4444",
-    questions: [
-      "Tell me about your biggest professional failure and what you learned from it.",
-      "Describe a time you made a mistake that impacted your team. How did you handle it?",
-      "Give me an example of a project that failed. What would you do differently?",
-      "Tell me about a time when you received critical feedback that was hard to hear.",
-    ],
-  },
-  {
-    id: "collaboration",
-    label: "Cross-team Collaboration",
-    color: "#06b6d4",
-    questions: [
-      "Tell me about a time you worked across teams to deliver a complex project.",
-      "Describe a situation where alignment between teams was difficult to achieve.",
-      "Give me an example of when you had to coordinate work with multiple stakeholders.",
-      "Tell me about a time you improved a process that benefited teams beyond your own.",
-    ],
-  },
-];
-
-const LEVELS = [
-  { value: "junior", label: "Junior (0-2 yrs)" },
-  { value: "mid", label: "Mid-level (3-5 yrs)" },
-  { value: "senior", label: "Senior (6-9 yrs)" },
-  { value: "staff", label: "Staff / Principal (10+ yrs)" },
-];
-
-interface Message {
-  role: "user" | "assistant";
-  content: string;
-}
-
-type Phase = "setup" | "chat" | "complete";
+import { VoiceCallView } from "@/components/practice/VoiceCallView";
+import { CATEGORIES, LEVELS } from "@/lib/practice-data";
+import type { Phase } from "@/lib/practice-data";
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
@@ -130,18 +57,9 @@ export default function PracticePage() {
   );
   const [level, setLevel] = useState("mid");
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
-  const [streaming, setStreaming] = useState(false);
   const [confidence, setConfidence] = useState<number | null>(null);
   const [endConfidence, setEndConfidence] = useState<number | null>(null);
   const [showQuestionPicker, setShowQuestionPicker] = useState(false);
-  const chatEndRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, streaming]);
 
   const startSession = async () => {
     if (!confidence) {
@@ -162,122 +80,25 @@ export default function PracticePage() {
       if (!res.ok) throw new Error(data.error);
       setSessionId(data.sessionId);
       setPhase("chat");
-
-      // Kick off the first AI message
-      await sendToAI(
-        [
-          {
-            role: "user",
-            content: `[SESSION START] I'm a ${LEVELS.find((l) => l.value === level)?.label} engineer. Please present the practice question and guide me through the session.`,
-          },
-        ],
-        data.sessionId
-      );
     } catch {
       toast.error("Could not start session. Please try again.");
     }
   };
 
-  const sendToAI = useCallback(
-    async (msgs: Message[], sid: string | null = sessionId) => {
-      setStreaming(true);
-      const assistantMsg: Message = { role: "assistant", content: "" };
-      setMessages((prev) => [...prev, assistantMsg]);
+  const completeSession = async (endConf: number) => {
+    if (!sessionId) return;
 
-      try {
-        const res = await fetch("/api/ai/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            messages: msgs,
-            question: selectedQuestion,
-            category: selectedCategory.id,
-            level,
-            sessionId: sid,
-          }),
-        });
-
-        if (!res.ok || !res.body) throw new Error("Stream failed");
-
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() ?? "";
-
-          for (const line of lines) {
-            if (!line.startsWith("data: ")) continue;
-            const payload = line.slice(6);
-            if (payload === "[DONE]") break;
-            try {
-              const { text, error } = JSON.parse(payload);
-              if (error) throw new Error(error);
-              if (text) {
-                setMessages((prev) => {
-                  const updated = [...prev];
-                  updated[updated.length - 1] = {
-                    role: "assistant",
-                    content: updated[updated.length - 1].content + text,
-                  };
-                  return updated;
-                });
-              }
-            } catch {
-              // skip malformed chunks
-            }
-          }
-        }
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : "AI error";
-        toast.error(msg.includes("API key") ? "AI service not configured (missing ANTHROPIC_API_KEY)" : msg);
-        setMessages((prev) => prev.slice(0, -1));
-      } finally {
-        setStreaming(false);
-      }
-    },
-    [sessionId, selectedQuestion, selectedCategory.id, level]
-  );
-
-  const handleSend = async () => {
-    const trimmed = input.trim();
-    if (!trimmed || streaming) return;
-    setInput("");
-
-    const userMsg: Message = { role: "user", content: trimmed };
-    const updatedMsgs = [...messages, userMsg];
-    setMessages(updatedMsgs);
-
-    await sendToAI(updatedMsgs);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
-  const completeSession = async () => {
-    if (!endConfidence || !sessionId) return;
-
-    const delta = endConfidence - (confidence ?? 5);
-    const feedbackMsg = messages.findLast((m) => m.role === "assistant");
+    setEndConfidence(endConf);
 
     await fetch("/api/sessions", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         sessionId,
-        score: endConfidence,
-        feedback: feedbackMsg?.content?.slice(0, 500) ?? null,
+        score: endConf,
+        feedback: null,
         competencyScores: [
-          { competency: selectedCategory.id, score: endConfidence * 10 },
+          { competency: selectedCategory.id, score: endConf * 10 },
         ],
       }),
     });
@@ -432,7 +253,7 @@ export default function PracticePage() {
           style={{ background: "#112715", color: "#fff" }}
         >
           <Sparkles className="w-4 h-4" style={{ color: "#2dec29" }} />
-          Start Practice Session
+          Start Voice Practice
         </button>
 
         <FrameworkBadge />
@@ -440,158 +261,20 @@ export default function PracticePage() {
     );
   }
 
-  // ── Render: Chat ──
+  // ── Render: Voice Call ──
   if (phase === "chat") {
     return (
-      <div className="flex gap-6 h-[calc(100vh-6rem)]">
-        {/* Chat */}
-        <div className="flex-1 flex flex-col min-w-0">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-4 shrink-0">
-            <div>
-              <div className="flex items-center gap-2">
-                <span
-                  className="w-2 h-2 rounded-full"
-                  style={{ background: selectedCategory.color }}
-                />
-                <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">
-                  {selectedCategory.label}
-                </span>
-              </div>
-              <p className="text-secondary font-medium text-sm mt-0.5 leading-snug max-w-lg">
-                {selectedQuestion}
-              </p>
-            </div>
-            <button
-              onClick={() => setPhase("setup")}
-              className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-secondary transition px-3 py-1.5 rounded-lg hover:bg-neutral-100"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              New question
-            </button>
-          </div>
-
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto space-y-4 pr-1">
-            {messages.map((msg, i) => (
-              <div
-                key={i}
-                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-              >
-                {msg.role === "assistant" && (
-                  <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mr-2 mt-1"
-                    style={{ background: "#2dec29", color: "#112715" }}
-                  >
-                    AI
-                  </div>
-                )}
-                <div
-                  className="max-w-[75%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap"
-                  style={{
-                    background:
-                      msg.role === "user" ? "#112715" : "#fff",
-                    color: msg.role === "user" ? "#fff" : "#112715",
-                    border:
-                      msg.role === "assistant"
-                        ? "1px solid #f3f4f6"
-                        : "none",
-                  }}
-                >
-                  {msg.content || (
-                    <span className="flex gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-neutral-300 animate-bounce [animation-delay:0ms]" />
-                      <span className="w-1.5 h-1.5 rounded-full bg-neutral-300 animate-bounce [animation-delay:150ms]" />
-                      <span className="w-1.5 h-1.5 rounded-full bg-neutral-300 animate-bounce [animation-delay:300ms]" />
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
-            <div ref={chatEndRef} />
-          </div>
-
-          {/* Input */}
-          <div className="mt-4 shrink-0">
-            <div className="flex gap-3 items-end bg-white border border-neutral-200 rounded-2xl p-3 focus-within:border-neutral-300 transition">
-              <textarea
-                ref={textareaRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Type your answer… (Enter to send, Shift+Enter for new line)"
-                rows={3}
-                className="flex-1 resize-none outline-none text-sm text-secondary placeholder:text-neutral-400 leading-relaxed"
-                disabled={streaming}
-              />
-              <button
-                onClick={handleSend}
-                disabled={!input.trim() || streaming}
-                className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition disabled:opacity-40"
-                style={{ background: "#2dec29", color: "#112715" }}
-              >
-                <Send className="w-4 h-4" />
-              </button>
-            </div>
-            <p className="text-xs text-neutral-400 text-center mt-2">
-              After a few rounds, click below to wrap up the session.
-            </p>
-
-            {/* End session */}
-            {messages.length >= 4 && !streaming && (
-              <div className="mt-3 p-4 bg-white border border-neutral-100 rounded-2xl">
-                <p className="text-xs font-semibold text-neutral-600 uppercase tracking-wide mb-2">
-                  Confidence After (1–10)
-                </p>
-                <div className="flex gap-2 flex-wrap mb-3">
-                  {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                    <button
-                      key={n}
-                      onClick={() => setEndConfidence(n)}
-                      className="w-8 h-8 rounded-xl text-xs font-semibold transition"
-                      style={{
-                        background: endConfidence === n ? "#2dec29" : "#f3f4f6",
-                        color: endConfidence === n ? "#112715" : "#6b7280",
-                      }}
-                    >
-                      {n}
-                    </button>
-                  ))}
-                </div>
-                <button
-                  onClick={completeSession}
-                  disabled={!endConfidence}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50 transition"
-                  style={{ background: "#112715", color: "#fff" }}
-                >
-                  <CheckCircle className="w-4 h-4" />
-                  Complete Session
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Sidebar */}
-        <div className="w-56 shrink-0 space-y-4 hidden lg:block">
-          <FrameworkBadge />
-          <div className="bg-white border border-neutral-100 rounded-2xl p-4">
-            <p className="text-xs font-semibold text-neutral-600 uppercase tracking-wide mb-2">
-              Tips
-            </p>
-            {[
-              "Be specific — name real projects",
-              "Quantify impact where possible",
-              "Show your thinking process",
-              "Don't skip the Result",
-            ].map((tip) => (
-              <p key={tip} className="text-xs text-neutral-500 mb-1.5 flex gap-1.5">
-                <span style={{ color: "#2dec29" }}>•</span> {tip}
-              </p>
-            ))}
-          </div>
-        </div>
-      </div>
+      <VoiceCallView
+        selectedCategory={selectedCategory}
+        selectedQuestion={selectedQuestion}
+        level={level}
+        sessionId={sessionId}
+        onComplete={(endConf) => completeSession(endConf)}
+        onReset={() => {
+          setPhase("setup");
+          setSessionId(null);
+        }}
+      />
     );
   }
 
@@ -642,7 +325,6 @@ export default function PracticePage() {
         <button
           onClick={() => {
             setPhase("setup");
-            setMessages([]);
             setSessionId(null);
             setConfidence(null);
             setEndConfidence(null);
