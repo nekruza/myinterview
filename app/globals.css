@@ -10,7 +10,7 @@
   --primary: #2dec29; /* Coral orange */
   --primary-hover: #48e57c;
   --secondary: #112715; /* Near black */
-  --cream: #f4fdf3; /* Warm cream background */ 
+  --cream: #fbfdf3; /* Warm cream background */ 
   --cream-dark: #e3f5e6; /* Darker cream */
 
   /* Extended neutral palette */
@@ -396,10 +396,12 @@ html {
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
-    @apply bg-background text-foreground;
+  }
+  button,
+  [role="button"] {
+    cursor: pointer;
   }
 }

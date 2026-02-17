@@ -209,114 +209,115 @@ export const AppSidebar: FC<AppSidebarProps> = ({ userEmail }) => {
           );
         })}
 
-        {/* Notification bell — shadcn Popover (portaled, never clipped) */}
-        <div className="mx-2 mt-2">
-          <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-            <PopoverTrigger asChild>
-              <button
-                className="flex items-center gap-3 px-4 py-3 w-full rounded-xl transition-all duration-150 hover:bg-white/[0.08] relative"
-                style={{ color: popoverOpen ? "#2dec29" : "rgba(255,255,255,0.75)" }}
-                title={collapsed ? "Notifications" : undefined}
-              >
-                <div className="relative shrink-0">
-                  <Bell className="w-5 h-5" />
-                  {unreadCount > 0 && (
-                    <span
-                      className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold px-1"
-                      style={{ background: "#ef4444", color: "white" }}
-                    >
-                      {unreadCount > 9 ? "9+" : unreadCount}
-                    </span>
-                  )}
-                </div>
-                {!collapsed && (
-                  <span className="text-sm font-medium truncate">Notifications</span>
-                )}
-              </button>
-            </PopoverTrigger>
+      </nav>
 
-            <PopoverContent
-              side="right"
-              align="start"
-              sideOffset={12}
-              className="w-80 p-0 rounded-xl shadow-xl"
+      {/* Notification bell — above the separator */}
+      <div className="mx-2 mb-2">
+        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+          <PopoverTrigger asChild>
+            <button
+              className="flex items-center gap-3 px-4 py-3 w-full rounded-xl transition-all duration-150 hover:bg-white/[0.08] relative"
+              style={{ color: popoverOpen ? "#2dec29" : "rgba(255,255,255,0.75)" }}
+              title={collapsed ? "Notifications" : undefined}
             >
-              {/* Header */}
-              <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-100">
-                <h3 className="font-semibold text-sm text-neutral-900">
-                  Notifications
-                </h3>
+              <div className="relative shrink-0">
+                <Bell className="w-5 h-5" />
                 {unreadCount > 0 && (
-                  <div className="flex items-center gap-2">
-                    <Badge variant="success" className="text-[10px] px-2 py-0.5">
-                      {unreadCount} new
-                    </Badge>
-                    <button
-                      onClick={markAllRead}
-                      className="text-xs font-medium px-2 py-1 rounded-lg hover:bg-neutral-100 transition"
-                      style={{ color: "#2dec29" }}
-                    >
-                      <Check className="w-3 h-3 inline mr-1" />
-                      Mark all read
-                    </button>
-                  </div>
+                  <span
+                    className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold px-1"
+                    style={{ background: "#ef4444", color: "white" }}
+                  >
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
                 )}
               </div>
+              {!collapsed && (
+                <span className="text-sm font-medium truncate">Notifications</span>
+              )}
+            </button>
+          </PopoverTrigger>
 
-              {/* Notification list */}
-              <ScrollArea className="max-h-80">
-                {notifications.length === 0 ? (
-                  <div className="py-10 text-center">
-                    <Bell className="w-8 h-8 text-neutral-200 mx-auto mb-2" />
-                    <p className="text-neutral-400 text-sm">No notifications yet</p>
-                  </div>
-                ) : (
-                  <div>
-                    {notifications.map((n) => {
-                      const NIcon = notificationIcon[n.type] || Bell;
-                      const iconColor = notificationColor[n.type] || "#6b7280";
-                      return (
-                        <button
-                          key={n.id}
-                          onClick={() => handleNotificationClick(n)}
-                          className="flex items-start gap-3 px-4 py-3 w-full text-left hover:bg-neutral-50 transition border-b border-neutral-50 last:border-0"
-                          style={{ background: n.read ? "transparent" : "#f0fdf4" }}
+          <PopoverContent
+            side="right"
+            align="start"
+            sideOffset={12}
+            className="w-80 p-0 rounded-xl shadow-xl"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-100">
+              <h3 className="font-semibold text-sm text-neutral-900">
+                Notifications
+              </h3>
+              {unreadCount > 0 && (
+                <div className="flex items-center gap-2">
+                  <Badge variant="success" className="text-[10px] px-2 py-0.5">
+                    {unreadCount} new
+                  </Badge>
+                  <button
+                    onClick={markAllRead}
+                    className="text-xs font-medium px-2 py-1 rounded-lg hover:bg-neutral-100 transition"
+                    style={{ color: "#2dec29" }}
+                  >
+                    <Check className="w-3 h-3 inline mr-1" />
+                    Mark all read
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Notification list */}
+            <ScrollArea className="max-h-80">
+              {notifications.length === 0 ? (
+                <div className="py-10 text-center">
+                  <Bell className="w-8 h-8 text-neutral-200 mx-auto mb-2" />
+                  <p className="text-neutral-400 text-sm">No notifications yet</p>
+                </div>
+              ) : (
+                <div>
+                  {notifications.map((n) => {
+                    const NIcon = notificationIcon[n.type] || Bell;
+                    const iconColor = notificationColor[n.type] || "#6b7280";
+                    return (
+                      <button
+                        key={n.id}
+                        onClick={() => handleNotificationClick(n)}
+                        className="flex items-start gap-3 px-4 py-3 w-full text-left hover:bg-neutral-50 transition border-b border-neutral-50 last:border-0"
+                        style={{ background: n.read ? "transparent" : "#f0fdf4" }}
+                      >
+                        <div
+                          className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+                          style={{ background: `${iconColor}15`, color: iconColor }}
                         >
-                          <div
-                            className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5"
-                            style={{ background: `${iconColor}15`, color: iconColor }}
-                          >
-                            <NIcon className="w-4 h-4" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-neutral-900 truncate">
-                              {n.title}
+                          <NIcon className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-neutral-900 truncate">
+                            {n.title}
+                          </p>
+                          {n.body && (
+                            <p className="text-xs text-neutral-500 mt-0.5 line-clamp-2">
+                              {n.body}
                             </p>
-                            {n.body && (
-                              <p className="text-xs text-neutral-500 mt-0.5 line-clamp-2">
-                                {n.body}
-                              </p>
-                            )}
-                            <p className="text-[11px] text-neutral-400 mt-1">
-                              {timeAgo(n.created_at)}
-                            </p>
-                          </div>
-                          {!n.read && (
-                            <div
-                              className="w-2 h-2 rounded-full shrink-0 mt-2"
-                              style={{ background: "#2dec29" }}
-                            />
                           )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </ScrollArea>
-            </PopoverContent>
-          </Popover>
-        </div>
-      </nav>
+                          <p className="text-[11px] text-neutral-400 mt-1">
+                            {timeAgo(n.created_at)}
+                          </p>
+                        </div>
+                        {!n.read && (
+                          <div
+                            className="w-2 h-2 rounded-full shrink-0 mt-2"
+                            style={{ background: "#2dec29" }}
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </ScrollArea>
+          </PopoverContent>
+        </Popover>
+      </div>
 
       {/* User + Sign out */}
       <div className="border-t border-white/10 p-3">
