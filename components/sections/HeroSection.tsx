@@ -1,12 +1,11 @@
 "use client";
 
 import { FC, useEffect, useState } from "react";
+import Link from "next/link";
 import { Button } from "../ui";
-import { useComingSoon } from "../ComingSoonProvider";
 import { track } from "@/lib/mixpanel";
 
 export const HeroSection: FC = () => {
-  const { openModal } = useComingSoon();
   const [userCount, setUserCount] = useState(400);
 
   useEffect(() => {
@@ -59,22 +58,24 @@ export const HeroSection: FC = () => {
               </strong>
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mb-10">
-              <Button size="lg" className="group" onClick={() => { track("CTA Clicked", { button: "Start Practicing Free", location: "hero" }); openModal(); }}>
-                Start Practicing Free
-                <svg
-                  className="w-5 h-5 ml-2 group-hover:translate-x-1 transition"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M13 7l5 5m0 0l-5 5m5-5H6"
-                  />
-                </svg>
-              </Button>
+              <Link href="/signup" onClick={() => track("CTA Clicked", { button: "Start Practicing Free", location: "hero" })}>
+                <Button size="lg" className="group">
+                  Start Practicing Free
+                  <svg
+                    className="w-5 h-5 ml-2 group-hover:translate-x-1 transition"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M13 7l5 5m0 0l-5 5m5-5H6"
+                    />
+                  </svg>
+                </Button>
+              </Link>
             </div>
             <div className="flex items-center space-x-6 text-sm text-neutral-600">
               <div className="flex items-center">
