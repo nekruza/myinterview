@@ -1,0 +1,196 @@
+"use client";
+
+import { FC, useRef, useEffect } from "react";
+import Image from "next/image";
+import { AudioWaveform } from "./AudioWaveform";
+import { Mic } from "lucide-react";
+
+// Realistic interviewer persona
+const INTERVIEWER = {
+  name: "Maria Rodriguez",
+  title: "Head of Digital Transformation",
+  photo: "https://randomuser.me/api/portraits/women/44.jpg",
+};
+
+interface VideoAreaProps {
+  webcamStream: MediaStream | null;
+  isAISpeaking: boolean;
+  isUserSpeaking: boolean;
+  analyserData: Uint8Array;
+  userName?: string;
+}
+
+export const VideoArea: FC<VideoAreaProps> = ({
+  webcamStream,
+  isAISpeaking,
+  isUserSpeaking,
+  analyserData,
+  userName = "You",
+}) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (videoRef.current && webcamStream) {
+      videoRef.current.srcObject = webcamStream;
+    }
+  }, [webcamStream]);
+
+  const initials = userName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  return (
+    <div className="relative w-full flex-1 rounded-3xl overflow-hidden bg-gradient-to-br from-[#0a1f0e] to-[#112715]">
+      {/* Vignette overlay */}
+      <div
+        className="absolute inset-0 z-10 pointer-events-none rounded-3xl"
+        style={{ boxShadow: "inset 0 0 80px rgba(0,0,0,0.4)" }}
+      />
+
+      {/* User webcam or avatar */}
+      {webcamStream ? (
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          className="w-full h-full object-cover"
+          style={{ transform: "scaleX(-1)" }}
+        />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center">
+          <div
+            className={`w-28 h-28 rounded-full flex items-center justify-center text-4xl font-bold transition-shadow duration-500 ${isUserSpeaking ? "animate-speaking-ring" : ""}`}
+            style={{
+              background: "linear-gradient(135deg, #2dec29, #0a8a1e)",
+              color: "#112715",
+              boxShadow: isUserSpeaking
+                ? "0 0 40px rgba(45, 236, 41, 0.4)"
+                : "0 0 0 rgba(45, 236, 41, 0)",
+            }}
+          >
+            {initials}
+          </div>
+        </div>
+      )}
+
+      {/* Speaking ring overlay on webcam */}
+      {webcamStream && isUserSpeaking && (
+        <div className="absolute inset-0 z-10 pointer-events-none rounded-3xl animate-speaking-ring" />
+      )}
+
+      {/* User name tag */}
+      <div className="absolute bottom-4 right-4 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-sm">
+        {isUserSpeaking && (
+          <Mic className="w-3 h-3 text-[#2dec29]" />
+        )}
+        <span className="text-xs text-white/80 font-medium">{userName}</span>
+      </div>
+
+      {/* User audio waveform (when no webcam) */}
+      {!webcamStream && isUserSpeaking && (
+        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20">
+          <AudioWaveform
+            analyserData={analyserData}
+            isActive={isUserSpeaking}
+            variant="user"
+            barCount={12}
+            className="h-8"
+          />
+        </div>
+      )}
+
+      {/* Interviewer overlay card — realistic human */}
+      <div className="absolute top-4 left-4 z-20">
+        <div
+          className="flex items-center gap-3 pl-1.5 pr-5 py-1.5 rounded-2xl backdrop-blur-xl border transition-all duration-500"
+          style={{
+            background: isAISpeaking
+              ? "rgba(0, 0, 0, 0.65)"
+              : "rgba(0, 0, 0, 0.45)",
+            borderColor: isAISpeaking
+              ? "rgba(45, 236, 41, 0.25)"
+              : "rgba(255, 255, 255, 0.08)",
+          }}
+        >
+          {/* Human photo avatar */}
+          <div className="relative">
+            <div
+              className="w-14 h-14 rounded-xl overflow-hidden shrink-0 transition-shadow duration-500"
+              style={{
+                boxShadow: isAISpeaking
+                  ? "0 0 20px rgba(45, 236, 41, 0.35), 0 0 4px rgba(45, 236, 41, 0.5)"
+                  : "none",
+              }}
+            >
+              <Image
+                src={INTERVIEWER.photo}
+                alt={INTERVIEWER.name}
+                width={56}
+                height={56}
+                className="w-full h-full object-cover"
+                unoptimized
+              />
+            </div>
+            {/* Online indicator */}
+            <span
+              className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-black/60"
+              style={{
+                background: isAISpeaking ? "#2dec29" : "#6b7280",
+              }}
+            />
+          </div>
+
+          {/* Name + title + waveform */}
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-white leading-tight">
+              {INTERVIEWER.name}
+            </p>
+            <p className="text-[11px] text-white/45 leading-tight">
+              {INTERVIEWER.title}
+            </p>
+            {isAISpeaking ? (
+              <AudioWaveform
+                isActive={isAISpeaking}
+                variant="ai"
+                barCount={10}
+                className="mt-1.5 h-3"
+              />
+            ) : (
+              <p className="text-[10px] text-white/30 mt-1">
+                {isAISpeaking ? "" : "Listening..."}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Connection quality indicator (top-right dots like reference) */}
+      <div className="absolute top-4 right-4 z-20">
+        {isUserSpeaking ? (
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#2dec29]/15 border border-[#2dec29]/25 backdrop-blur-sm">
+            <span className="w-2 h-2 rounded-full bg-[#2dec29] animate-pulse" />
+            <span className="text-xs font-medium text-[#2dec29]">
+              Listening
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1 px-3 py-2 rounded-xl bg-black/30 backdrop-blur-sm">
+            {[0.9, 1, 0.8, 0.95, 0.7].map((opacity, i) => (
+              <span
+                key={i}
+                className="w-1.5 h-1.5 rounded-full bg-white transition-opacity duration-300"
+                style={{ opacity }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Elapsed timer badge (bottom-left) */}
+    </div>
+  );
+};

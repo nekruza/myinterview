@@ -1,5 +1,5 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/lib/supabase/server";
+import { streamLLM } from "@/lib/llm";
 
 export const runtime = "nodejs";
 
@@ -51,8 +51,6 @@ export async function POST(req: Request) {
     });
   }
 
-  const client = new Anthropic();
-
   // Save user message to DB if sessionId provided
   if (sessionId) {
     const lastMsg = messages[messages.length - 1];
@@ -65,38 +63,22 @@ export async function POST(req: Request) {
     }
   }
 
-  // Collect full AI response for saving
   let fullResponse = "";
-
   const encoder = new TextEncoder();
+
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        const anthropicStream = await client.messages.create({
-          model: "claude-opus-4-6",
-          max_tokens: 1024,
-          stream: true,
-          system: SYSTEM_PROMPT(category, level, question),
-          messages: messages.map(
-            (m: { role: string; content: string }) => ({
-              role: m.role as "user" | "assistant",
-              content: m.content,
-            })
-          ),
-        });
-
-        for await (const event of anthropicStream) {
-          if (
-            event.type === "content_block_delta" &&
-            event.delta.type === "text_delta"
-          ) {
-            fullResponse += event.delta.text;
-            controller.enqueue(
-              encoder.encode(
-                `data: ${JSON.stringify({ text: event.delta.text })}\n\n`
-              )
-            );
-          }
+        for await (const chunk of streamLLM({
+          systemPrompt: SYSTEM_PROMPT(category, level, question),
+          messages,
+          maxTokens: 1024,
+          temperature: 0.7,
+        })) {
+          fullResponse += chunk;
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify({ text: chunk })}\n\n`)
+          );
         }
 
         // Save AI response to DB
