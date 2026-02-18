@@ -29,10 +29,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/Badge";
 
 const navItems = [
-  { href: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/app/dashboard", label: "Home", icon: LayoutDashboard },
   { href: "/app/practice", label: "AI Practice", icon: Sparkles },
-  { href: "/app/progress", label: "Progress", icon: TrendingUp },
   { href: "/app/peer-practice", label: "Peer Practice", icon: Users },
+  { href: "/app/progress", label: "Progress", icon: TrendingUp },
   { href: "/app/settings", label: "Settings", icon: Settings },
 ];
 
