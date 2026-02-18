@@ -758,8 +758,8 @@ const SettingsPage: FC<SettingsProps> = () => {
           )}
         </section>
 
-        {/* Left: Subscription */}
-        <section className="bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden">
+        {/* Subscription — full width */}
+        <section className="bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden lg:col-span-2">
           <div className="flex items-center gap-3 px-6 py-4 border-b border-neutral-100">
             <CreditCard className="w-4 h-4 text-neutral-400" />
             <h2 className="font-semibold text-secondary text-sm">
@@ -783,8 +783,8 @@ const SettingsPage: FC<SettingsProps> = () => {
           </div>
         </section>
 
-        {/* Right: Account Actions */}
-        <section className="bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden">
+        {/* Account — full width */}
+        <section className="bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden lg:col-span-2">
           <div className="flex items-center gap-3 px-6 py-4 border-b border-neutral-100">
             <LogOut className="w-4 h-4 text-neutral-400" />
             <h2 className="font-semibold text-secondary text-sm">Account</h2>

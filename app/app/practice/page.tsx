@@ -13,6 +13,7 @@ import {
   Upload,
   Loader2,
   CheckCircle2,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
 import { VoiceCallView } from "@/components/practice/VoiceCallView";
@@ -39,7 +40,6 @@ export default function PracticePage() {
 
   // Resume
   const [hasResume, setHasResume] = useState<boolean | null>(null);
-  const [resumeText, setResumeText] = useState("");
   const [uploadingResume, setUploadingResume] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const resumeInputRef = useRef<HTMLInputElement>(null);
@@ -105,6 +105,23 @@ export default function PracticePage() {
     }
   }
 
+  async function handleResumeDelete() {
+    if (!userId) return;
+    try {
+      const { data: existing } = await supabase.storage.from("resumes").list(userId);
+      if (existing?.length) {
+        await supabase.storage
+          .from("resumes")
+          .remove(existing.map((f) => `${userId}/${f.name}`));
+      }
+      await supabase.from("profiles").update({ resume_url: null }).eq("id", userId);
+      setHasResume(false);
+      toast.success("Resume removed.");
+    } catch {
+      toast.error("Failed to delete resume.");
+    }
+  }
+
   const getJobContext = () => {
     if (jobContextMode === "paste" && jobDescription.trim()) return { mode: "paste" as const, value: jobDescription.trim() };
     return { mode: "general" as const, value: "" };
@@ -162,7 +179,6 @@ export default function PracticePage() {
 
   // Derived tip states
   const hasJobContext = jobContextMode === "paste" && jobDescription.trim().length > 0;
-  const hasResumeText = resumeText.trim().length > 0;
 
   // ── Render: Setup ──
   if (phase === "setup") {
@@ -391,25 +407,36 @@ export default function PracticePage() {
                   </>
                 )}
 
-                {/* Resume on file indicator */}
+                {/* Resume on file indicator + actions */}
                 {hasResume === true && (
-                  <div className="flex items-center gap-2 mb-3">
-                    <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: "#2dec29" }} />
-                    <span className="text-xs font-medium text-neutral-600">Resume on file</span>
+                  <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-neutral-50 border border-neutral-100">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: "#2dec29" }} />
+                      <span className="text-xs font-medium text-neutral-600 truncate">Resume uploaded</span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => resumeInputRef.current?.click()}
+                        disabled={uploadingResume}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-neutral-600 bg-white border border-neutral-200 hover:border-[#2dec29]/60 hover:text-secondary transition disabled:opacity-50"
+                      >
+                        {uploadingResume ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <Upload className="w-3 h-3" />
+                        )}
+                        Replace
+                      </button>
+                      <button
+                        onClick={handleResumeDelete}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-red-500 bg-white border border-neutral-200 hover:border-red-300 hover:bg-red-50 transition"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 )}
-
-                {/* Paste resume text */}
-                <textarea
-                  value={resumeText}
-                  onChange={(e) => setResumeText(e.target.value)}
-                  placeholder="Paste your resume text here so the AI can ask questions relevant to your specific experience, projects, and background..."
-                  rows={4}
-                  className="w-full px-4 py-3 rounded-xl border border-neutral-200 text-sm text-secondary placeholder:text-neutral-300 focus:outline-none focus:border-[#2dec29] focus:ring-1 focus:ring-[#2dec29] transition resize-none"
-                />
-                <p className="text-xs text-neutral-400 mt-2">
-                  The AI will reference your actual experience to ask tailored questions.
-                </p>
               </div>
             )}
 
@@ -502,7 +529,7 @@ export default function PracticePage() {
                 {/* Resume tip */}
                 <div className="flex gap-3">
                   <div className="shrink-0 mt-0.5">
-                    {hasResumeText ? (
+                    {hasResume ? (
                       <CheckCircle2 className="w-4 h-4" style={{ color: "#2dec29" }} />
                     ) : (
                       <div className="w-4 h-4 rounded-full border-2 border-neutral-300" />
@@ -510,7 +537,7 @@ export default function PracticePage() {
                   </div>
                   <div>
                     <p className="text-xs font-medium text-secondary">
-                      Add your resume text
+                      Upload your resume
                     </p>
                     <p className="text-xs text-neutral-400 mt-0.5 leading-relaxed">
                       The AI will tailor questions to your actual experience and background.
@@ -521,7 +548,7 @@ export default function PracticePage() {
 
               {/* Progress bar */}
               {(() => {
-                const done = [hasJobContext, hasResumeText].filter(Boolean).length;
+                const done = [hasJobContext, hasResume].filter(Boolean).length;
                 return done < 2 ? (
                   <div className="mt-4 pt-4 border-t border-neutral-100">
                     <div className="flex items-center justify-between mb-1.5">
@@ -565,7 +592,6 @@ export default function PracticePage() {
         sessionId={sessionId}
         interviewType={interviewType}
         jobContext={jobContext}
-        resumeText={resumeText || undefined}
         onComplete={(endConf) => completeSession(endConf)}
         onReset={() => {
           setPhase("setup");
