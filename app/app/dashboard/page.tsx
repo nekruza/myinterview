@@ -124,7 +124,7 @@ function SparklineChart({
       if (v === null) return null;
       return {
         x: parseFloat(((i / (data.length - 1)) * W).toFixed(2)),
-        y: parseFloat((H - (v / 10) * (H * 0.8) - H * 0.1).toFixed(2)),
+        y: parseFloat((H - (v / 100) * (H * 0.8) - H * 0.1).toFixed(2)),
       };
     })
     .filter(Boolean) as { x: number; y: number }[];
@@ -214,7 +214,7 @@ export default async function DashboardPage() {
   const completed = sessionList.filter((s) => s.status === "completed");
   const streak = calcStreak(sessionList);
   const scoresWithValue = completed.filter((s) => s.score !== null);
-  const avgConfidence =
+  const avgScore =
     scoresWithValue.length > 0
       ? Math.round(
           scoresWithValue.reduce((sum, s) => sum + (s.score ?? 0), 0) /
@@ -388,7 +388,7 @@ export default async function DashboardPage() {
             </div>
             <div className="flex flex-col items-center gap-0.5 px-3">
               <span className="text-lg font-black text-secondary tabular-nums leading-none">
-                {avgConfidence !== null ? avgConfidence : "—"}
+                {avgScore !== null ? `${avgScore}%` : "—"}
               </span>
               <span className="text-[10px] font-semibold text-neutral-400 mt-0.5">Avg score</span>
             </div>

@@ -18,7 +18,7 @@ import {
 import Link from "next/link";
 import { VoiceCallView } from "@/components/practice/VoiceCallView";
 import { LEVELS, TECH_ROLES } from "@/lib/practice-data";
-import type { Phase } from "@/lib/practice-data";
+import type { Phase, Message } from "@/lib/practice-data";
 import { createClient } from "@/lib/supabase/client";
 
 type InterviewType = "technical" | "behavioural";
@@ -35,8 +35,10 @@ export default function PracticePage() {
   const [customRole, setCustomRole] = useState("");
   const [level, setLevel] = useState("mid");
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [confidence, setConfidence] = useState<number | null>(null);
-  const [endConfidence, setEndConfidence] = useState<number | null>(null);
+  const [sessionDuration, setSessionDuration] = useState<string>("00:00");
+  const [sessionQuestionCount, setSessionQuestionCount] = useState(0);
+  const [feedbackData, setFeedbackData] = useState<{ score: number; improvements: { point: string; example: string }[] } | null>(null);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
 
   // Resume
   const [hasResume, setHasResume] = useState<boolean | null>(null);
@@ -128,11 +130,6 @@ export default function PracticePage() {
   };
 
   const startSession = async () => {
-    if (!confidence) {
-      toast.error("Please rate your current confidence level.");
-      return;
-    }
-
     const jobContext = getJobContext();
 
     try {
@@ -155,26 +152,56 @@ export default function PracticePage() {
     }
   };
 
-  const completeSession = async (endConf: number) => {
+  const completeSession = async (msgs: Message[], duration: string) => {
     if (!sessionId) return;
 
-    setEndConfidence(endConf);
-
-    await fetch("/api/sessions", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sessionId,
-        score: endConf,
-        feedback: null,
-        competencyScores: [
-          { competency: interviewType, score: endConf * 10 },
-        ],
-      }),
-    });
-
+    // Show complete screen immediately
+    setSessionDuration(duration);
+    setSessionQuestionCount(msgs.filter((m) => m.role === "assistant").length);
     setPhase("complete");
-    toast.success("Session saved!");
+
+    // Fetch AI feedback in background
+    setFeedbackLoading(true);
+    try {
+      const res = await fetch("/api/ai/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: msgs,
+          interviewType,
+          level,
+          role: role === "other" ? customRole.trim() : role,
+        }),
+      });
+      const data = await res.json();
+      setFeedbackData(data);
+
+      await fetch("/api/sessions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId,
+          score: data.score,
+          feedback: data.improvements.map((imp: { point: string; example: string }) => `${imp.point}\n${imp.example}`).join("\n\n"),
+          competencyScores: [{ competency: interviewType, score: data.score }],
+        }),
+      });
+      toast.success("Session saved!");
+    } catch {
+      await fetch("/api/sessions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId,
+          score: null,
+          feedback: null,
+          competencyScores: [],
+        }),
+      });
+      toast.success("Session saved!");
+    } finally {
+      setFeedbackLoading(false);
+    }
   };
 
   // Derived tip states
@@ -464,35 +491,11 @@ export default function PracticePage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-neutral-600 uppercase tracking-wide mb-2">
-                  6. Confidence Before (1–10)
-                </label>
-                <p className="text-xs text-neutral-400 mb-3">
-                  How confident do you feel about this type of interview right now?
-                </p>
-                <div className="flex gap-2 flex-wrap">
-                  {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                    <button
-                      key={n}
-                      onClick={() => setConfidence(n)}
-                      className="w-9 h-9 rounded-xl text-sm font-semibold transition"
-                      style={{
-                        background: confidence === n ? "#2dec29" : "#f3f4f6",
-                        color: confidence === n ? "#112715" : "#6b7280",
-                      }}
-                    >
-                      {n}
-                    </button>
-                  ))}
-                </div>
-              </div>
             </div>
 
             <button
               onClick={startSession}
-              disabled={!confidence}
-              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold transition disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold transition hover:opacity-90"
               style={{ background: "#112715", color: "#fff" }}
             >
               <Sparkles className="w-4 h-4" style={{ color: "#2dec29" }} />
@@ -592,7 +595,7 @@ export default function PracticePage() {
         sessionId={sessionId}
         interviewType={interviewType}
         jobContext={jobContext}
-        onComplete={(endConf) => completeSession(endConf)}
+        onComplete={(msgs, duration) => completeSession(msgs, duration)}
         onReset={() => {
           setPhase("setup");
           setSessionId(null);
@@ -602,55 +605,126 @@ export default function PracticePage() {
   }
 
   // ── Render: Complete ──
-  const delta =
-    endConfidence !== null && confidence !== null
-      ? endConfidence - confidence
-      : 0;
+
+  function getGrade(score: number) {
+    if (score >= 90) return { label: "A", color: "#2dec29" };
+    if (score >= 80) return { label: "B+", color: "#2dec29" };
+    if (score >= 70) return { label: "B", color: "#84cc16" };
+    if (score >= 60) return { label: "C+", color: "#f59e0b" };
+    if (score >= 50) return { label: "C", color: "#f59e0b" };
+    return { label: "D", color: "#ef4444" };
+  }
 
   return (
-    <div className="max-w-lg mx-auto text-center py-12 space-y-6">
-      <div
-        className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto"
-        style={{ background: "#f4fdf3" }}
-      >
-        <CheckCircle className="w-8 h-8" style={{ color: "#2dec29" }} />
-      </div>
-      <div>
+    <div className="max-w-2xl mx-auto py-12 space-y-6">
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <div
+          className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto"
+          style={{ background: "#f4fdf3" }}
+        >
+          <CheckCircle className="w-8 h-8" style={{ color: "#2dec29" }} />
+        </div>
         <h1 className="text-2xl font-bold text-secondary">Session Complete!</h1>
-        <p className="text-neutral-500 mt-2">
-          You practiced a <strong>{interviewType === "technical" ? "Technical" : "Behavioural"}</strong> interview — great work keeping the momentum going.
+        <p className="text-sm text-neutral-500">
+          {interviewType === "technical" ? "Technical" : "Behavioural"} Interview
+          {sessionDuration !== "00:00" && ` · ${sessionDuration}`}
+          {sessionQuestionCount > 0 && ` · ${sessionQuestionCount} question${sessionQuestionCount !== 1 ? "s" : ""}`}
         </p>
       </div>
 
-      <div className="flex justify-center gap-6">
-        <div className="text-center">
-          <p className="text-3xl font-bold text-secondary">{confidence}</p>
-          <p className="text-xs text-neutral-400 mt-0.5">Before</p>
-        </div>
-        <div className="text-center">
-          <p
-            className="text-3xl font-bold"
-            style={{
-              color: delta > 0 ? "#2dec29" : delta < 0 ? "#ef4444" : "#6b7280",
-            }}
-          >
-            {delta > 0 ? `+${delta}` : delta}
-          </p>
-          <p className="text-xs text-neutral-400 mt-0.5">Change</p>
-        </div>
-        <div className="text-center">
-          <p className="text-3xl font-bold text-secondary">{endConfidence}</p>
-          <p className="text-xs text-neutral-400 mt-0.5">After</p>
-        </div>
+      {/* Performance Score card */}
+      <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-6">
+        <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-4">
+          Performance Score
+        </p>
+        {feedbackLoading ? (
+          <div className="space-y-3 animate-pulse">
+            <div className="flex items-end justify-between">
+              <div className="h-10 w-20 bg-neutral-100 rounded-xl" />
+              <div className="h-7 w-14 bg-neutral-100 rounded-lg" />
+            </div>
+            <div className="h-2.5 bg-neutral-100 rounded-full" />
+          </div>
+        ) : feedbackData ? (
+          <>
+            <div className="flex items-end justify-between mb-3">
+              <p className="text-4xl font-bold text-secondary">{feedbackData.score}%</p>
+              <span
+                className="text-sm font-bold px-3 py-1 rounded-lg"
+                style={{
+                  background: `${getGrade(feedbackData.score).color}22`,
+                  color: getGrade(feedbackData.score).color,
+                }}
+              >
+                {getGrade(feedbackData.score).label}
+              </span>
+            </div>
+            <div className="h-2.5 bg-neutral-100 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{ width: `${feedbackData.score}%`, background: "#2dec29" }}
+              />
+            </div>
+          </>
+        ) : (
+          <p className="text-sm text-neutral-400">Score unavailable</p>
+        )}
       </div>
 
+      {/* Improvements section */}
+      {(feedbackLoading || (feedbackData && feedbackData.improvements.length > 0)) && (
+        <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-6">
+          <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-4">
+            What to improve
+          </p>
+          {feedbackLoading ? (
+            <div className="space-y-5 animate-pulse">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="space-y-2">
+                  <div className="h-4 bg-neutral-100 rounded" style={{ width: `${[85, 70, 78][i]}%` }} />
+                  <div className="h-3 bg-neutral-50 rounded" style={{ width: `${[95, 88, 92][i]}%` }} />
+                  <div className="h-3 bg-neutral-50 rounded" style={{ width: `${[60, 75, 55][i]}%` }} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <ul className="space-y-5">
+              {feedbackData!.improvements.map((item, i) => (
+                <li key={i} className="space-y-1.5">
+                  <div className="flex items-start gap-2 text-sm font-medium text-neutral-800">
+                    <span className="shrink-0 mt-0.5" style={{ color: "#2dec29" }}>›</span>
+                    {item.point}
+                  </div>
+                  {item.example && (
+                    <p
+                      className="text-xs leading-relaxed pl-4 py-2 px-3 rounded-lg border-l-2"
+                      style={{
+                        borderColor: "#2dec29",
+                        background: "#f4fdf3",
+                        color: "#1a3d20",
+                      }}
+                    >
+                      {item.example}
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {/* CTA buttons */}
       <div className="flex flex-col sm:flex-row gap-3 justify-center">
         <button
           onClick={() => {
             setPhase("setup");
             setSessionId(null);
-            setConfidence(null);
-            setEndConfidence(null);
+            setSessionDuration("00:00");
+            setSessionQuestionCount(0);
+            setFeedbackData(null);
+            setFeedbackLoading(false);
           }}
           className="px-6 py-2.5 rounded-xl font-semibold text-sm transition hover:opacity-90"
           style={{ background: "#2dec29", color: "#112715" }}

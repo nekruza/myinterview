@@ -250,9 +250,9 @@ export default async function ProgressPage() {
   const completed = sessionList.filter((s) => s.status === "completed");
   const streak = calcStreak(sessionList);
 
-  // Average score across completed sessions
+  // Average performance score across completed sessions
   const scoresWithValue = completed.filter((s) => s.score !== null);
-  const avgConfidence =
+  const avgScore =
     scoresWithValue.length > 0
       ? Math.round(
           scoresWithValue.reduce((sum, s) => sum + (s.score ?? 0), 0) /
@@ -279,11 +279,11 @@ export default async function ProgressPage() {
         : "Keep it up!",
     },
     {
-      label: "Avg Confidence",
-      value: avgConfidence !== null ? `${avgConfidence}/10` : "—",
+      label: "Avg Score",
+      value: avgScore !== null ? `${avgScore}%` : "—",
       icon: TrendingUp,
       color: "#f59e0b",
-      sub: avgConfidence !== null ? "Post-session score" : "Complete a session",
+      sub: avgScore !== null ? "AI performance score" : "Complete a session",
     },
     {
       label: "Practice Streak",
@@ -365,21 +365,21 @@ export default async function ProgressPage() {
           </div>
         </div>
 
-        {/* Confidence trend (simple bar chart) */}
+        {/* Performance trend (simple bar chart) */}
         <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-6">
-          <h2 className="font-semibold text-secondary mb-4">Confidence Trend</h2>
+          <h2 className="font-semibold text-secondary mb-4">Performance Trend</h2>
           {scoresWithValue.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-48 text-center">
               <Calendar className="w-8 h-8 text-neutral-300 mb-3" />
               <p className="text-sm text-neutral-400">
-                Your confidence scores will appear here after completing sessions.
+                Your performance scores will appear here after completing sessions.
               </p>
             </div>
           ) : (
             <div className="space-y-2">
               {scoresWithValue.slice(0, 8).reverse().map((s, i) => {
                 const { date } = parseSession(s);
-                const pct = ((s.score ?? 0) / 10) * 100;
+                const pct = s.score ?? 0;
                 return (
                   <div key={i} className="flex items-center gap-3">
                     <span className="text-xs text-neutral-400 w-20 shrink-0">{date}</span>
@@ -389,8 +389,8 @@ export default async function ProgressPage() {
                         style={{ width: `${pct}%`, background: "#2dec29" }}
                       />
                     </div>
-                    <span className="text-xs font-semibold text-secondary w-6 text-right">
-                      {s.score}
+                    <span className="text-xs font-semibold text-secondary w-8 text-right">
+                      {s.score}%
                     </span>
                   </div>
                 );
@@ -475,8 +475,7 @@ export default async function ProgressPage() {
                   </div>
                   {s.score !== null && (
                     <div className="text-right shrink-0">
-                      <p className="text-lg font-bold text-secondary">{s.score}</p>
-                      <p className="text-xs text-neutral-400">/ 10</p>
+                      <p className="text-lg font-bold text-secondary">{s.score}%</p>
                     </div>
                   )}
                 </div>

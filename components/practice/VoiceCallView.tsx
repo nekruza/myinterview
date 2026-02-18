@@ -30,7 +30,7 @@ interface VoiceCallViewProps {
   interviewType?: "technical" | "behavioural";
   jobContext?: JobContext;
   resumeText?: string;
-  onComplete: (endConfidence: number) => void;
+  onComplete: (messages: Message[], duration: string) => void;
   onReset: () => void;
 }
 
@@ -62,7 +62,6 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
   const [currentHint, setCurrentHint] = useState<string | null>(null);
   const [hintLoading, setHintLoading] = useState(false);
   const [showEndModal, setShowEndModal] = useState(false);
-  const [endConfidence, setEndConfidence] = useState<number | null>(null);
   const [micPermission, setMicPermission] = useState<boolean | null>(null);
   const [cameraOn, setCameraOn] = useState(true);
   const [autoSend, setAutoSend] = useState(false);
@@ -625,24 +624,8 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
               End Session
             </h3>
             <p className="text-sm text-white/60 mb-5">
-              Rate your confidence after this practice session.
+              Your session will be saved and scored by AI.
             </p>
-
-            <div className="flex gap-2 flex-wrap mb-5">
-              {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                <button
-                  key={n}
-                  onClick={() => setEndConfidence(n)}
-                  className="w-9 h-9 rounded-xl text-sm font-semibold transition"
-                  style={{
-                    background: endConfidence === n ? "#2dec29" : "rgba(255,255,255,0.1)",
-                    color: endConfidence === n ? "#112715" : "rgba(255,255,255,0.6)",
-                  }}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
 
             <div className="flex gap-3">
               <button
@@ -658,15 +641,12 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
               </button>
               <button
                 onClick={() => {
-                  if (endConfidence) {
-                    webcamStreamRef.current?.getTracks().forEach((t) => t.stop());
-                    webcamStreamRef.current = null;
-                    visualizer.stopAnalyser();
-                    onComplete(endConfidence);
-                  }
+                  webcamStreamRef.current?.getTracks().forEach((t) => t.stop());
+                  webcamStreamRef.current = null;
+                  visualizer.stopAnalyser();
+                  onComplete(messagesRef.current, timer.formatted);
                 }}
-                disabled={!endConfidence}
-                className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition disabled:opacity-40"
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition"
                 style={{ background: "#2dec29", color: "#112715" }}
               >
                 Complete

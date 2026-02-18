@@ -11,7 +11,7 @@ interface HintOverlayProps {
 export const HintOverlay: FC<HintOverlayProps> = ({ hint, onDismiss }) => {
   useEffect(() => {
     if (!hint) return;
-    const timer = setTimeout(onDismiss, 14000);
+    const timer = setTimeout(onDismiss, 22000);
     return () => clearTimeout(timer);
   }, [hint, onDismiss]);
 
