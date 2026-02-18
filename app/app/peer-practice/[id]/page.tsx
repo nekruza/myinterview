@@ -2,6 +2,7 @@
 
 import { FC, useEffect, useState, use } from "react";
 import Link from "next/link";
+import { TECH_ROLES } from "@/lib/practice-data";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -51,9 +52,12 @@ interface PeerSession {
   max_participants: number;
   is_featured: boolean;
   created_at: string;
+  developer_type: string | null;
+  interview_type: string | null;
   host: Profile;
   participants: Participant[];
 }
+
 
 /* ─── helpers ─── */
 
@@ -537,6 +541,24 @@ export default function PeerSessionDetailPage({
                 <Video className="w-3 h-3" />
                 Live Video Practice
               </span>
+              {session.interview_type && (
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${
+                  session.interview_type === "behavioral"
+                    ? "bg-blue-500/20 text-blue-200 border-blue-400/30"
+                    : "bg-amber-500/20 text-amber-200 border-amber-400/30"
+                }`}>
+                  {session.interview_type === "behavioral" ? "Behavioral" : "Technical"}
+                </span>
+              )}
+              {session.developer_type && (() => {
+                const dt = TECH_ROLES.find((d) => d.value === session.developer_type);
+                const label = dt ? dt.label : session.developer_type;
+                return (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-violet-500/20 text-violet-200 border border-violet-400/30">
+                    {label}
+                  </span>
+                );
+              })()}
             </div>
 
             {/* Title */}
@@ -594,7 +616,6 @@ export default function PeerSessionDetailPage({
             {/* Metadata chips */}
             <div className="flex flex-wrap gap-2 mt-5">
               {[
-                { icon: MessageSquare, label: "Behavioral Focus" },
                 { icon: Clock, label: `${session.duration_minutes} min session` },
                 { icon: Video, label: "Video call" },
               ].map(({ icon: Icon, label }) => (
@@ -607,6 +628,24 @@ export default function PeerSessionDetailPage({
                   {label}
                 </span>
               ))}
+              {session.interview_type && (
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${
+                  session.interview_type === "behavioral"
+                    ? "bg-blue-50 text-blue-700"
+                    : "bg-amber-50 text-amber-700"
+                }`}>
+                  {session.interview_type === "behavioral" ? "Behavioral" : "Technical"}
+                </span>
+              )}
+              {session.developer_type && (() => {
+                const dt = TECH_ROLES.find((d) => d.value === session.developer_type);
+                const label = dt ? dt.label : session.developer_type;
+                return (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-violet-50 text-violet-700">
+                    {label}
+                  </span>
+                );
+              })()}
             </div>
           </div>
 

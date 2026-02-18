@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { title, scheduled_at, duration_minutes, meeting_link, type, notes, max_participants } =
+  const { title, scheduled_at, duration_minutes, meeting_link, type, notes, max_participants, developer_type, interview_type } =
     body;
 
   if (!title || !scheduled_at || !meeting_link) {
@@ -70,6 +70,8 @@ export async function POST(req: NextRequest) {
       type: type || "peer",
       notes: notes || null,
       max_participants: max_participants || 2,
+      developer_type: developer_type || null,
+      interview_type: interview_type || null,
       status: "open",
     })
     .select()
