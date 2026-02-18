@@ -67,6 +67,7 @@ export const TECH_ROLES = [
   { value: "data", label: "Data Engineer" },
   { value: "ml", label: "Machine Learning / AI Engineer" },
   { value: "security", label: "Security Engineer" },
+  { value: "product-engineer", label: "Product Engineer" },
   { value: "architect", label: "Software Architect" },
   { value: "qa", label: "QA / Test Engineer" },
   { value: "embedded", label: "Embedded / Systems Engineer" },
