@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { SmoothScroll } from "@/components/SmoothScroll";
+import { LandingPageWrapper } from "@/components/LandingPageWrapper";
 import {
   HeroSection,
   ProblemStatement,
@@ -40,15 +41,17 @@ export default function Home() {
       <WebsiteSchema />
       <HomepageFAQSchema />
       <SmoothScroll />
-      <Navigation />
-      <main id="main-content" className="bg-white text-neutral-900 font-sans antialiased mx-auto">
-        <HeroSection />
-        <ProblemStatement />
-        <FeaturesSection />
-        <PricingSection />
-        <JoinTeamSection />
-      </main>
-      <Footer />
+      <LandingPageWrapper>
+        <Navigation />
+        <main id="main-content" className="bg-white text-neutral-900 font-sans antialiased mx-auto">
+          <HeroSection />
+          <ProblemStatement />
+          <FeaturesSection />
+          <PricingSection />
+          <JoinTeamSection />
+        </main>
+        <Footer />
+      </LandingPageWrapper>
     </>
   );
 }
