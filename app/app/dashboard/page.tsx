@@ -1,20 +1,15 @@
 import { createClient } from "@/lib/supabase/server";
-import {
-  BarChart3,
-  Flame,
-  Calendar,
-  ArrowRight,
-  Sparkles,
-  Brain,
-  TrendingUp,
-  Zap,
-} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { ChevronRight, PlayCircle, Users, Sparkles, Zap } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
+
+// ─── Static data ────────────────────────────────────────────────────────────
 
 const frameworks = [
   {
     name: "STAR",
-    description: "Situation, Task, Action, Result — the foundation of behavioral storytelling.",
+    description: "Situation, Task, Action, Result — the behavioral storytelling foundation.",
     color: "#2dec29",
     level: "All levels",
   },
@@ -27,54 +22,180 @@ const frameworks = [
   {
     name: "Ownership Signals",
     description: "Demonstrates initiative, accountability, and end-to-end ownership.",
-    color: "#112715",
+    color: "#a3e4a5",
     level: "Senior → Staff",
   },
 ];
 
-const upcomingFeatures = [
-  {
-    icon: Brain,
-    title: "AI-Powered Matching",
-    description: "Get automatically matched with engineers at your level based on availability and goals.",
-    eta: "Coming Q3 2026",
-  },
-];
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function calcStreak(sessions: { status: string; completed_at: string | null; started_at: string }[]): number {
+function getGreeting(): string {
+  const hour = new Date().getUTCHours();
+  if (hour >= 5 && hour < 12) return "Good morning";
+  if (hour >= 12 && hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+function calcStreak(
+  sessions: { status: string; completed_at: string | null; started_at: string }[]
+): number {
   if (!sessions.length) return 0;
   const dates = sessions
     .filter((s) => s.status === "completed")
-    .map((s) =>
-      new Date(s.completed_at ?? s.started_at).toDateString()
-    )
+    .map((s) => new Date(s.completed_at ?? s.started_at).toDateString())
     .filter((v, i, a) => a.indexOf(v) === i)
     .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-
   if (!dates.length) return 0;
   let streak = 0;
   let current = new Date();
   current.setHours(0, 0, 0, 0);
   for (const d of dates) {
     const date = new Date(d);
-    const diff = (current.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
+    const diff = (current.getTime() - date.getTime()) / 86_400_000;
     if (diff <= 1) { streak++; current = date; } else break;
   }
   return streak;
 }
 
+/** Returns last 7 days [oldest…today] each with a short label + whether practiced */
+function getWeekActivity(
+  sessions: { status: string; completed_at: string | null; started_at: string }[]
+): { label: string; active: boolean; isToday: boolean }[] {
+  const DAY_LABELS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+  return Array.from({ length: 7 }, (_, i) => {
+    const daysAgo = 6 - i;
+    const dayStart = new Date();
+    dayStart.setDate(dayStart.getDate() - daysAgo);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(dayStart);
+    dayEnd.setDate(dayStart.getDate() + 1);
+    const active = sessions.some((s) => {
+      if (s.status !== "completed") return false;
+      const d = new Date(s.completed_at ?? s.started_at);
+      return d >= dayStart && d < dayEnd;
+    });
+    return { label: DAY_LABELS[dayStart.getDay()], active, isToday: daysAgo === 0 };
+  });
+}
+
+/** Returns avg confidence score per day for last 7 days (null = no sessions that day) */
+function getScoreHistory(
+  sessions: { status: string; completed_at: string | null; started_at: string; score: number | null }[]
+): (number | null)[] {
+  return Array.from({ length: 7 }, (_, i) => {
+    const daysAgo = 6 - i;
+    const dayStart = new Date();
+    dayStart.setDate(dayStart.getDate() - daysAgo);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(dayStart);
+    dayEnd.setDate(dayStart.getDate() + 1);
+    const scored = sessions.filter((s) => {
+      if (s.status !== "completed" || s.score === null) return false;
+      const d = new Date(s.completed_at ?? s.started_at);
+      return d >= dayStart && d < dayEnd;
+    });
+    if (!scored.length) return null;
+    return scored.reduce((sum, s) => sum + (s.score ?? 0), 0) / scored.length;
+  });
+}
+
+/** Pure-SVG sparkline — no dependencies, renders on the server */
+function SparklineChart({
+  data,
+  stroke = "white",
+  className = "",
+}: {
+  data: (number | null)[];
+  stroke?: string;
+  className?: string;
+}) {
+  const W = 160;
+  const H = 52;
+
+  // Map each value to an (x, y) point; skip nulls
+  const pts = data
+    .map((v, i) => {
+      if (v === null) return null;
+      return {
+        x: parseFloat(((i / (data.length - 1)) * W).toFixed(2)),
+        y: parseFloat((H - (v / 10) * (H * 0.8) - H * 0.1).toFixed(2)),
+      };
+    })
+    .filter(Boolean) as { x: number; y: number }[];
+
+  if (pts.length < 2) return null;
+
+  const line = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+  const area = `${line} L${pts.at(-1)!.x},${H} L${pts[0].x},${H} Z`;
+  const gradId = `sg-${stroke.replace(/[^a-z]/gi, "")}`;
+
+  return (
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      className={className}
+      aria-hidden="true"
+      preserveAspectRatio="none"
+    >
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={stroke} stopOpacity="0.35" />
+          <stop offset="100%" stopColor={stroke} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      {/* Area fill */}
+      <path d={area} fill={`url(#${gradId})`} />
+      {/* Line */}
+      <path d={line} stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      {/* Dots */}
+      {pts.map((p, i) => (
+        <circle key={i} cx={p.x} cy={p.y} r="3" fill={stroke} />
+      ))}
+      {/* Latest dot highlight */}
+      {pts.length > 0 && (
+        <circle cx={pts.at(-1)!.x} cy={pts.at(-1)!.y} r="4.5" fill={stroke} fillOpacity="0.3" />
+      )}
+    </svg>
+  );
+}
+
+/** Circular arc progress toward the next streak milestone — server-renderable SVG */
+function StreakRing({ streak, size = 72 }: { streak: number; size?: number }) {
+  const milestone = streak < 7 ? 7 : streak < 14 ? 14 : streak < 30 ? 30 : 100;
+  const progress = Math.min(streak / milestone, 1);
+  const sw = 4;
+  const r = parseFloat((size / 2 - sw - 1).toFixed(2));
+  const circ = parseFloat((2 * Math.PI * r).toFixed(2));
+  const offset = parseFloat((circ * (1 - progress)).toFixed(2));
+  const c = size / 2;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
+      <circle cx={c} cy={c} r={r} fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth={sw} />
+      <circle
+        cx={c} cy={c} r={r}
+        fill="none"
+        stroke="rgba(255,255,255,0.9)"
+        strokeWidth={sw}
+        strokeLinecap="round"
+        strokeDasharray={circ}
+        strokeDashoffset={offset}
+        transform={`rotate(-90 ${c} ${c})`}
+      />
+    </svg>
+  );
+}
+
+// ─── Page ────────────────────────────────────────────────────────────────────
+
 export default async function DashboardPage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
 
   const displayName =
     user?.user_metadata?.full_name ??
     user?.email?.split("@")[0] ??
     "there";
+  const firstName = displayName.split(" ")[0];
 
-  // Fetch real stats
   const { data: sessions } = await supabase
     .from("interview_sessions")
     .select("id, status, started_at, completed_at, score")
@@ -95,216 +216,394 @@ export default async function DashboardPage() {
         )
       : null;
 
-  const stats = [
-    {
-      label: "Sessions Completed",
-      value: completed.length.toString(),
-      icon: BarChart3,
-      sub: completed.length === 0 ? "Start your first session" : `${sessionList.length} total`,
-      color: "#2dec29",
-      href: "/app/progress",
-    },
-    {
-      label: "Avg Confidence",
-      value: avgConfidence !== null ? `${avgConfidence}/10` : "—",
-      icon: Zap,
-      sub: avgConfidence !== null ? "Post-session score" : "Tracked after sessions",
-      color: "#48e57c",
-      href: "/app/progress",
-    },
-    {
-      label: "Practice Streak",
-      value: streak > 0 ? `${streak} day${streak !== 1 ? "s" : ""}` : "0 days",
-      icon: Flame,
-      sub: streak > 0 ? "Keep the fire going!" : "Keep the momentum going",
-      color: "#f59e0b",
-      href: null,
-    },
-    {
-      label: "Peer Practice",
-      value: "Live",
-      icon: Calendar,
-      sub: "Practice with others",
-      color: "#8b5cf6",
-      href: "/app/peer-practice",
-    },
-  ];
+  const greeting = getGreeting();
+  const todayStr = new Date().toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+  const weekActivity = getWeekActivity(sessionList);
+  const scoreHistory = getScoreHistory(sessionList);
 
   return (
-    <div className="space-y-8">
-      {/* Welcome */}
-      <div>
-        <h1 className="text-2xl font-bold text-secondary">
-          Welcome back, {displayName} 👋
-        </h1>
-        <p className="text-neutral-500 mt-1">
-          You&apos;re building towards your next great interview. Let&apos;s get some practice in.
-        </p>
-      </div>
+    <div className="space-y-5 pb-12 animate-fade-in">
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map(({ label, value, icon: Icon, sub, color, href }) => {
-          const card = (
-            <div
-              key={label}
-              className="bg-white rounded-2xl p-5 border border-neutral-100 shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center mb-3"
-                style={{ background: color + "20" }}
-              >
-                <Icon className="w-5 h-5" style={{ color }} />
-              </div>
-              <div className="text-2xl font-bold text-secondary">{value}</div>
-              <div className="text-xs font-semibold text-neutral-700 mt-0.5">{label}</div>
-              <div className="text-xs text-neutral-400 mt-0.5">{sub}</div>
-            </div>
-          );
-          return href ? (
-            <Link key={label} href={href} className="block">
-              {card}
-            </Link>
-          ) : (
-            <div key={label}>{card}</div>
-          );
-        })}
-      </div>
-
-      {/* CTA: AI Practice */}
-      <div
-        className="rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4"
-        style={{ background: "#112715" }}
-      >
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <Sparkles className="w-4 h-4" style={{ color: "#2dec29" }} />
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {/* 1 ▸ GREETING                                                          */}
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <div className="flex items-center justify-between">
+        <div>
+          {/* Live-status chip */}
+          <div
+            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 mb-2"
+            style={{ background: "#2dec2912" }}
+          >
+            <span className="relative flex h-2 w-2">
+              <span
+                className="absolute inline-flex h-full w-full rounded-full opacity-75 animate-pulse-slow"
+                style={{ background: "#2dec29" }}
+              />
+              <span
+                className="relative inline-flex h-2 w-2 rounded-full"
+                style={{ background: "#2dec29" }}
+              />
+            </span>
             <span
-              className="text-xs font-semibold uppercase tracking-wider"
+              className="text-[11px] font-bold uppercase tracking-widest"
               style={{ color: "#2dec29" }}
             >
-              AI Practice Partner
+              {todayStr}
             </span>
           </div>
-          <h2 className="text-white text-lg font-bold">
-            Practice with Your AI Coach
-          </h2>
-          <p className="text-white/60 text-sm mt-1">
-            On-demand behavioral interview practice with structured R-STAR feedback. Available 24/7, no scheduling required.
+
+          <h1 className="text-2xl md:text-3xl font-bold text-secondary leading-tight">
+            {greeting}, {firstName}! 👋
+          </h1>
+          <p className="text-neutral-500 text-sm mt-1">
+            Your daily interview workout is ready.
           </p>
         </div>
-        <Link
-          href="/app/practice"
-          className="flex items-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm shrink-0 transition-opacity hover:opacity-90"
-          style={{ background: "#2dec29", color: "#112715" }}
-        >
-          Start Practice
-          <Sparkles className="w-4 h-4" />
-        </Link>
       </div>
 
-      {/* Quick links */}
-      <div className="grid sm:grid-cols-2 gap-4">
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {/* 3 ▸ STREAK HERO (Duolingo-style)                                      */}
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {streak > 0 ? (
         <Link
           href="/app/progress"
-          className="flex items-center gap-4 bg-white rounded-2xl p-5 border border-neutral-100 shadow-sm hover:shadow-md transition-shadow"
+          className="relative rounded-2xl overflow-hidden block hover:opacity-95 transition-opacity"
+          style={{ background: "linear-gradient(135deg, #f97316 0%, #fb923c 35%, #fbbf24 100%)" }}
         >
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-            style={{ background: "#f4fdf3" }}
-          >
-            <TrendingUp className="w-5 h-5" style={{ color: "#2dec29" }} />
+          {/* Decorative blob */}
+          <div className="pointer-events-none absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/15" />
+
+          {/* Top: left streak info + right sparkline */}
+          <div className="relative z-10 flex items-stretch gap-0 px-4 pt-3 pb-3">
+
+            {/* Left: streak info — shrink-0 so it doesn't eat all flex space */}
+            <div className="shrink-0 flex flex-col gap-2.5 pr-4">
+              <div className="flex items-center gap-3 mb-4">
+                {/* Circular milestone ring with flame inside */}
+                <div className="relative shrink-0 flex flex-col items-center gap-0.5">
+                  <div className="relative" style={{ width: 68, height: 68 }}>
+                    <StreakRing streak={streak} size={68} />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-[26px] leading-none">🔥</span>
+                    </div>
+                  </div>
+                  <span className="text-[9px] font-bold text-white/40 tabular-nums">
+                    of&nbsp;{streak < 7 ? 7 : streak < 14 ? 14 : streak < 30 ? 30 : 100}d
+                  </span>
+                </div>
+                {/* Count + label + message */}
+                <div className="flex flex-col gap-0.5">
+                  <div className="text-4xl font-black text-white leading-none tabular-nums">{streak}</div>
+                  <div className="text-white/80 font-bold text-sm leading-tight">Day Streak</div>
+                  <p className="text-white/55 text-[11px] leading-snug mt-1">
+                    {streak >= 14
+                      ? "Legendary! 🏆"
+                      : streak >= 7
+                      ? "One full week! 🔥"
+                      : streak >= 3
+                      ? "Building momentum!"
+                      : "Great start!"}
+                  </p>
+                </div>
+              </div>
+              {/* Week activity dots */}
+              <div className="flex items-center gap-1">
+                {weekActivity.map((day, i) => (
+                  <div key={i} className="flex flex-col items-center gap-0.5">
+                    <div
+                      className={cn(
+                        "w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black border",
+                        day.active
+                          ? "bg-white text-orange-500 border-white shadow-sm"
+                          : day.isToday
+                          ? "bg-white/20 text-white/70 border-white/30"
+                          : "bg-white/10 border-transparent"
+                      )}
+                    >
+                      {day.active ? "✓" : ""}
+                    </div>
+                    <span className="text-[8px] font-bold text-white/40">{day.label}</span>
+                  </div>
+                ))}
+              </div>
+
+            </div>
+
+            {/* Right: sparkline chart */}
+            <div className="flex-1 min-w-0 flex flex-col border-l border-white/20 pl-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Score trend</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-semibold text-white/40">7d</span>
+                  <span className="text-[10px] font-bold text-white/70 flex items-center gap-0.5">
+                    Progress <ChevronRight className="w-3 h-3" />
+                  </span>
+                </div>
+              </div>
+              {scoreHistory.filter(Boolean).length >= 2 ? (
+                <>
+                  <SparklineChart data={scoreHistory} stroke="white" className="w-full h-14 flex-1" />
+                  <div className="flex justify-between mt-1.5">
+                    {weekActivity.map((day, i) => (
+                      <span key={i} className="text-[8px] font-bold text-white/30">{day.label}</span>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="flex-1 flex flex-col items-center justify-center gap-1.5 py-2">
+                  <span className="text-xl">📈</span>
+                  <span className="text-[9px] text-white/40 text-center leading-tight">
+                    Practice more<br />to see trends
+                  </span>
+                </div>
+              )}
+            </div>
+
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-secondary text-sm">View Progress</p>
-            <p className="text-xs text-neutral-400 mt-0.5">
-              {completed.length > 0
-                ? `${completed.length} session${completed.length !== 1 ? "s" : ""} completed`
-                : "Track your improvement over time"}
-            </p>
-          </div>
-          <ArrowRight className="w-4 h-4 text-neutral-400 shrink-0" />
         </Link>
+      ) : (
+        /* Zero-streak state */
         <Link
-          href="/app/settings"
-          className="flex items-center gap-4 bg-white rounded-2xl p-5 border border-neutral-100 shadow-sm hover:shadow-md transition-shadow"
+          href="/app/progress"
+          className="relative rounded-2xl overflow-hidden border border-neutral-200 bg-white block hover:shadow-md transition-shadow"
         >
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-            style={{ background: "#f4fdf3" }}
-          >
-            <BarChart3 className="w-5 h-5 text-neutral-400" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-secondary text-sm">Complete Your Profile</p>
-            <p className="text-xs text-neutral-400 mt-0.5">Set your experience level and target companies</p>
-          </div>
-          <ArrowRight className="w-4 h-4 text-neutral-400 shrink-0" />
-        </Link>
-      </div>
-
-      {/* Frameworks */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-secondary">Behavioral Frameworks</h2>
-          <Link
-            href="/app/frameworks"
-            className="text-sm font-medium flex items-center gap-1 hover:opacity-80 transition"
-            style={{ color: "#2dec29" }}
-          >
-            View all <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-        <div className="grid sm:grid-cols-3 gap-4">
-          {frameworks.map(({ name, description, color, level }) => (
+          <div className="pointer-events-none absolute -right-4 -top-4 w-28 h-28 rounded-full bg-primary/5" />
+          <div className="relative z-10 p-5">
+            <div className="flex items-center gap-4 mb-4">
+              <span className="text-3xl">🌱</span>
+              <div>
+                <h2 className="font-bold text-secondary text-base">Start your streak today</h2>
+                <p className="text-neutral-500 text-xs mt-0.5">Practice daily to build interview confidence.</p>
+              </div>
+            </div>
             <Link
-              key={name}
               href="/app/practice"
-              className="bg-white rounded-2xl p-5 border border-neutral-100 shadow-sm hover:shadow-md transition-shadow block"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-opacity hover:opacity-90 mb-4"
+              style={{ background: "#2dec29", color: "#112715" }}
             >
-              <div
-                className="inline-flex items-center justify-center w-10 h-10 rounded-xl text-sm font-bold mb-3"
-                style={{ background: color, color: color === "#112715" ? "#fff" : "#112715" }}
-              >
-                {name.slice(0, 1)}
-              </div>
-              <h3 className="font-bold text-secondary mb-1">{name}</h3>
-              <p className="text-xs text-neutral-500 mb-3">{description}</p>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-cream-dark text-secondary font-medium">
-                {level}
-              </span>
+              <PlayCircle className="w-4 h-4" />
+              Begin your first session
             </Link>
-          ))}
-        </div>
-      </div>
+          </div>
 
-      {/* Upcoming features */}
-      <div>
-        <h2 className="text-lg font-bold text-secondary mb-1">What&apos;s Coming</h2>
-        <p className="text-sm text-neutral-500 mb-4">
-          We&apos;re building the features you need most. Here&apos;s what&apos;s on the roadmap.
-        </p>
-        <div className="grid sm:grid-cols-2 gap-4">
-          {upcomingFeatures.map(({ icon: Icon, title, description, eta }) => (
+          <div className="border-t border-neutral-100 grid grid-cols-2 divide-x divide-neutral-100 px-2 py-3">
+            <div className="flex flex-col items-center gap-0.5 px-3">
+              <span className="text-lg font-black text-secondary tabular-nums leading-none">{completed.length}</span>
+              <span className="text-[10px] font-semibold text-neutral-400 mt-0.5">Sessions</span>
+            </div>
+            <div className="flex flex-col items-center gap-0.5 px-3">
+              <span className="text-lg font-black text-secondary tabular-nums leading-none">
+                {avgConfidence !== null ? avgConfidence : "—"}
+              </span>
+              <span className="text-[10px] font-semibold text-neutral-400 mt-0.5">Avg score</span>
+            </div>
+          </div>
+        </Link>
+      )}
+
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {/* 6 ▸ ACTION CARDS — AI + Peer                                         */}
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+
+
+      <div className="grid sm:grid-cols-2 gap-3">
+        {/* ── AI Practice card */}
+        <Link
+          href="/app/practice"
+          className="group relative rounded-2xl overflow-hidden flex flex-col gap-4 p-5 hover:opacity-95 transition-opacity"
+          style={{
+            background: "linear-gradient(145deg, #112715 0%, #1c4220 60%, #0f2312 100%)",
+          }}
+        >
+          {/* Decorative glow */}
+          <div
+            className="pointer-events-none absolute -bottom-6 -right-6 w-32 h-32 rounded-full blur-2xl opacity-30"
+            style={{ background: "#2dec29" }}
+          />
+          <div className="relative z-10 flex flex-col gap-4">
+            {/* Icon */}
             <div
-              key={title}
-              className="bg-white rounded-2xl p-5 border border-neutral-100 shadow-sm opacity-80"
+              className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl"
+              style={{ background: "#2dec2916" }}
             >
-              <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center mb-3"
-                style={{ background: "#f4fdf3" }}
-              >
-                <Icon className="w-5 h-5 text-neutral-400" />
+              🤖
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5 mb-1">
+                <Sparkles className="w-3 h-3" style={{ color: "#2dec29" }} />
+                <span
+                  className="text-[10px] font-bold uppercase tracking-widest"
+                  style={{ color: "#2dec29" }}
+                >
+                  AI Coach · 24/7
+                </span>
               </div>
-              <h3 className="font-semibold text-secondary mb-1">{title}</h3>
-              <p className="text-xs text-neutral-500 mb-3">{description}</p>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-500 font-medium">
-                {eta}
+              <h3 className="text-white font-bold text-lg leading-tight">
+                Practice Now
+              </h3>
+              <p className="text-white/50 text-xs mt-1 leading-relaxed">
+                Real-time R-STAR feedback, no scheduling needed
+              </p>
+            </div>
+            <div
+              className="flex items-center gap-1 text-sm font-bold transition-gap"
+              style={{ color: "#2dec29" }}
+            >
+              Start session
+              <ChevronRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+            </div>
+          </div>
+        </Link>
+
+        {/* ── Peer Practice card */}
+        <Link
+          href="/app/peer-practice"
+          className="group relative rounded-2xl overflow-hidden bg-white border border-neutral-100 shadow-sm flex flex-col gap-3 p-5 hover:shadow-md transition-shadow"
+        >
+          {/* Purple glow */}
+          <div className="pointer-events-none absolute -bottom-8 -right-8 w-36 h-36 rounded-full blur-3xl opacity-10 bg-purple-500" />
+          <div className="relative z-10 flex flex-col gap-3">
+
+            {/* Live badge */}
+            <div className="flex items-center gap-1.5">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75 animate-pulse-slow" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
+              </span>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-purple-600">
+                Live Now
               </span>
             </div>
-          ))}
+
+            {/* Stacked avatar photos — real engineers online */}
+            <div className="flex items-center gap-2.5">
+              <div className="flex items-center">
+                {[
+                  { src: "https://randomuser.me/api/portraits/women/44.jpg", alt: "Software engineer" },
+                  { src: "https://randomuser.me/api/portraits/men/32.jpg",   alt: "Software engineer" },
+                  { src: "https://randomuser.me/api/portraits/women/68.jpg", alt: "Software engineer" },
+                  { src: "https://randomuser.me/api/portraits/men/75.jpg",   alt: "Software engineer" },
+                  { src: "https://randomuser.me/api/portraits/women/12.jpg", alt: "Software engineer" },
+                ].map(({ src, alt }, i) => (
+                  <div
+                    key={i}
+                    className="relative w-8 h-8 rounded-full border-2 border-white overflow-hidden"
+                    style={{ marginLeft: i === 0 ? 0 : -10 }}
+                  >
+                    <Image src={src} alt={alt} fill className="object-cover" />
+                  </div>
+                ))}
+              </div>
+              <span className="text-xs font-semibold text-neutral-500">+12 online</span>
+            </div>
+
+            <div>
+              <h3 className="text-secondary font-bold text-lg leading-tight">
+                Peer Practice
+              </h3>
+              <p className="text-neutral-400 text-xs mt-1 leading-relaxed">
+                Match with a real engineer for a live mock session
+              </p>
+            </div>
+
+            <div className="flex items-center gap-1 text-sm font-bold text-purple-600">
+              Find a match
+              <ChevronRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+            </div>
+          </div>
+        </Link>
+      </div>
+
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {/* 7 ▸ FRAMEWORKS — horizontal scroll feed                               */}
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-bold text-secondary text-base">Answer Frameworks</h2>
+          <Link
+            href="/app/practice"
+            className="flex items-center gap-0.5 text-xs font-bold transition-opacity hover:opacity-70"
+            style={{ color: "#2dec29" }}
+          >
+            Explore <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        <div className="overflow-x-auto pb-2 -mx-6 px-6">
+          <div className="flex gap-3 w-max">
+            {frameworks.map(({ name, description, color, level }) => (
+              <Link
+                key={name}
+                href="/app/practice"
+                className="group w-48 shrink-0 bg-white rounded-2xl border border-neutral-100 overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+              >
+                {/* Thick color top bar */}
+                <div className="h-2" style={{ background: color }} />
+                <div className="p-4">
+                  <h3 className="font-black text-secondary text-base mb-1">{name}</h3>
+                  <p className="text-[11px] text-neutral-400 leading-relaxed mb-3 line-clamp-3">
+                    {description}
+                  </p>
+                  <span
+                    className="inline-block text-[10px] px-2.5 py-1 rounded-full font-bold"
+                    style={{
+                      background: color === "#a3e4a5" ? "#dcfce7" : color + "20",
+                      color: color === "#a3e4a5" ? "#166534" : color === "#2dec29" ? "#0a5c09" : color,
+                    }}
+                  >
+                    {level}
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
+
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {/* 8 ▸ QUICK LINKS ROW                                                   */}
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <div className="grid grid-cols-2 gap-3">
+        <Link
+          href="/app/progress"
+          className="group flex items-center gap-3 bg-white rounded-2xl border border-neutral-100 px-4 py-3.5 hover:shadow-sm transition-shadow"
+        >
+          <div
+            className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+            style={{ background: "#2dec2915" }}
+          >
+            <Zap className="w-4 h-4" style={{ color: "#2dec29" }} />
+          </div>
+          <div className="min-w-0">
+            <p className="font-semibold text-secondary text-sm truncate">Progress</p>
+            <p className="text-[11px] text-neutral-400 truncate">
+              {completed.length > 0
+                ? `${completed.length} sessions done`
+                : "Track your growth"}
+            </p>
+          </div>
+          <ChevronRight className="w-3.5 h-3.5 text-neutral-300 ml-auto shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" />
+        </Link>
+
+        <Link
+          href="/app/settings"
+          className="group flex items-center gap-3 bg-white rounded-2xl border border-neutral-100 px-4 py-3.5 hover:shadow-sm transition-shadow"
+        >
+          <div className="w-8 h-8 rounded-xl bg-neutral-100 flex items-center justify-center shrink-0">
+            <Users className="w-4 h-4 text-neutral-500" />
+          </div>
+          <div className="min-w-0">
+            <p className="font-semibold text-secondary text-sm truncate">Profile</p>
+            <p className="text-[11px] text-neutral-400 truncate">Set your goals</p>
+          </div>
+          <ChevronRight className="w-3.5 h-3.5 text-neutral-300 ml-auto shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" />
+        </Link>
+      </div>
+
     </div>
   );
 }
