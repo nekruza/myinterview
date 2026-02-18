@@ -8,12 +8,14 @@ import { Button } from "./ui";
 import { createClient } from "@/lib/supabase/client";
 import { track } from "@/lib/mixpanel";
 import type { User } from "@supabase/supabase-js";
+import { useComingSoon } from "./ComingSoonProvider";
 
 export const Navigation: FC = () => {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
+  const { openModal } = useComingSoon();
   const supabase = createClient();
 
   useEffect(() => {
@@ -105,31 +107,30 @@ export const Navigation: FC = () => {
               </>
             ) : (
               <>
-                <Link
-                  href="/login"
+                <button
                   className="text-secondary hover:text-primary transition font-medium"
-                  onClick={() =>
+                  onClick={() => {
                     track("CTA Clicked", {
                       button: "Sign In",
                       location: "nav_desktop",
-                    })
-                  }
+                    });
+                    openModal();
+                  }}
                 >
                   Sign In
-                </Link>
-                <Link href="/signup">
-                  <Button
-                    size="md"
-                    onClick={() =>
-                      track("CTA Clicked", {
-                        button: "Join Free",
-                        location: "nav_desktop",
-                      })
-                    }
-                  >
-                    Join Free
-                  </Button>
-                </Link>
+                </button>
+                <Button
+                  size="md"
+                  onClick={() => {
+                    track("CTA Clicked", {
+                      button: "Join Free",
+                      location: "nav_desktop",
+                    });
+                    openModal();
+                  }}
+                >
+                  Join Free
+                </Button>
               </>
             )}
           </div>
@@ -210,8 +211,7 @@ export const Navigation: FC = () => {
               </>
             ) : (
               <>
-                <Link
-                  href="/login"
+                <button
                   className="text-secondary hover:text-primary transition font-medium text-left py-2"
                   onClick={() => {
                     track("CTA Clicked", {
@@ -219,24 +219,25 @@ export const Navigation: FC = () => {
                       location: "nav_mobile",
                     });
                     setMenuOpen(false);
+                    openModal();
                   }}
                 >
                   Sign In
-                </Link>
-                <Link href="/signup" onClick={() => setMenuOpen(false)}>
-                  <Button
-                    size="md"
-                    className="w-full justify-center"
-                    onClick={() =>
-                      track("CTA Clicked", {
-                        button: "Join Free",
-                        location: "nav_mobile",
-                      })
-                    }
-                  >
-                    Join Free
-                  </Button>
-                </Link>
+                </button>
+                <Button
+                  size="md"
+                  className="w-full justify-center"
+                  onClick={() => {
+                    track("CTA Clicked", {
+                      button: "Join Free",
+                      location: "nav_mobile",
+                    });
+                    setMenuOpen(false);
+                    openModal();
+                  }}
+                >
+                  Join Free
+                </Button>
               </>
             )}
           </div>
