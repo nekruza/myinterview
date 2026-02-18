@@ -152,14 +152,10 @@ function SparklineChart({
       <path d={area} fill={`url(#${gradId})`} />
       {/* Line */}
       <path d={line} stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      {/* Dots */}
+      {/* Dots — kept small so oval distortion from preserveAspectRatio="none" is negligible */}
       {pts.map((p, i) => (
-        <circle key={i} cx={p.x} cy={p.y} r="3" fill={stroke} />
+        <circle key={i} cx={p.x} cy={p.y} r="2" fill={stroke} />
       ))}
-      {/* Latest dot highlight */}
-      {pts.length > 0 && (
-        <circle cx={pts.at(-1)!.x} cy={pts.at(-1)!.y} r="4.5" fill={stroke} fillOpacity="0.3" />
-      )}
     </svg>
   );
 }
@@ -290,7 +286,7 @@ export default async function DashboardPage() {
                 <div className="flex flex-col gap-0.5">
                   <div className="text-4xl font-black text-white leading-none tabular-nums">{streak}</div>
                   <div className="text-white/80 font-bold text-sm leading-tight">Day Streak</div>
-                  <p className="text-white/55 text-[11px] leading-snug mt-1">
+                  <p className="text-white/55 text-[12px] leading-snug mt-1">
                     {streak >= 14
                       ? "Legendary! 🏆"
                       : streak >= 7
@@ -340,7 +336,7 @@ export default async function DashboardPage() {
                   <SparklineChart data={scoreHistory} stroke="white" className="w-full h-14 flex-1" />
                   <div className="flex justify-between mt-1.5">
                     {weekActivity.map((day, i) => (
-                      <span key={i} className="text-[8px] font-bold text-white/30">{day.label}</span>
+                      <span key={i} className="text-[12px] font-bold text-white/30">{day.label}</span>
                     ))}
                   </div>
                 </>
@@ -536,7 +532,7 @@ export default async function DashboardPage() {
                 <div className="h-2" style={{ background: color }} />
                 <div className="p-4">
                   <h3 className="font-black text-secondary text-base mb-1">{name}</h3>
-                  <p className="text-[11px] text-neutral-400 leading-relaxed mb-3 line-clamp-3">
+                  <p className="text-[12px] text-neutral-400 leading-relaxed mb-3 line-clamp-3">
                     {description}
                   </p>
                   <span
@@ -571,7 +567,7 @@ export default async function DashboardPage() {
           </div>
           <div className="min-w-0">
             <p className="font-semibold text-secondary text-sm truncate">Progress</p>
-            <p className="text-[11px] text-neutral-400 truncate">
+            <p className="text-[12px] text-neutral-400 truncate">
               {completed.length > 0
                 ? `${completed.length} sessions done`
                 : "Track your growth"}
@@ -589,7 +585,7 @@ export default async function DashboardPage() {
           </div>
           <div className="min-w-0">
             <p className="font-semibold text-secondary text-sm truncate">Profile</p>
-            <p className="text-[11px] text-neutral-400 truncate">Set your goals</p>
+            <p className="text-[12apx] text-neutral-400 truncate">Set your goals</p>
           </div>
           <ChevronRight className="w-3.5 h-3.5 text-neutral-300 ml-auto shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" />
         </Link>
