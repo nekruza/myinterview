@@ -9,6 +9,9 @@ export function useSpeechSynthesis() {
   const resolveRef = useRef<(() => void) | null>(null);
   // Ref to current Kokoro Audio element so cancel() can stop it
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Refs for safety timeout and Chrome keepalive interval in speakFallback
+  const safetyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const resumeIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -59,14 +62,43 @@ export function useSpeechSynthesis() {
       window.speechSynthesis.cancel();
       return new Promise<void>((resolve) => {
         resolveRef.current = resolve;
+        let resolved = false;
+
+        const done = () => {
+          if (resolved) return;
+          resolved = true;
+          if (safetyTimeoutRef.current) {
+            clearTimeout(safetyTimeoutRef.current);
+            safetyTimeoutRef.current = null;
+          }
+          if (resumeIntervalRef.current) {
+            clearInterval(resumeIntervalRef.current);
+            resumeIntervalRef.current = null;
+          }
+          setIsSpeaking(false);
+          resolveRef.current = null;
+          resolve();
+        };
+
+        // Chrome pauses speechSynthesis after ~15s when tab is in background.
+        // Keepalive: pause+resume every 10s to prevent it from stalling.
+        resumeIntervalRef.current = setInterval(() => {
+          if (window.speechSynthesis.speaking && !isCancelledRef.current) {
+            window.speechSynthesis.pause();
+            window.speechSynthesis.resume();
+          }
+        }, 10000);
+
+        // Safety timeout: if onend never fires (Chrome bug), resolve anyway.
+        const estimatedMs = Math.max(text.length * 80, 6000);
+        safetyTimeoutRef.current = setTimeout(done, estimatedMs);
+
         const sentences = text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [text];
         const chunks = sentences.map((s) => s.trim()).filter(Boolean);
         let index = 0;
         const speakNext = () => {
           if (isCancelledRef.current || index >= chunks.length) {
-            setIsSpeaking(false);
-            resolveRef.current = null;
-            resolve();
+            done();
             return;
           }
           speakChunk(chunks[index], () => {
@@ -153,6 +185,16 @@ export function useSpeechSynthesis() {
     // Stop Web Speech if active
     if (typeof window !== "undefined") {
       window.speechSynthesis.cancel();
+    }
+
+    // Clear fallback safety timeout and keepalive interval
+    if (safetyTimeoutRef.current) {
+      clearTimeout(safetyTimeoutRef.current);
+      safetyTimeoutRef.current = null;
+    }
+    if (resumeIntervalRef.current) {
+      clearInterval(resumeIntervalRef.current);
+      resumeIntervalRef.current = null;
     }
 
     setIsSpeaking(false);

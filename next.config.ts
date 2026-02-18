@@ -68,6 +68,11 @@ const nextConfig: NextConfig = {
         hostname: "randomuser.me",
         pathname: "/api/portraits/**",
       },
+      {
+        protocol: "https",
+        hostname: "wgvyosffhhwkzbvhdwql.supabase.co",
+        pathname: "/storage/v1/object/public/**",
+      },
     ],
   },
 

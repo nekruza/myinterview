@@ -18,6 +18,7 @@ interface VideoAreaProps {
   isUserSpeaking: boolean;
   analyserData: Uint8Array;
   userName?: string;
+  avatarUrl?: string | null;
 }
 
 export const VideoArea: FC<VideoAreaProps> = ({
@@ -26,6 +27,7 @@ export const VideoArea: FC<VideoAreaProps> = ({
   isUserSpeaking,
   analyserData,
   userName = "You",
+  avatarUrl,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -63,16 +65,26 @@ export const VideoArea: FC<VideoAreaProps> = ({
       ) : (
         <div className="w-full h-full flex items-center justify-center">
           <div
-            className={`w-28 h-28 rounded-full flex items-center justify-center text-4xl font-bold transition-shadow duration-500 ${isUserSpeaking ? "animate-speaking-ring" : ""}`}
+            className={`w-28 h-28 rounded-full flex items-center justify-center text-4xl font-bold transition-shadow duration-500 overflow-hidden ${isUserSpeaking ? "animate-speaking-ring" : ""}`}
             style={{
-              background: "linear-gradient(135deg, #2dec29, #0a8a1e)",
+              background: avatarUrl ? "transparent" : "linear-gradient(135deg, #2dec29, #0a8a1e)",
               color: "#112715",
               boxShadow: isUserSpeaking
                 ? "0 0 40px rgba(45, 236, 41, 0.4)"
                 : "0 0 0 rgba(45, 236, 41, 0)",
             }}
           >
-            {initials}
+            {avatarUrl ? (
+              <Image
+                src={avatarUrl}
+                alt={userName}
+                width={112}
+                height={112}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              initials
+            )}
           </div>
         </div>
       )}
