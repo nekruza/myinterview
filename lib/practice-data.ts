@@ -56,6 +56,24 @@ export const CATEGORIES = [
   },
 ];
 
+export const TECH_ROLES = [
+  { value: "frontend", label: "Frontend Developer" },
+  { value: "backend", label: "Backend Developer" },
+  { value: "fullstack", label: "Full Stack Developer" },
+  { value: "mobile", label: "Mobile Developer" },
+  { value: "devops", label: "DevOps / Platform Engineer" },
+  { value: "sre", label: "Site Reliability Engineer (SRE)" },
+  { value: "cloud", label: "Cloud Engineer" },
+  { value: "data", label: "Data Engineer" },
+  { value: "ml", label: "Machine Learning / AI Engineer" },
+  { value: "security", label: "Security Engineer" },
+  { value: "architect", label: "Software Architect" },
+  { value: "qa", label: "QA / Test Engineer" },
+  { value: "embedded", label: "Embedded / Systems Engineer" },
+  { value: "general", label: "General Software Engineer" },
+  { value: "other", label: "Other..." },
+];
+
 export const LEVELS = [
   { value: "junior", label: "Junior (0-2 yrs)" },
   { value: "mid", label: "Mid-level (3-5 yrs)" },

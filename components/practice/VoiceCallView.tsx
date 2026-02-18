@@ -25,6 +25,7 @@ interface VoiceCallViewProps {
   selectedCategory: { id: string; label: string; color: string };
   selectedQuestion: string;
   level: string;
+  role?: string;
   sessionId: string | null;
   interviewType?: "technical" | "behavioural";
   jobContext?: JobContext;
@@ -45,6 +46,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
   selectedCategory,
   selectedQuestion,
   level,
+  role,
   sessionId,
   interviewType,
   jobContext,
@@ -172,6 +174,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
             question: selectedQuestion,
             category: selectedCategory.id,
             level,
+            role,
             sessionId,
             isHint,
             interviewType,
