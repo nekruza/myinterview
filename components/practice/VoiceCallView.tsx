@@ -65,6 +65,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
   const [endConfidence, setEndConfidence] = useState<number | null>(null);
   const [micPermission, setMicPermission] = useState<boolean | null>(null);
   const [cameraOn, setCameraOn] = useState(true);
+  const [autoSend, setAutoSend] = useState(false);
 
   const timer = useTimer();
   const speech = useSpeechRecognition();
@@ -283,9 +284,21 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
   const sendToAIRef = useRef(sendToAI);
   sendToAIRef.current = sendToAI;
 
+  // ── Toggle auto-send (clears pending timer when turning off) ──
+  const handleToggleAutoSend = useCallback(() => {
+    setAutoSend((prev) => {
+      if (prev && silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
+      return !prev;
+    });
+  }, []);
+
   // ── Watch for user finishing speaking (silence detection) ──
   useEffect(() => {
     if (convState !== "listening") return;
+    if (!autoSend) return;
 
     const currentFinal = speech.finalTranscript;
 
@@ -312,7 +325,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
 
     // Only clean up on unmount or when convState leaves "listening"
     // Do NOT clean up when finalTranscript changes (that would kill the timer)
-  }, [convState, speech.finalTranscript]);
+  }, [convState, speech.finalTranscript, autoSend]);
 
   // Clean up silence timer when leaving listening state
   useEffect(() => {
@@ -538,17 +551,38 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
             </div>
           </div>
 
-          {/* Manual send button — shown when mic is on but user wants to send immediately */}
-          {convState === "listening" && (speech.finalTranscript || speech.transcript) && (
-            <div className="shrink-0 flex justify-center">
+          {/* Auto-send toggle + manual send button */}
+          {convState === "listening" && (
+            <div className="shrink-0 flex items-center justify-center gap-3">
+              {/* Auto-send toggle */}
               <button
-                onClick={handleManualSend}
-                className="flex items-center gap-2 px-5 py-2 rounded-full font-semibold text-sm transition hover:opacity-90 active:scale-95"
-                style={{ background: "#2dec29", color: "#112715" }}
+                onClick={handleToggleAutoSend}
+                title={autoSend ? "Auto-send is on — message sends after 2 s of silence. Click to require manual send." : "Auto-send is off — click Send to submit your message. Click to turn auto-send back on."}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border transition"
+                style={{
+                  background: autoSend ? "rgba(45,236,41,0.12)" : "rgba(255,255,255,0.05)",
+                  borderColor: autoSend ? "rgba(45,236,41,0.35)" : "rgba(255,255,255,0.15)",
+                  color: autoSend ? "#2dec29" : "rgba(255,255,255,0.45)",
+                }}
               >
-                <Mic className="w-4 h-4" />
-                Send
+                <span
+                  className="w-2 h-2 rounded-full shrink-0"
+                  style={{ background: autoSend ? "#2dec29" : "rgba(255,255,255,0.3)" }}
+                />
+                Auto-send {autoSend ? "on" : "off"}
               </button>
+
+              {/* Manual send — shown when there's transcript */}
+              {(speech.finalTranscript || speech.transcript) && (
+                <button
+                  onClick={handleManualSend}
+                  className="flex items-center gap-2 px-5 py-2 rounded-full font-semibold text-sm transition hover:opacity-90 active:scale-95"
+                  style={{ background: "#2dec29", color: "#112715" }}
+                >
+                  <Mic className="w-4 h-4" />
+                  Send
+                </button>
+              )}
             </div>
           )}
 
@@ -574,7 +608,8 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
         {/* Transcript side panel */}
         <TranscriptPanel
           messages={messages}
-          interimTranscript={speech.transcript}
+          interimTranscript={convState === "listening" ? (speech.finalTranscript + speech.transcript).trim() : ""}
+          isActivelyListening={convState === "listening" && !!speech.transcript}
           isVisible={showCaptions}
         />
       </div>

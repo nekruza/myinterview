@@ -7,12 +7,15 @@ import type { Message } from "@/lib/practice-data";
 interface TranscriptPanelProps {
   messages: Message[];
   interimTranscript: string;
+  /** Highlights the interim block as actively updating (interim-only portion is non-empty). */
+  isActivelyListening?: boolean;
   isVisible: boolean;
 }
 
 export const TranscriptPanel: FC<TranscriptPanelProps> = ({
   messages,
   interimTranscript,
+  isActivelyListening = false,
   isVisible,
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -65,7 +68,7 @@ export const TranscriptPanel: FC<TranscriptPanelProps> = ({
           );
         })}
         {interimTranscript && (
-          <div className="animate-pulse">
+          <div className={isActivelyListening ? "animate-pulse" : undefined}>
             <p className="text-[10px] font-semibold uppercase tracking-wider mb-0.5 text-[#2dec29]">
               You
             </p>
