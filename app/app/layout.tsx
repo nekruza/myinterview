@@ -17,9 +17,15 @@ export default async function AppLayout({
     redirect("/login");
   }
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("avatar_url")
+    .eq("id", user.id)
+    .single();
+
   return (
     <div className="flex h-screen bg-cream overflow-hidden">
-      <AppSidebar userEmail={user.email ?? ""} />
+      <AppSidebar userEmail={user.email ?? ""} avatarUrl={profile?.avatar_url ?? null} />
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-6xl mx-auto px-6 py-8">{children}</div>
       </main>

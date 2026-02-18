@@ -76,9 +76,10 @@ function timeAgo(dateStr: string) {
 
 interface AppSidebarProps {
   userEmail: string;
+  avatarUrl: string | null;
 }
 
-export const AppSidebar: FC<AppSidebarProps> = ({ userEmail }) => {
+export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
@@ -323,10 +324,20 @@ export const AppSidebar: FC<AppSidebarProps> = ({ userEmail }) => {
       <div className="border-t border-white/10 p-3">
         <div className="flex items-center gap-3 px-1 py-2">
           <div
-            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 overflow-hidden"
             style={{ background: "#2dec29", color: "#112715" }}
           >
-            {initials}
+            {avatarUrl ? (
+              <Image
+                src={avatarUrl}
+                alt="Profile"
+                width={32}
+                height={32}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              initials
+            )}
           </div>
           {!collapsed && (
             <span className="text-white/70 text-xs truncate flex-1">

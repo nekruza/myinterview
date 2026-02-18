@@ -16,11 +16,19 @@ import { SessionTimer } from "./SessionTimer";
 import type { Message } from "@/lib/practice-data";
 import { LEVELS } from "@/lib/practice-data";
 
+interface JobContext {
+  mode: "link" | "paste" | "general";
+  value: string;
+}
+
 interface VoiceCallViewProps {
   selectedCategory: { id: string; label: string; color: string };
   selectedQuestion: string;
   level: string;
   sessionId: string | null;
+  interviewType?: "technical" | "behavioural";
+  jobContext?: JobContext;
+  resumeText?: string;
   onComplete: (endConfidence: number) => void;
   onReset: () => void;
 }
@@ -38,6 +46,9 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
   selectedQuestion,
   level,
   sessionId,
+  interviewType,
+  jobContext,
+  resumeText,
   onComplete,
   onReset,
 }) => {
@@ -163,6 +174,9 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
             level,
             sessionId,
             isHint,
+            interviewType,
+            jobContext,
+            resumeText,
           }),
         });
 
@@ -304,6 +318,22 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
       silenceTimerRef.current = null;
     }
   }, [convState]);
+
+  // ── Manual send (fallback when silence detection doesn't fire) ──
+  const handleManualSend = useCallback(() => {
+    const transcript = (speech.finalTranscript + speech.transcript).trim();
+    if (!transcript || convStateRef.current !== "listening") return;
+
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+    speech.stopListening();
+    const userMsg: Message = { role: "user", content: transcript };
+    const updatedMsgs = [...messagesRef.current, userMsg];
+    setMessages(updatedMsgs);
+    sendToAI(updatedMsgs);
+  }, [speech, sendToAI]);
 
   // ── Hint handler ──
   const handleHint = useCallback(async () => {
@@ -504,6 +534,20 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
               />
             </div>
           </div>
+
+          {/* Manual send button — shown when mic is on but user wants to send immediately */}
+          {convState === "listening" && (speech.finalTranscript || speech.transcript) && (
+            <div className="shrink-0 flex justify-center">
+              <button
+                onClick={handleManualSend}
+                className="flex items-center gap-2 px-5 py-2 rounded-full font-semibold text-sm transition hover:opacity-90 active:scale-95"
+                style={{ background: "#2dec29", color: "#112715" }}
+              >
+                <Mic className="w-4 h-4" />
+                Send
+              </button>
+            </div>
+          )}
 
           {/* Control bar */}
           <div className="shrink-0 flex justify-center">

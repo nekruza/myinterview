@@ -28,7 +28,7 @@ export async function GET() {
     supabase
       .from("profiles")
       .select(
-        "id, full_name, avatar_url, experience_level, target_role, interview_timeline, target_companies, email_notifications, match_alerts, created_at"
+        "id, full_name, avatar_url, resume_url, experience_level, target_role, interview_timeline, target_companies, email_notifications, match_alerts, created_at"
       )
       .eq("id", user.id)
       .single(),
@@ -165,6 +165,7 @@ export async function GET() {
     full_name:
       profile?.full_name ?? meta.full_name ?? user.email?.split("@")[0] ?? "",
     avatar_url: profile?.avatar_url ?? null,
+    resume_url: profile?.resume_url ?? null,
     created_at: profile?.created_at ?? user.created_at,
 
     experience_level:

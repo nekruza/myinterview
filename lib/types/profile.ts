@@ -4,6 +4,7 @@ export interface UserProfile {
   email: string;
   full_name: string;
   avatar_url: string | null;
+  resume_url: string | null;
   created_at: string;
 
   // Interview context
