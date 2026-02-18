@@ -57,16 +57,19 @@ function calcStreak(
   return streak;
 }
 
-/** Returns last 7 days [oldest…today] each with a short label + whether practiced */
+/** Returns Mon–Sun of the current week each with a short label + whether practiced */
 function getWeekActivity(
   sessions: { status: string; completed_at: string | null; started_at: string }[]
 ): { label: string; active: boolean; isToday: boolean }[] {
   const DAY_LABELS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const daysFromMonday = (today.getDay() + 6) % 7;
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - daysFromMonday);
   return Array.from({ length: 7 }, (_, i) => {
-    const daysAgo = 6 - i;
-    const dayStart = new Date();
-    dayStart.setDate(dayStart.getDate() - daysAgo);
-    dayStart.setHours(0, 0, 0, 0);
+    const dayStart = new Date(weekStart);
+    dayStart.setDate(weekStart.getDate() + i);
     const dayEnd = new Date(dayStart);
     dayEnd.setDate(dayStart.getDate() + 1);
     const active = sessions.some((s) => {
@@ -74,19 +77,22 @@ function getWeekActivity(
       const d = new Date(s.completed_at ?? s.started_at);
       return d >= dayStart && d < dayEnd;
     });
-    return { label: DAY_LABELS[dayStart.getDay()], active, isToday: daysAgo === 0 };
+    return { label: DAY_LABELS[dayStart.getDay()], active, isToday: dayStart.getTime() === today.getTime() };
   });
 }
 
-/** Returns avg confidence score per day for last 7 days (null = no sessions that day) */
+/** Returns avg confidence score per day for Mon–Sun of the current week (null = no sessions that day) */
 function getScoreHistory(
   sessions: { status: string; completed_at: string | null; started_at: string; score: number | null }[]
 ): (number | null)[] {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const daysFromMonday = (today.getDay() + 6) % 7;
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - daysFromMonday);
   return Array.from({ length: 7 }, (_, i) => {
-    const daysAgo = 6 - i;
-    const dayStart = new Date();
-    dayStart.setDate(dayStart.getDate() - daysAgo);
-    dayStart.setHours(0, 0, 0, 0);
+    const dayStart = new Date(weekStart);
+    dayStart.setDate(weekStart.getDate() + i);
     const dayEnd = new Date(dayStart);
     dayEnd.setDate(dayStart.getDate() + 1);
     const scored = sessions.filter((s) => {
@@ -224,6 +230,14 @@ export default async function DashboardPage() {
   });
   const weekActivity = getWeekActivity(sessionList);
   const scoreHistory = getScoreHistory(sessionList);
+  const _weekRangeStart = (() => {
+    const d = new Date(); d.setHours(0,0,0,0);
+    d.setDate(d.getDate() - (d.getDay() + 6) % 7);
+    return d;
+  })();
+  const _weekRangeEnd = new Date(_weekRangeStart);
+  _weekRangeEnd.setDate(_weekRangeStart.getDate() + 6);
+  const weekRangeLabel = `${_weekRangeStart.getDate()}–${_weekRangeEnd.getDate()} ${_weekRangeEnd.toLocaleDateString("en-GB", { month: "short" })}`;
 
   return (
     <div className="space-y-5 pb-12 animate-fade-in">
@@ -233,29 +247,6 @@ export default async function DashboardPage() {
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <div className="flex items-center justify-between">
         <div>
-          {/* Live-status chip */}
-          <div
-            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 mb-2"
-            style={{ background: "#2dec2912" }}
-          >
-            <span className="relative flex h-2 w-2">
-              <span
-                className="absolute inline-flex h-full w-full rounded-full opacity-75 animate-pulse-slow"
-                style={{ background: "#2dec29" }}
-              />
-              <span
-                className="relative inline-flex h-2 w-2 rounded-full"
-                style={{ background: "#2dec29" }}
-              />
-            </span>
-            <span
-              className="text-[11px] font-bold uppercase tracking-widest"
-              style={{ color: "#2dec29" }}
-            >
-              {todayStr}
-            </span>
-          </div>
-
           <h1 className="text-2xl md:text-3xl font-bold text-secondary leading-tight">
             {greeting}, {firstName}! 👋
           </h1>
@@ -278,7 +269,7 @@ export default async function DashboardPage() {
           <div className="pointer-events-none absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/15" />
 
           {/* Top: left streak info + right sparkline */}
-          <div className="relative z-10 flex items-stretch gap-0 px-4 pt-3 pb-3">
+          <div className="relative z-10 flex items-stretch gap-0 p-4 h-[200px] justify-between">
 
             {/* Left: streak info — shrink-0 so it doesn't eat all flex space */}
             <div className="shrink-0 flex flex-col gap-2.5 pr-4">
@@ -311,12 +302,12 @@ export default async function DashboardPage() {
                 </div>
               </div>
               {/* Week activity dots */}
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 m-2">
                 {weekActivity.map((day, i) => (
                   <div key={i} className="flex flex-col items-center gap-0.5">
                     <div
                       className={cn(
-                        "w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black border",
+                        "w-8 h-8 rounded-full flex items-center justify-center text-[9px] font-black border",
                         day.active
                           ? "bg-white text-orange-500 border-white shadow-sm"
                           : day.isToday
@@ -326,19 +317,19 @@ export default async function DashboardPage() {
                     >
                       {day.active ? "✓" : ""}
                     </div>
-                    <span className="text-[8px] font-bold text-white/40">{day.label}</span>
+                    <span className="text-[12px] font-bold text-white/40">{day.label}</span>
                   </div>
                 ))}
               </div>
 
             </div>
 
-            {/* Right: sparkline chart */}
-            <div className="flex-1 min-w-0 flex flex-col border-l border-white/20 pl-4">
+            {/* Right: sparkline chart */} 
+            <div className="flex-1 min-w-0 mx-4 flex flex-col border-l border-white/20 pl-4 max-w-[700px] justify-end">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Score trend</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-semibold text-white/40">7d</span>
+                  <span className="text-[10px] font-semibold text-white/40">{weekRangeLabel}</span>
                   <span className="text-[10px] font-bold text-white/70 flex items-center gap-0.5">
                     Progress <ChevronRight className="w-3 h-3" />
                   </span>
