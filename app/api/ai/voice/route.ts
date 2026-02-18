@@ -9,7 +9,8 @@ const VOICE_SYSTEM_PROMPT = (
   question: string,
   interviewType?: string,
   jobContext?: { mode: string; value: string },
-  resumeText?: string
+  resumeText?: string,
+  role?: string
 ) => {
   const isTechnical = interviewType === "technical";
 
@@ -21,6 +22,10 @@ const VOICE_SYSTEM_PROMPT = (
 
   const resumeBlock = resumeText?.trim()
     ? `\n\nHere is the candidate's resume:\n---\n${resumeText.trim()}\n---\nUse this to ask questions that reference their actual experience, projects, and background. Call out specific roles or technologies they've listed when probing deeper.`
+    : "";
+
+  const roleBlock = role && role !== "general"
+    ? `\n- Target role: ${role.replace(/-/g, " ")} — tailor all questions and examples to this specific discipline`
     : "";
 
   if (isTechnical) {
@@ -35,7 +40,7 @@ Your personality:
 
 Your role in this interview:
 - Candidate experience level: ${level}
-- Interview type: Technical
+- Interview type: Technical${roleBlock}
 - Focus areas: system design, architecture decisions, coding trade-offs, debugging approaches, scalability${jobContextBlock}${resumeBlock}
 
 Interview flow:
@@ -66,7 +71,7 @@ Your personality:
 
 Your role in this interview:
 - Candidate experience level: ${level}
-- Interview type: Behavioural
+- Interview type: Behavioural${roleBlock}
 - Focus areas: leadership, teamwork, conflict resolution, ownership, growth mindset${jobContextBlock}${resumeBlock}
 
 Interview flow:
@@ -110,7 +115,7 @@ export async function POST(req: Request) {
     });
   }
 
-  const { messages, question, category, level, sessionId, isHint, interviewType, jobContext, resumeText } =
+  const { messages, question, category, level, role, sessionId, isHint, interviewType, jobContext, resumeText } =
     await req.json();
 
   if (!question || !messages) {
@@ -134,7 +139,7 @@ export async function POST(req: Request) {
 
   const systemPrompt = isHint
     ? HINT_SYSTEM_PROMPT(resumeText)
-    : VOICE_SYSTEM_PROMPT(category, level, question, interviewType, jobContext, resumeText);
+    : VOICE_SYSTEM_PROMPT(category, level, question, interviewType, jobContext, resumeText, role);
 
   let fullResponse = "";
   const encoder = new TextEncoder();
