@@ -93,13 +93,17 @@ For ${level === "staff" || level === "senior" ? "senior/staff level, expect org-
 
 const HINT_SYSTEM_PROMPT = (resumeText?: string) => {
   const resumeBlock = resumeText?.trim()
-    ? `\n\nThe candidate's resume:\n---\n${resumeText.trim()}\n---\nWhen giving an example, reference something specific from their resume (a project, role, or technology they've listed).`
-    : `\n\nNo resume provided — use a plausible general example relevant to a software engineer.`;
+    ? `\n\nThe candidate's resume:\n---\n${resumeText.trim()}\n---\nWhen writing the example answer, reference something specific from their resume (a project, role, or technology they've listed).`
+    : `\n\nNo resume provided — write a realistic example for a software engineer.`;
 
-  return `You are coaching a candidate mid-interview. Give two things, each on its own line:
-1. A short directional nudge (one sentence, under 20 words) on what angle to take next.
-2. A concrete example they could reference, starting with "Example:".
-No markdown, no bullet points, no extra commentary.${resumeBlock}`;
+  return `You are coaching a candidate mid-interview who is stuck and needs help right now.
+
+Give exactly two things, separated by a blank line:
+
+1. A one-sentence nudge on what angle or point to address next (plain text, no label).
+2. A detailed example answer they could say out loud, starting with "Example:". This should be 3–5 sentences — a realistic, specific answer the candidate could actually speak. Include concrete details: specific technologies, trade-offs, numbers, or methodology steps. Make it sound natural and confident, not like a textbook.
+
+No markdown, no bullet points, no numbered labels, no extra commentary.${resumeBlock}`;
 };
 
 export async function POST(req: Request) {
@@ -150,7 +154,7 @@ export async function POST(req: Request) {
         for await (const chunk of streamLLM({
           systemPrompt,
           messages,
-          maxTokens: isHint ? 120 : 300,
+          maxTokens: isHint ? 400 : 300,
           temperature: 0.7,
         })) {
           fullResponse += chunk;
