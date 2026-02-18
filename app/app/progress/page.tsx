@@ -23,12 +23,6 @@ interface Session {
   feedback: string | null;
 }
 
-interface ProgressScore {
-  competency: string;
-  score: number;
-  assessed_at: string;
-}
-
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const COMPETENCY_LABELS: Record<string, string> = {
@@ -98,122 +92,164 @@ function calcStreak(sessions: Session[]): number {
   return streak;
 }
 
-// ─── Radar Chart ─────────────────────────────────────────────────────────────
+// ─── Performance Trend Line Chart ────────────────────────────────────────────
 
-function RadarChart({
-  data,
-}: {
-  data: Record<string, number>;
-}) {
-  const competencies = ["leadership", "ownership", "conflict", "failure", "collaboration"];
-  const cx = 120;
-  const cy = 120;
-  const r = 90;
-  const n = competencies.length;
+function PerformanceTrendLineChart({ sessions }: { sessions: Session[] }) {
+  // Oldest → newest, cap at 20
+  const data = [...sessions]
+    .filter((s) => s.score !== null)
+    .slice(0, 20)
+    .reverse();
 
-  function point(index: number, value: number) {
-    const angle = (index * 2 * Math.PI) / n - Math.PI / 2;
-    const d = (value / 100) * r;
-    return { x: cx + d * Math.cos(angle), y: cy + d * Math.sin(angle) };
+  if (data.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-48 text-center">
+        <TrendingUp className="w-8 h-8 text-neutral-300 mb-3" />
+        <p className="text-sm text-neutral-400">
+          Your performance trend will appear here after completing sessions.
+        </p>
+      </div>
+    );
   }
 
-  function gridPoint(index: number, frac: number) {
-    const angle = (index * 2 * Math.PI) / n - Math.PI / 2;
-    return { x: cx + frac * r * Math.cos(angle), y: cy + frac * r * Math.sin(angle) };
-  }
+  const W = 400;
+  const H = 180;
+  const pad = { top: 20, right: 16, bottom: 32, left: 40 };
+  const CW = W - pad.left - pad.right;
+  const CH = H - pad.top - pad.bottom;
 
-  const labelPoint = (index: number) => {
-    const angle = (index * 2 * Math.PI) / n - Math.PI / 2;
-    const offset = 16;
-    return {
-      x: cx + (r + offset) * Math.cos(angle),
-      y: cy + (r + offset) * Math.sin(angle),
-    };
-  };
+  const toX = (i: number) =>
+    pad.left + (data.length > 1 ? (i / (data.length - 1)) * CW : CW / 2);
+  const toY = (score: number) => pad.top + (1 - score / 100) * CH;
 
-  const hasData = competencies.some((c) => (data[c] ?? 0) > 0);
+  const pts = data.map((s, i) => ({ x: toX(i), y: toY(s.score!) }));
+  const linePath = pts
+    .map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`)
+    .join(" ");
+  const areaPath = `${linePath} L${pts.at(-1)!.x.toFixed(1)},${(pad.top + CH).toFixed(1)} L${pts[0].x.toFixed(1)},${(pad.top + CH).toFixed(1)} Z`;
 
-  const dataPoints = competencies.map((c, i) => point(i, data[c] ?? 0));
-  const dataPath =
-    dataPoints.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ") + " Z";
+  const gridLines = [0, 25, 50, 75, 100];
 
-  const gridLevels = [0.25, 0.5, 0.75, 1];
+  // Trend: compare first-half avg vs second-half avg
+  const trend = (() => {
+    if (data.length < 3) return null;
+    const half = Math.floor(data.length / 2);
+    const firstAvg =
+      data.slice(0, half).reduce((s, d) => s + d.score!, 0) / half;
+    const lastAvg =
+      data.slice(-half).reduce((s, d) => s + d.score!, 0) / half;
+    const diff = lastAvg - firstAvg;
+    if (diff > 5) return { label: "Improving", arrow: "↑", color: "#2dec29" };
+    if (diff < -5) return { label: "Declining", arrow: "↓", color: "#ef4444" };
+    return { label: "Stable", arrow: "→", color: "#f59e0b" };
+  })();
+
+  const step = data.length <= 6 ? 1 : data.length <= 12 ? 2 : 4;
 
   return (
-    <div className="flex flex-col items-center">
-      <svg width="240" height="240" viewBox="0 0 240 240">
-        {/* Grid rings */}
-        {gridLevels.map((frac) => {
-          const pts = competencies.map((_, i) => gridPoint(i, frac));
-          const path =
-            pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ") + " Z";
-          return (
-            <path
-              key={frac}
-              d={path}
-              fill="none"
-              stroke="#e5e7eb"
-              strokeWidth="1"
-            />
-          );
-        })}
-
-        {/* Axis lines */}
-        {competencies.map((_, i) => {
-          const outer = gridPoint(i, 1);
-          return (
+    <div>
+      {trend && (
+        <div
+          className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full mb-4"
+          style={{ background: trend.color + "20", color: trend.color }}
+        >
+          <span>{trend.arrow}</span>
+          <span>{trend.label}</span>
+        </div>
+      )}
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className="w-full"
+        style={{ height: 180 }}
+        aria-hidden="true"
+        preserveAspectRatio="none"
+      >
+        {/* Horizontal grid lines + Y-axis labels */}
+        {gridLines.map((v) => (
+          <g key={v}>
             <line
-              key={i}
-              x1={cx}
-              y1={cy}
-              x2={outer.x}
-              y2={outer.y}
+              x1={pad.left}
+              y1={toY(v)}
+              x2={W - pad.right}
+              y2={toY(v)}
               stroke="#e5e7eb"
               strokeWidth="1"
+              strokeDasharray={v === 0 ? undefined : "3,3"}
             />
-          );
-        })}
+            <text
+              x={pad.left - 6}
+              y={toY(v) + 4}
+              textAnchor="end"
+              fontSize="9"
+              fill="#9ca3af"
+            >
+              {v}%
+            </text>
+          </g>
+        ))}
 
-        {/* Data area */}
-        {hasData && (
-          <>
-            <path d={dataPath} fill="#2dec2930" stroke="#2dec29" strokeWidth="2" />
-            {dataPoints.map((p, i) => (
-              <circle
-                key={i}
-                cx={p.x}
-                cy={p.y}
-                r="4"
-                fill="#2dec29"
-              />
-            ))}
-          </>
-        )}
+        {/* Area fill */}
+        <path d={areaPath} fill="#2dec29" fillOpacity="0.1" />
 
-        {/* Labels */}
-        {competencies.map((c, i) => {
-          const lp = labelPoint(i);
+        {/* Line */}
+        <path
+          d={linePath}
+          stroke="#2dec29"
+          strokeWidth="2.5"
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        {/* Score labels above dots (only when few sessions) */}
+        {data.length <= 10 &&
+          pts.map((p, i) => (
+            <text
+              key={i}
+              x={p.x}
+              y={p.y - 8}
+              textAnchor="middle"
+              fontSize="9"
+              fontWeight="600"
+              fill="#374151"
+            >
+              {data[i].score}%
+            </text>
+          ))}
+
+        {/* Dots */}
+        {pts.map((p, i) => (
+          <circle
+            key={i}
+            cx={p.x}
+            cy={p.y}
+            r={data.length > 12 ? 2.5 : 4}
+            fill="#2dec29"
+          />
+        ))}
+
+        {/* X-axis date labels */}
+        {data.map((s, i) => {
+          if (i !== 0 && i !== data.length - 1 && i % step !== 0) return null;
+          const date = new Date(s.completed_at ?? s.started_at);
+          const label = date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          });
           return (
             <text
-              key={c}
-              x={lp.x}
-              y={lp.y}
+              key={i}
+              x={toX(i)}
+              y={H - 6}
               textAnchor="middle"
-              dominantBaseline="middle"
-              fontSize="9"
-              fill="#6b7280"
-              fontWeight="500"
+              fontSize="8.5"
+              fill="#9ca3af"
             >
-              {COMPETENCY_LABELS[c]}
+              {label}
             </text>
           );
         })}
       </svg>
-      {!hasData && (
-        <p className="text-xs text-neutral-400 -mt-4 text-center">
-          Complete sessions to see your competency chart
-        </p>
-      )}
     </div>
   );
 }
@@ -228,29 +264,19 @@ export default async function ProgressPage() {
 
   if (!user) return null;
 
-  // Fetch sessions + progress scores in parallel
-  const [{ data: sessions }, { data: scores }] = await Promise.all([
-    supabase
-      .from("interview_sessions")
-      .select("id, type, topic, status, started_at, completed_at, score, feedback")
-      .eq("user_id", user.id)
-      .eq("type", "ai")
-      .order("started_at", { ascending: false })
-      .limit(50),
-    supabase
-      .from("progress_scores")
-      .select("competency, score, assessed_at")
-      .eq("user_id", user.id)
-      .order("assessed_at", { ascending: false }),
-  ]);
+  const { data: sessions } = await supabase
+    .from("interview_sessions")
+    .select("id, type, topic, status, started_at, completed_at, score, feedback")
+    .eq("user_id", user.id)
+    .eq("type", "ai")
+    .order("started_at", { ascending: false })
+    .limit(50);
 
   const sessionList: Session[] = sessions ?? [];
-  const scoreList: ProgressScore[] = scores ?? [];
-
   const completed = sessionList.filter((s) => s.status === "completed");
   const streak = calcStreak(sessionList);
 
-  // Average performance score across completed sessions
+  // Performance score stats
   const scoresWithValue = completed.filter((s) => s.score !== null);
   const avgScore =
     scoresWithValue.length > 0
@@ -259,14 +285,10 @@ export default async function ProgressPage() {
             scoresWithValue.length
         )
       : null;
-
-  // Latest competency scores per competency (most recent per type)
-  const latestByCompetency: Record<string, number> = {};
-  for (const s of scoreList) {
-    if (!(s.competency in latestByCompetency)) {
-      latestByCompetency[s.competency] = s.score;
-    }
-  }
+  const bestScore =
+    scoresWithValue.length > 0
+      ? Math.max(...scoresWithValue.map((s) => s.score ?? 0))
+      : null;
 
   const stats = [
     {
@@ -293,11 +315,11 @@ export default async function ProgressPage() {
       sub: streak > 0 ? "Keep the fire going!" : "Start today",
     },
     {
-      label: "Competencies Practiced",
-      value: Object.keys(latestByCompetency).length.toString(),
+      label: "Best Score",
+      value: bestScore !== null ? `${bestScore}%` : "—",
       icon: BarChart3,
       color: "#8b5cf6",
-      sub: "of 5 areas",
+      sub: bestScore !== null ? "Personal best" : "Complete a session",
     },
   ];
 
@@ -342,32 +364,17 @@ export default async function ProgressPage() {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Radar Chart */}
+        {/* Performance Trend Line Chart */}
         <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-6">
-          <h2 className="font-semibold text-secondary mb-4">Competency Radar</h2>
-          <RadarChart data={latestByCompetency} />
-          <div className="grid grid-cols-2 gap-2 mt-4">
-            {Object.entries(COMPETENCY_LABELS).map(([key, label]) => {
-              const val = latestByCompetency[key];
-              return (
-                <div key={key} className="flex items-center gap-2">
-                  <div
-                    className="w-2 h-2 rounded-full shrink-0"
-                    style={{ background: COMPETENCY_COLORS[key] }}
-                  />
-                  <span className="text-xs text-neutral-500 flex-1">{label}</span>
-                  <span className="text-xs font-semibold text-secondary">
-                    {val !== undefined ? `${val}%` : "—"}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+          <h2 className="font-semibold text-secondary mb-1">Performance Trend</h2>
+          <p className="text-xs text-neutral-400 mb-4">AI score across all sessions</p>
+          <PerformanceTrendLineChart sessions={scoresWithValue} />
         </div>
 
-        {/* Performance trend (simple bar chart) */}
+        {/* Recent sessions bar chart */}
         <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-6">
-          <h2 className="font-semibold text-secondary mb-4">Performance Trend</h2>
+          <h2 className="font-semibold text-secondary mb-1">Recent Sessions</h2>
+          <p className="text-xs text-neutral-400 mb-4">Last 8 scored sessions</p>
           {scoresWithValue.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-48 text-center">
               <Calendar className="w-8 h-8 text-neutral-300 mb-3" />
@@ -376,7 +383,7 @@ export default async function ProgressPage() {
               </p>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
               {scoresWithValue.slice(0, 8).reverse().map((s, i) => {
                 const { date } = parseSession(s);
                 const pct = s.score ?? 0;
@@ -431,7 +438,7 @@ export default async function ProgressPage() {
             </Link>
           </div>
         ) : (
-          <div className="divide-y divide-neutral-50">
+          <div className="divide-y divide-neutral-50 max-h-96 overflow-y-auto">
             {sessionList.map((s) => {
               const { category, question, date } = parseSession(s);
               return (
