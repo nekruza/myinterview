@@ -1,7 +1,7 @@
 // Server-only LLM provider helper.
 // Switch provider via NEXT_PUBLIC_LLM_PROVIDER env var:
 //   "gemini"  → Google Gemini 2.0 Flash (REST, no SDK)
-//   default   → Chutes AI — Qwen/Qwen2.5-72B-Instruct
+//   default   → Chutes AI — DeepSeek-V3-0324
 
 export interface LLMMessage {
   role: string;
@@ -23,33 +23,45 @@ export async function* streamLLM(
   if (provider === "gemini") {
     yield* streamGemini(opts);
   } else {
-    yield* streamChutesQwen(opts);
+    yield* streamChutes(opts);
   }
 }
 
-// ── Chutes AI — Qwen/Qwen2.5-72B-Instruct ────────────────────────────────────
+// ── Chutes AI — DeepSeek-V3-0324 ─────────────────────────────────────────────
 
-async function* streamChutesQwen(opts: StreamLLMOptions): AsyncGenerator<string> {
+async function* streamChutes(opts: StreamLLMOptions): AsyncGenerator<string> {
   const apiKey = process.env.CHUTES_API_KEY;
   if (!apiKey) throw new Error("CHUTES_API_KEY not configured");
 
-  const res = await fetch("https://llm.chutes.ai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "Qwen/Qwen2.5-72B-Instruct",
-      messages: [
-        { role: "system", content: opts.systemPrompt },
-        ...opts.messages.map((m) => ({ role: m.role, content: m.content })),
-      ],
-      stream: true,
-      max_tokens: opts.maxTokens,
-      temperature: opts.temperature ?? 0.7,
-    }),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30_000);
+
+  let res: Response;
+  try {
+    res = await fetch("https://llm.chutes.ai/v1/chat/completions", {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "deepseek-ai/DeepSeek-V3-0324",
+        messages: [
+          { role: "system", content: opts.systemPrompt },
+          ...opts.messages.map((m) => ({ role: m.role, content: m.content })),
+        ],
+        stream: true,
+        max_tokens: opts.maxTokens,
+        temperature: opts.temperature ?? 0.7,
+      }),
+    });
+  } catch (err) {
+    clearTimeout(timeout);
+    const isTimeout = err instanceof Error && err.name === "AbortError";
+    throw new Error(isTimeout ? "Chutes AI timed out — try again" : String(err));
+  }
+  clearTimeout(timeout);
 
   if (!res.ok || !res.body) {
     const err = await res.text().catch(() => "Unknown error");
@@ -96,21 +108,33 @@ async function* streamGemini(opts: StreamLLMOptions): AsyncGenerator<string> {
     parts: [{ text: m.content }],
   }));
 
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse&key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: opts.systemPrompt }] },
-        contents,
-        generationConfig: {
-          maxOutputTokens: opts.maxTokens,
-          temperature: opts.temperature ?? 0.7,
-        },
-      }),
-    }
-  );
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30_000);
+
+  let res: Response;
+  try {
+    res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse&key=${apiKey}`,
+      {
+        method: "POST",
+        signal: controller.signal,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: opts.systemPrompt }] },
+          contents,
+          generationConfig: {
+            maxOutputTokens: opts.maxTokens,
+            temperature: opts.temperature ?? 0.7,
+          },
+        }),
+      }
+    );
+  } catch (err) {
+    clearTimeout(timeout);
+    const isTimeout = err instanceof Error && err.name === "AbortError";
+    throw new Error(isTimeout ? "Gemini timed out — try again" : String(err));
+  }
+  clearTimeout(timeout);
 
   if (!res.ok || !res.body) {
     const err = await res.text().catch(() => "Unknown error");
