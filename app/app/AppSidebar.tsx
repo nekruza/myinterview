@@ -19,6 +19,7 @@ import {
   UserPlus,
   UserCheck,
   UserX,
+  BookOpen,
 } from "lucide-react";
 import {
   Popover,
@@ -33,6 +34,7 @@ const navItems = [
   { href: "/app/practice", label: "AI Practice", icon: Sparkles },
   { href: "/app/peer-practice", label: "Peer Practice", icon: Users },
   { href: "/app/progress", label: "Progress", icon: TrendingUp },
+  { href: "/app/resources", label: "Resources", icon: BookOpen },
   { href: "/app/settings", label: "Settings", icon: Settings },
 ];
 
