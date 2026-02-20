@@ -26,6 +26,42 @@ import {
 } from "@/components/ui/dialog";
 import { TECH_ROLES } from "@/lib/practice-data";
 
+/* ─── Coming Soon ─────────────────────────────────────────────────────────── */
+
+const SHOW_COMING_SOON = true
+
+const ComingSoon: FC = () => (
+  <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
+    <div
+      className="w-20 h-20 rounded-3xl flex items-center justify-center mb-6"
+      style={{ background: "linear-gradient(145deg, #112715 0%, #1c4220 100%)" }}
+    >
+      <Users className="w-9 h-9" style={{ color: "#2dec29" }} />
+    </div>
+    <div
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold mb-4"
+      style={{ background: "#2dec2918", color: "#0a5c09" }}
+    >
+      <Sparkles className="w-3 h-3" />
+      Coming Soon · April 1st
+    </div>
+    <h1 className="text-3xl font-black text-secondary mb-3 leading-tight">
+      Peer Practice
+    </h1>
+    <p className="text-neutral-500 text-sm leading-relaxed max-w-sm mb-8">
+      Practice live mock interviews with real engineers. We&apos;re putting the
+      finishing touches on this feature — launching April 1st.
+    </p>
+    <Link
+      href="/app/practice"
+      className="inline-flex items-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm transition-opacity hover:opacity-90"
+      style={{ background: "#2dec29", color: "#112715" }}
+    >
+      Practice with AI in the meantime
+    </Link>
+  </div>
+);
+
 /* ─── types ─── */
 
 interface Profile {
@@ -660,6 +696,15 @@ const EmptyState: FC<{ onCreateClick: () => void }> = ({ onCreateClick }) => (
 /* ─── main page ─── */
 
 const PeerPracticePage: FC = () => {
+  // Show Coming Soon until April 1st 2026
+  if (SHOW_COMING_SOON) {
+    return <ComingSoon />;
+  }
+
+  return <PeerPracticeContent />;
+};
+
+const PeerPracticeContent: FC = () => {
   const [sessions, setSessions] = useState<PeerSession[]>([]);
   const [userId, setUserId] = useState<string>("");
   const [loading, setLoading] = useState(true);
