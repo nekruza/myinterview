@@ -3,29 +3,8 @@ import { cn } from "@/lib/utils";
 import { ChevronRight, PlayCircle, Users, Sparkles, Zap } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { posts } from "@/lib/blog";
 
-// ─── Static data ────────────────────────────────────────────────────────────
-
-const frameworks = [
-  {
-    name: "STAR",
-    description: "Situation, Task, Action, Result — the behavioral storytelling foundation.",
-    color: "#2dec29",
-    level: "All levels",
-  },
-  {
-    name: "R-STAR",
-    description: "Adds Reflection to STAR, showing growth mindset and self-awareness.",
-    color: "#48e57c",
-    level: "Mid → Senior",
-  },
-  {
-    name: "Ownership Signals",
-    description: "Demonstrates initiative, accountability, and end-to-end ownership.",
-    color: "#a3e4a5",
-    level: "Senior → Staff",
-  },
-];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -505,44 +484,46 @@ export default async function DashboardPage() {
       </div>
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      {/* 7 ▸ FRAMEWORKS — horizontal scroll feed                               */}
+      {/* 7 ▸ FROM THE BLOG                                                     */}
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-bold text-secondary text-base">Answer Frameworks</h2>
+          <h2 className="font-bold text-secondary text-base">From the Blog</h2>
           <Link
-            href="/app/practice"
+            href="/app/resources"
             className="flex items-center gap-0.5 text-xs font-bold transition-opacity hover:opacity-70"
             style={{ color: "#2dec29" }}
           >
-            Explore <ChevronRight className="w-3.5 h-3.5" />
+            All articles <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
         <div className="overflow-x-auto pb-2 -mx-6 px-6">
           <div className="flex gap-3 w-max">
-            {frameworks.map(({ name, description, color, level }) => (
+            {posts.slice(0, 3).map((post) => (
               <Link
-                key={name}
-                href="/app/practice"
-                className="group w-48 shrink-0 bg-white rounded-2xl border border-neutral-100 overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+                key={post.slug}
+                href={`/blog/${post.slug}`}
+                className="group w-52 shrink-0 bg-white rounded-2xl border border-neutral-100 overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
               >
-                {/* Thick color top bar */}
-                <div className="h-2" style={{ background: color }} />
+                <div className="h-2" style={{ background: "#2dec29" }} />
                 <div className="p-4">
-                  <h3 className="font-black text-secondary text-base mb-1">{name}</h3>
-                  <p className="text-[12px] text-neutral-400 leading-relaxed mb-3 line-clamp-3">
-                    {description}
+                  <div className="text-2xl mb-2">{post.coverEmoji}</div>
+                  <h3 className="font-black text-secondary text-sm mb-1.5 line-clamp-2 leading-snug">
+                    {post.title}
+                  </h3>
+                  <p className="text-[11px] text-neutral-400 leading-relaxed mb-3 line-clamp-2">
+                    {post.excerpt}
                   </p>
-                  <span
-                    className="inline-block text-[10px] px-2.5 py-1 rounded-full font-bold"
-                    style={{
-                      background: color === "#a3e4a5" ? "#dcfce7" : color + "20",
-                      color: color === "#a3e4a5" ? "#166534" : color === "#2dec29" ? "#0a5c09" : color,
-                    }}
-                  >
-                    {level}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="inline-block text-[10px] px-2.5 py-1 rounded-full font-bold"
+                      style={{ background: "#2dec2920", color: "#0a5c09" }}
+                    >
+                      {post.category}
+                    </span>
+                    <span className="text-[10px] text-neutral-400">{post.readTime}</span>
+                  </div>
                 </div>
               </Link>
             ))}
