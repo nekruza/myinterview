@@ -35,7 +35,7 @@ const navItems = [
   { href: "/app/peer-practice", label: "Peer Practice", icon: Users },
   { href: "/app/progress", label: "Progress", icon: TrendingUp },
   { href: "/app/resources", label: "Resources", icon: BookOpen },
-  { href: "/app/settings", label: "Settings", icon: Settings },
+  { href: "/app/settings", label: "Profile", icon: Settings },
 ];
 
 interface Notification {
