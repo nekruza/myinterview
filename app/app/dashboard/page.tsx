@@ -354,10 +354,7 @@ export default async function DashboardPage() {
         </Link>
       ) : (
         /* Zero-streak state */
-        <Link
-          href="/app/progress"
-          className="relative rounded-2xl overflow-hidden border border-neutral-200 bg-white block hover:shadow-md transition-shadow"
-        >
+        <div className="relative rounded-2xl overflow-hidden border border-neutral-200 bg-white hover:shadow-md transition-shadow">
           <div className="pointer-events-none absolute -right-4 -top-4 w-28 h-28 rounded-full bg-primary/5" />
           <div className="relative z-10 p-5">
             <div className="flex items-center gap-4 mb-4">
@@ -377,19 +374,21 @@ export default async function DashboardPage() {
             </Link>
           </div>
 
-          <div className="border-t border-neutral-100 grid grid-cols-2 divide-x divide-neutral-100 px-2 py-3">
-            <div className="flex flex-col items-center gap-0.5 px-3">
-              <span className="text-lg font-black text-secondary tabular-nums leading-none">{completed.length}</span>
-              <span className="text-[10px] font-semibold text-neutral-400 mt-0.5">Sessions</span>
+          <Link href="/app/progress" className="block border-t border-neutral-100">
+            <div className="grid grid-cols-2 divide-x divide-neutral-100 px-2 py-3">
+              <div className="flex flex-col items-center gap-0.5 px-3">
+                <span className="text-lg font-black text-secondary tabular-nums leading-none">{completed.length}</span>
+                <span className="text-[10px] font-semibold text-neutral-400 mt-0.5">Sessions</span>
+              </div>
+              <div className="flex flex-col items-center gap-0.5 px-3">
+                <span className="text-lg font-black text-secondary tabular-nums leading-none">
+                  {avgScore !== null ? `${avgScore}%` : "—"}
+                </span>
+                <span className="text-[10px] font-semibold text-neutral-400 mt-0.5">Avg score</span>
+              </div>
             </div>
-            <div className="flex flex-col items-center gap-0.5 px-3">
-              <span className="text-lg font-black text-secondary tabular-nums leading-none">
-                {avgScore !== null ? `${avgScore}%` : "—"}
-              </span>
-              <span className="text-[10px] font-semibold text-neutral-400 mt-0.5">Avg score</span>
-            </div>
-          </div>
-        </Link>
+          </Link>
+        </div>
       )}
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
