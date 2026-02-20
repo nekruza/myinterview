@@ -493,14 +493,6 @@ export default function PracticePage() {
 
             </div>
 
-            <button
-              onClick={startSession}
-              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold transition hover:opacity-90"
-              style={{ background: "#112715", color: "#fff" }}
-            >
-              <Sparkles className="w-4 h-4" style={{ color: "#2dec29" }} />
-              Start Voice Practice
-            </button>
           </div>
 
           {/* ── Right: Tips panel ── */}
@@ -579,7 +571,19 @@ export default function PracticePage() {
             </div>
           </div>
         </div>
+
+      {/* ── Sticky Start Button ── */}
+      <div className="sticky bottom-0 -mx-6 -mb-8 px-6 py-4 mt-6 bg-white/95 backdrop-blur-sm border-t border-neutral-100">
+        <button
+          onClick={startSession}
+          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold transition hover:opacity-90"
+          style={{ background: "#112715", color: "#fff" }}
+        >
+          <Sparkles className="w-4 h-4" style={{ color: "#2dec29" }} />
+          Start Voice Practice
+        </button>
       </div>
+    </div>
     );
   }
 
