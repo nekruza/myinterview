@@ -44,7 +44,9 @@ export function useAudioVisualizer() {
       rafRef.current = null;
     }
     sourceRef.current?.disconnect();
-    contextRef.current?.close();
+    if (contextRef.current && contextRef.current.state !== "closed") {
+      contextRef.current.close();
+    }
     contextRef.current = null;
     analyserRef.current = null;
     sourceRef.current = null;
@@ -55,7 +57,12 @@ export function useAudioVisualizer() {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       sourceRef.current?.disconnect();
-      contextRef.current?.close();
+      if (contextRef.current && contextRef.current.state !== "closed") {
+        contextRef.current.close();
+      }
+      contextRef.current = null;
+      analyserRef.current = null;
+      sourceRef.current = null;
     };
   }, []);
 

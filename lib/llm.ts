@@ -46,7 +46,7 @@ async function* streamChutes(opts: StreamLLMOptions): AsyncGenerator<string> {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "deepseek-ai/DeepSeek-V3-0324",
+        model: "chutesai/Mistral-Small-3.1-24B-Instruct-2503",
         messages: [
           { role: "system", content: opts.systemPrompt },
           ...opts.messages.map((m) => ({ role: m.role, content: m.content })),
