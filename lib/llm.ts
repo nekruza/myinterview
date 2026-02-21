@@ -1,7 +1,8 @@
 // Server-only LLM provider helper.
-// Switch provider via NEXT_PUBLIC_LLM_PROVIDER env var:
-//   "gemini"  → Google Gemini 2.0 Flash (REST, no SDK)
-//   default   → Chutes AI — DeepSeek-V3-0324
+// Default: OpenAI gpt-5-nano-2025-08-07 with automatic fallback to Chutes AI Mistral on error.
+// Override via NEXT_PUBLIC_LLM_PROVIDER env var:
+//   "gemini" → Google Gemini 2.0 Flash
+//   "chutes" → Chutes AI — Mistral-Small-3.1-24B-Instruct-2503 (no fallback)
 
 export interface LLMMessage {
   role: string;
@@ -18,16 +19,85 @@ export interface StreamLLMOptions {
 export async function* streamLLM(
   opts: StreamLLMOptions
 ): AsyncGenerator<string> {
-  const provider = process.env.NEXT_PUBLIC_LLM_PROVIDER ?? "chutes";
-
-  if (provider === "gemini") {
-    yield* streamGemini(opts);
-  } else {
+  try {
     yield* streamChutes(opts);
+  } catch (err) {
+    console.error("Chutes failed, falling back to OpenAI:", err);
+    yield* streamOpenAI(opts);
   }
 }
 
-// ── Chutes AI — DeepSeek-V3-0324 ─────────────────────────────────────────────
+// ── OpenAI — gpt-5-nano-2025-08-07 ───────────────────────────────────────────
+
+async function* streamOpenAI(opts: StreamLLMOptions): AsyncGenerator<string> {
+  console.log('Chatting with OpenAI...');
+  const apiKey = process.env.OPENAI_API_KEY;
+  console.log({apiKey});
+  if (!apiKey) throw new Error("OPENAI_API_KEY not configured");
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30_000);
+
+  let res: Response;
+  try {
+    res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-5-nano-2025-08-07",
+        messages: [
+          { role: "system", content: opts.systemPrompt },
+          ...opts.messages.map((m) => ({ role: m.role, content: m.content })),
+        ],
+        stream: true,
+      }),
+    });
+  } catch (err) {
+    clearTimeout(timeout);
+    const isTimeout = err instanceof Error && err.name === "AbortError";
+    throw new Error(isTimeout ? "OpenAI timed out" : String(err));
+  }
+  clearTimeout(timeout);
+
+  if (!res.ok || !res.body) {
+    const err = await res.text().catch(() => "Unknown error");
+    throw new Error(`OpenAI API error: ${res.status} ${err}`);
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue;
+      const payload = line.slice(6).trim();
+      if (payload === "[DONE]") return;
+
+      try {
+        const parsed = JSON.parse(payload);
+        const content = parsed.choices?.[0]?.delta?.content;
+        console.log('OpenAI chunk:', JSON.stringify(parsed));
+        if (content) yield content;
+      } catch {
+        // skip malformed chunks
+      }
+    }
+  }
+}
+
+// ── Chutes AI — Mistral-Small-3.1-24B-Instruct-2503 (fallback) ───────────────
 
 async function* streamChutes(opts: StreamLLMOptions): AsyncGenerator<string> {
   const apiKey = process.env.CHUTES_API_KEY;
@@ -37,6 +107,8 @@ async function* streamChutes(opts: StreamLLMOptions): AsyncGenerator<string> {
   const timeout = setTimeout(() => controller.abort(), 30_000);
 
   let res: Response;
+  console.log('Chatting with Chutes...');
+
   try {
     res = await fetch("https://llm.chutes.ai/v1/chat/completions", {
       method: "POST",
@@ -46,7 +118,8 @@ async function* streamChutes(opts: StreamLLMOptions): AsyncGenerator<string> {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "chutesai/Mistral-Small-3.1-24B-Instruct-2503",
+        // model: "chutesai/Mistral-Small-3.1-24B-Instruct-2503",
+        model: "Qwen/Qwen2.5-72B-Instruct",
         messages: [
           { role: "system", content: opts.systemPrompt },
           ...opts.messages.map((m) => ({ role: m.role, content: m.content })),
