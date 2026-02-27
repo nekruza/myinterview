@@ -347,7 +347,7 @@ export default async function DashboardPage() {
             </div>
             <Link
               href="/app/practice"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-opacity hover:opacity-90 mb-4"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl font-bold text-sm transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A] mb-4"
               style={{ background: "#2dec29", color: "#112715" }}
             >
               <PlayCircle className="w-4 h-4" />

@@ -24,9 +24,19 @@ export default async function AppLayout({
     .single();
 
   return (
-    <div className="flex h-screen bg-cream overflow-hidden">
+    <div className="flex h-screen overflow-hidden relative" style={{
+      background: "linear-gradient(135deg, #faf9f6 0%, #f5f4f0 100%)",
+    }}>
+      {/* Subtle ambient blob for glass depth */}
+      <div
+        className="pointer-events-none absolute inset-0 z-0"
+        aria-hidden
+        style={{
+          background: "radial-gradient(ellipse 50% 60% at 0% 50%, rgba(180,200,220,0.08) 0%, transparent 70%)",
+        }}
+      />
       <AppSidebar userEmail={user.email ?? ""} avatarUrl={profile?.avatar_url ?? null} />
-      <main className="flex-1 overflow-y-auto">
+      <main className="relative z-10 flex-1 overflow-y-auto">
         <div className="max-w-6xl mx-auto px-6 py-8">{children}</div>
       </main>
       <Toaster position="top-right" />

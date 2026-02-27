@@ -423,7 +423,7 @@ const SettingsPage: FC<SettingsProps> = () => {
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="px-4 py-2 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-60"
+                  className="px-4 py-2 rounded-2xl text-sm font-bold transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A] disabled:opacity-60 disabled:shadow-none disabled:translate-y-0"
                   style={{ background: "#2dec29", color: "#112715" }}
                 >
                   {saving ? "Saving..." : "Save"}
@@ -709,7 +709,7 @@ const SettingsPage: FC<SettingsProps> = () => {
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="px-4 py-2 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-60"
+                  className="px-4 py-2 rounded-2xl text-sm font-bold transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A] disabled:opacity-60 disabled:shadow-none disabled:translate-y-0"
                   style={{ background: "#2dec29", color: "#112715" }}
                 >
                   {saving ? "Saving..." : "Save"}
@@ -793,7 +793,7 @@ const SettingsPage: FC<SettingsProps> = () => {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-opacity hover:opacity-90 disabled:opacity-60"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-2xl font-bold text-sm transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A] disabled:opacity-60 disabled:shadow-none disabled:translate-y-0"
               style={{ background: "#2dec29", color: "#112715" }}
             >
               <Save className="w-4 h-4" />
