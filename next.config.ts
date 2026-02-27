@@ -76,10 +76,8 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // Enable experimental features for performance
-  experimental: {
-    optimizeCss: true,
-  },
+  // experimental.optimizeCss disabled — causes tailwindcss resolution error from parent dir
+  // experimental: { optimizeCss: true },
 };
 
 export default nextConfig;

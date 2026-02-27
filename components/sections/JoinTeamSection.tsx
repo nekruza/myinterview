@@ -7,83 +7,48 @@ import { track } from "@/lib/mixpanel";
 
 const roles: JobRole[] = [
   {
-    title: "Frontend Developer",
-    type: "Remote · Contract",
+    title: "Marketing Manager",
+    type: "Remote · Part-time · $200 + Bonus",
     description:
-      "Build beautiful, accessible interfaces with Next.js, TypeScript, and Tailwind. You care about pixel-perfect UX and performance.",
-    skills: ["Next.js", "TypeScript", "Tailwind CSS"],
-    accent: "bg-primary",
-    icon: (
-      <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-      </svg>
-    ),
-    fullDescription: {
-      about:
-        "You'll work directly with the founding team to craft the user-facing product — from landing pages to the core interview practice UI. We move fast, care about craft, and ship real things to real users.",
-      responsibilities: [
-        "Build and iterate on UI components using Next.js 15 and Tailwind CSS",
-        "Implement animations, transitions, and micro-interactions",
-        "Collaborate with design to translate Figma mocks into pixel-perfect code",
-        "Own performance, accessibility, and responsive design across the app",
-        "Participate in product discussions and contribute ideas",
-      ],
-      requirements: [
-        "3+ years of experience with React and TypeScript",
-        "Strong command of Tailwind CSS and modern CSS",
-        "Familiarity with Next.js App Router and RSC patterns",
-        "Attention to detail and a strong design sensibility",
-        "Comfortable working async in a remote-first environment",
-      ],
-      niceToHave: [
-        "Experience with Framer Motion or similar animation libraries",
-        "Familiarity with shadcn/ui and Radix primitives",
-        "Background in design or design systems",
-      ],
-    },
-  },
-  {
-    title: "Backend Developer",
-    type: "Remote · Contract",
-    description:
-      "Design and build scalable APIs and AI integrations. You're comfortable with Node.js, databases, and real-time systems.",
-    skills: ["Node.js", "PostgreSQL", "AI APIs"],
+      "Drive growth and build the MyInterview brand. You're a creative marketer who blends compelling storytelling with data-driven strategy.",
+    skills: ["Content Marketing", "SEO / SEM", "Growth Strategy"],
     accent: "bg-secondary",
     icon: (
       <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
       </svg>
     ),
     fullDescription: {
       about:
-        "You'll architect and build the server-side systems that power MyInterview — from AI interview sessions to peer matching and progress tracking. You'll work with modern cloud infrastructure and integrate with LLM providers.",
+        "You'll own MyInterview's marketing from top to bottom — crafting the narrative, growing our audience, and turning curious visitors into loyal users. You'll work closely with the founding team to define positioning, run campaigns, and build a brand that resonates with ambitious job seekers. Compensation: $200 + performance bonus.",
       responsibilities: [
-        "Design and build REST and real-time APIs for the interview practice platform",
-        "Integrate with AI providers (OpenAI, Anthropic) for interview simulation",
-        "Build and optimize PostgreSQL schemas and queries via Supabase",
-        "Implement authentication, authorization, and user management",
-        "Ensure backend reliability, observability, and security",
+        "Develop and execute a content strategy across blog, social, and email",
+        "Own SEO — keyword research, on-page optimization, and link building",
+        "Run paid acquisition experiments on Google and social channels",
+        "Build and grow our email list with high-converting lead magnets and campaigns",
+        "Analyze funnel metrics and iterate on messaging and channels",
+        "Collaborate with the team on product launches and feature announcements",
       ],
       requirements: [
-        "3+ years of backend development experience",
-        "Strong knowledge of Node.js and TypeScript",
-        "Experience with PostgreSQL and SQL query optimization",
-        "Familiarity with Supabase or Firebase",
-        "Understanding of RESTful API design and WebSockets",
+        "3+ years of experience in growth or content marketing",
+        "Proven track record of driving organic and paid user acquisition",
+        "Strong writing skills — you can craft copy that converts",
+        "Comfortable with analytics tools (GA4, Mixpanel, or similar)",
+        "Self-starter who thrives in a fast-moving, early-stage environment",
       ],
       niceToHave: [
-        "Experience integrating LLM APIs in production",
-        "Familiarity with edge functions and serverless architectures",
-        "Prior work on real-time or streaming applications",
+        "Experience marketing a SaaS or consumer product",
+        "Familiarity with the tech job market or interview prep space",
+        "Basic design skills (Figma, Canva) for creating social and ad assets",
       ],
     },
   },
   {
-    title: "Fullstack Developer",
-    type: "Remote · Contract",
+    title: "Fullstack Developer Intern",
+    type: "Remote · Internship · Unpaid",
     description:
-      "Own features end-to-end — from database schema to polished UI. You thrive in early-stage products and move fast.",
-    skills: ["Next.js", "Supabase", "TypeScript"],
+      "Get real-world experience building a live product. You'll work across the stack on features that real users depend on — a great launchpad for your career.",
+    skills: ["Next.js", "TypeScript", "Supabase"],
     accent: "bg-primary",
     icon: (
       <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -92,28 +57,55 @@ const roles: JobRole[] = [
     ),
     fullDescription: {
       about:
-        "As a fullstack developer, you'll own complete features from API to interface. You'll be one of the first engineers on the team, which means your decisions will shape the product architecture and codebase culture.",
+        "This is an unpaid internship designed for students or early-career developers who want hands-on experience shipping real features in a fast-moving startup. You'll work directly with the founding team, contribute meaningful code, and walk away with a strong portfolio project and reference.",
       responsibilities: [
-        "Ship complete features across the stack — database, API, and UI",
-        "Work with Next.js App Router and Supabase as the primary stack",
-        "Build the peer matching system, session scheduling, and progress tracking",
-        "Write clean, maintainable TypeScript code with good test coverage",
-        "Contribute to architecture decisions and engineering culture",
+        "Build and ship full-stack features using Next.js and Supabase",
+        "Write clean TypeScript across both frontend and API layers",
+        "Participate in code reviews and product discussions",
+        "Tackle bugs, performance improvements, and UI polish",
+        "Learn modern startup development practices from day one",
       ],
       requirements: [
-        "4+ years of fullstack development experience",
-        "Strong proficiency in TypeScript, React, and Node.js",
-        "Experience with Supabase or similar BaaS platforms",
-        "Comfortable owning features from design to deployment",
-        "Self-directed with strong communication skills",
+        "Currently enrolled in or recently graduated from a CS/software program",
+        "Foundational knowledge of React and JavaScript/TypeScript",
+        "Eager to learn and comfortable asking questions",
+        "Reliable, communicative, and able to commit at least 10 hrs/week",
       ],
       niceToHave: [
-        "Experience building products at early-stage startups",
-        "Familiarity with AI/LLM integrations",
-        "Contributions to open-source projects",
+        "Any prior exposure to Next.js or Supabase",
+        "Personal projects or GitHub contributions to show",
+        "Interest in AI, EdTech, or career development tools",
       ],
     },
   },
+  // Developer roles — hidden for now
+  // {
+  //   title: "Frontend Developer",
+  //   type: "Remote · Contract",
+  //   description:
+  //     "Build beautiful, accessible interfaces with Next.js, TypeScript, and Tailwind. You care about pixel-perfect UX and performance.",
+  //   skills: ["Next.js", "TypeScript", "Tailwind CSS"],
+  //   accent: "bg-primary",
+  //   ...
+  // },
+  // {
+  //   title: "Backend Developer",
+  //   type: "Remote · Contract",
+  //   description:
+  //     "Design and build scalable APIs and AI integrations. You're comfortable with Node.js, databases, and real-time systems.",
+  //   skills: ["Node.js", "PostgreSQL", "AI APIs"],
+  //   accent: "bg-secondary",
+  //   ...
+  // },
+  // {
+  //   title: "Fullstack Developer",
+  //   type: "Remote · Contract",
+  //   description:
+  //     "Own features end-to-end — from database schema to polished UI. You thrive in early-stage products and move fast.",
+  //   skills: ["Next.js", "Supabase", "TypeScript"],
+  //   accent: "bg-primary",
+  //   ...
+  // },
 ];
 
 export const JoinTeamSection: FC = () => {
@@ -145,7 +137,7 @@ export const JoinTeamSection: FC = () => {
           </div>
 
           {/* Role Cards */}
-          <div className="grid md:grid-cols-3 gap-6 mb-12" role="list" aria-label="Open positions">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 max-w-lg mx-auto md:max-w-3xl" role="list" aria-label="Open positions">
             {roles.map((role, index) => (
               <article
                 key={index}
