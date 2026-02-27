@@ -1,190 +1,156 @@
 "use client";
 
-import { FC, useState } from "react";
+import { FC, useRef, useState } from "react";
 import { Button } from "../ui";
-import { ApplySheet, JobRole } from "./ApplySheet";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { track } from "@/lib/mixpanel";
 
-const roles: JobRole[] = [
-  {
-    title: "Marketing Manager",
-    type: "Remote · Part-time · $200 + Bonus",
-    description:
-      "Drive growth and build the MyInterview brand. You're a creative marketer who blends compelling storytelling with data-driven strategy.",
-    skills: ["Content Marketing", "SEO / SEM", "Growth Strategy"],
-    accent: "bg-secondary",
-    icon: (
-      <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-      </svg>
-    ),
-    fullDescription: {
-      about:
-        "You'll own MyInterview's marketing from top to bottom — crafting the narrative, growing our audience, and turning curious visitors into loyal users. You'll work closely with the founding team to define positioning, run campaigns, and build a brand that resonates with ambitious job seekers. Compensation: $200 + performance bonus.",
-      responsibilities: [
-        "Develop and execute a content strategy across blog, social, and email",
-        "Own SEO — keyword research, on-page optimization, and link building",
-        "Run paid acquisition experiments on Google and social channels",
-        "Build and grow our email list with high-converting lead magnets and campaigns",
-        "Analyze funnel metrics and iterate on messaging and channels",
-        "Collaborate with the team on product launches and feature announcements",
-      ],
-      requirements: [
-        "3+ years of experience in growth or content marketing",
-        "Proven track record of driving organic and paid user acquisition",
-        "Strong writing skills — you can craft copy that converts",
-        "Comfortable with analytics tools (GA4, Mixpanel, or similar)",
-        "Self-starter who thrives in a fast-moving, early-stage environment",
-      ],
-      niceToHave: [
-        "Experience marketing a SaaS or consumer product",
-        "Familiarity with the tech job market or interview prep space",
-        "Basic design skills (Figma, Canva) for creating social and ad assets",
-      ],
-    },
-  },
-  {
-    title: "Fullstack Developer Intern",
-    type: "Remote · Internship · Unpaid",
-    description:
-      "Get real-world experience building a live product. You'll work across the stack on features that real users depend on — a great launchpad for your career.",
-    skills: ["Next.js", "TypeScript", "Supabase"],
-    accent: "bg-primary",
-    icon: (
-      <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-      </svg>
-    ),
-    fullDescription: {
-      about:
-        "This is an unpaid internship designed for students or early-career developers who want hands-on experience shipping real features in a fast-moving startup. You'll work directly with the founding team, contribute meaningful code, and walk away with a strong portfolio project and reference.",
-      responsibilities: [
-        "Build and ship full-stack features using Next.js and Supabase",
-        "Write clean TypeScript across both frontend and API layers",
-        "Participate in code reviews and product discussions",
-        "Tackle bugs, performance improvements, and UI polish",
-        "Learn modern startup development practices from day one",
-      ],
-      requirements: [
-        "Currently enrolled in or recently graduated from a CS/software program",
-        "Foundational knowledge of React and JavaScript/TypeScript",
-        "Eager to learn and comfortable asking questions",
-        "Reliable, communicative, and able to commit at least 10 hrs/week",
-      ],
-      niceToHave: [
-        "Any prior exposure to Next.js or Supabase",
-        "Personal projects or GitHub contributions to show",
-        "Interest in AI, EdTech, or career development tools",
-      ],
-    },
-  },
-  // Developer roles — hidden for now
-  // {
-  //   title: "Frontend Developer",
-  //   type: "Remote · Contract",
-  //   description:
-  //     "Build beautiful, accessible interfaces with Next.js, TypeScript, and Tailwind. You care about pixel-perfect UX and performance.",
-  //   skills: ["Next.js", "TypeScript", "Tailwind CSS"],
-  //   accent: "bg-primary",
-  //   ...
-  // },
-  // {
-  //   title: "Backend Developer",
-  //   type: "Remote · Contract",
-  //   description:
-  //     "Design and build scalable APIs and AI integrations. You're comfortable with Node.js, databases, and real-time systems.",
-  //   skills: ["Node.js", "PostgreSQL", "AI APIs"],
-  //   accent: "bg-secondary",
-  //   ...
-  // },
-  // {
-  //   title: "Fullstack Developer",
-  //   type: "Remote · Contract",
-  //   description:
-  //     "Own features end-to-end — from database schema to polished UI. You thrive in early-stage products and move fast.",
-  //   skills: ["Next.js", "Supabase", "TypeScript"],
-  //   accent: "bg-primary",
-  //   ...
-  // },
-];
-
 export const JoinTeamSection: FC = () => {
-  const [selectedRole, setSelectedRole] = useState<JobRole | null>(null);
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    const form = e.currentTarget as HTMLFormElement;
+    const name = (form.elements.namedItem("interest-name") as HTMLInputElement).value;
+    const email = (form.elements.namedItem("interest-email") as HTMLInputElement).value;
+    const file = fileInputRef.current?.files?.[0];
+    try {
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("email", email);
+      formData.append("role", "General Interest");
+      if (file) formData.append("resume", file);
+
+      const res = await fetch("/api/apply", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("Failed");
+      track("CTA Clicked", { button: "Leave Details", location: "join_team" });
+      setSubmitted(true);
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
-    <>
-      <section
-        id="join-team"
-        aria-labelledby="join-team-heading"
-        className="py-24 px-4 sm:px-6 lg:px-8 bg-secondary"
-      >
-        <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-16">
-            <p className="text-primary font-bold text-sm uppercase tracking-wider mb-3">
-              We&apos;re Hiring
-            </p>
-            <h2
-              id="join-team-heading"
-              className="text-4xl md:text-5xl font-black mb-6 text-white"
-            >
-              Help Us Build MyInterview
-            </h2>
-            <p className="text-xl text-neutral-300 max-w-2xl mx-auto">
-              We&apos;re a small team on a mission to help engineers conquer interview anxiety.
-              Join us and build something that actually matters.
-            </p>
-          </div>
-
-          {/* Role Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 max-w-lg mx-auto md:max-w-3xl" role="list" aria-label="Open positions">
-            {roles.map((role, index) => (
-              <article
-                key={index}
-                role="listitem"
-                className="group bg-[var(--cream)] rounded-2xl p-8 border-2 border-neutral-700 hover:border-primary transition-all duration-300"
-              >
-                <div
-                  className={`w-14 h-14 ${role.accent} rounded-xl flex items-center justify-center mb-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]`}
-                >
-                  {role.icon}
-                </div>
-                <h3 className="text-xl font-bold text-secondary mb-1">{role.title}</h3>
-                <p className="text-xs font-semibold text-primary mb-4 uppercase tracking-wider">
-                  {role.type}
-                </p>
-                <p className="text-neutral-600 text-sm leading-relaxed mb-6">
-                  {role.description}
-                </p>
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {role.skills.map((skill) => (
-                    <span
-                      key={skill}
-                      className="px-3 py-1 bg-neutral-200 text-neutral-700 rounded-full text-xs font-semibold"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-                <Button
-                  variant="outline"
-                  className="w-full border-neutral-400 text-secondary hover:bg-neutral-200 shadow-none"
-                  onClick={() => { track("CTA Clicked", { button: "Apply Now", location: "join_team", role: role.title }); setSelectedRole(role); }}
-                >
-                  Apply Now
-                </Button>
-              </article>
-            ))}
-          </div>
-
+    <section
+      id="join-team"
+      aria-labelledby="join-team-heading"
+      className="py-24 px-4 sm:px-6 lg:px-8 bg-secondary"
+    >
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <p className="text-primary font-bold text-sm uppercase tracking-wider mb-3">
+            Join the Team
+          </p>
+          <h2
+            id="join-team-heading"
+            className="text-4xl md:text-5xl font-black mb-6 text-white"
+          >
+            Help Us Build MyInterview
+          </h2>
+          <p className="text-xl text-neutral-300 max-w-2xl mx-auto">
+            We&apos;re a small team on a mission to help people conquer interview anxiety
+            and land their dream jobs.
+          </p>
         </div>
-      </section>
 
-      <ApplySheet
-        role={selectedRole}
-        open={selectedRole !== null}
-        onClose={() => setSelectedRole(null)}
-      />
-    </>
+        {/* No openings card */}
+        <div className="max-w-4xl mx-auto bg-[var(--cream)] rounded-2xl border-2 border-neutral-700 p-10">
+          {submitted ? (
+            <div className="text-center py-6">
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-5">
+                <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-black text-secondary mb-2">You&apos;re on the list!</h3>
+              <p className="text-neutral-600 text-sm">
+                We&apos;ll reach out as soon as something opens up that might be a great fit for you.
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-col md:flex-row md:items-center gap-10">
+              {/* Left — text */}
+              <div className="flex-1">
+                <div className="w-14 h-14 bg-secondary/10 rounded-xl flex items-center justify-center mb-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]">
+                  <svg className="w-7 h-7 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-black text-secondary mb-3">No openings right now</h3>
+                <p className="text-neutral-600 text-sm leading-relaxed">
+                  We don&apos;t have any open positions at the moment, but we&apos;re always growing.
+                  Leave your details and we&apos;ll get in touch when something comes up that could be a great fit.
+                </p>
+              </div>
+
+              {/* Divider */}
+              <div className="hidden md:block w-px bg-neutral-200 self-stretch" />
+
+              {/* Right — form */}
+              <div className="flex-1">
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="interest-name">Full Name</Label>
+                    <Input id="interest-name" name="interest-name" placeholder="Jane Smith" required />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="interest-email">Email</Label>
+                    <Input id="interest-email" name="interest-email" type="email" placeholder="jane@example.com" required />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Resume <span className="text-neutral-400 font-normal">(optional)</span></Label>
+                    <div
+                      className="border-2 border-dashed border-neutral-300 rounded-xl p-4 text-center cursor-pointer hover:border-primary transition-colors"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        className="hidden"
+                        onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)}
+                      />
+                      {fileName ? (
+                        <div className="flex items-center justify-center gap-2 text-secondary">
+                          <svg className="w-4 h-4 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          <span className="text-sm font-semibold truncate">{fileName}</span>
+                          <span className="text-xs text-neutral-400 shrink-0">(click to change)</span>
+                        </div>
+                      ) : (
+                        <div>
+                          <svg className="w-6 h-6 text-neutral-400 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                          </svg>
+                          <p className="text-sm text-neutral-500">
+                            <span className="font-semibold text-secondary">Click to upload</span> your resume
+                          </p>
+                          <p className="text-xs text-neutral-400 mt-0.5">PDF, DOC, DOCX up to 5MB</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {error && <p className="text-sm text-red-500">{error}</p>}
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? "Submitting..." : "Keep Me Posted"}
+                  </Button>
+                </form>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
   );
 };
