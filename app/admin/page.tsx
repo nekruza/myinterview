@@ -21,6 +21,7 @@ type Application = {
   role: string;
   linkedin_url: string;
   cover_letter: string;
+  resume_url: string | null;
   created_at: string;
   status: ApplicationStatus;
 };
@@ -359,6 +360,22 @@ export default function AdminPage() {
                                       <dt className="font-medium text-gray-500 w-24 shrink-0">Applied:</dt>
                                       <dd className="text-gray-700">{formatDate(app.created_at)}</dd>
                                     </div>
+                                    {app.resume_url && (
+                                      <div className="flex gap-2">
+                                        <dt className="font-medium text-gray-500 w-24 shrink-0">Resume:</dt>
+                                        <dd>
+                                          <a
+                                            href={app.resume_url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 underline"
+                                            onClick={(e) => e.stopPropagation()}
+                                          >
+                                            Download
+                                          </a>
+                                        </dd>
+                                      </div>
+                                    )}
                                   </dl>
                                 </div>
                                 <div>
