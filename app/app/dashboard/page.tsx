@@ -339,7 +339,9 @@ export default async function DashboardPage() {
             <div className="flex items-center gap-4 mb-4">
               <span className="text-3xl">🌱</span>
               <div>
-                <h2 className="font-bold text-secondary text-base">Start your streak today</h2>
+                <h2 className="font-bold text-secondary text-base">
+                  {completed.length > 0 ? "Keep your streak going" : "Start your streak today"}
+                </h2>
                 <p className="text-neutral-500 text-xs mt-0.5">Practice daily to build interview confidence.</p>
               </div>
             </div>
@@ -349,7 +351,7 @@ export default async function DashboardPage() {
               style={{ background: "#2dec29", color: "#112715" }}
             >
               <PlayCircle className="w-4 h-4" />
-              Begin your first session
+              {completed.length > 0 ? "Continue practicing" : "Begin your first session"}
             </Link>
           </div>
 
