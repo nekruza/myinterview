@@ -1,13 +1,13 @@
 "use client";
 
 import { FC, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "../ui";
 import { track } from "@/lib/mixpanel";
-import { useComingSoon } from "@/components/ComingSoonProvider";
 
 export const HeroSection: FC = () => {
   const [userCount, setUserCount] = useState(400);
-  const { openModal } = useComingSoon();
+  const router = useRouter();
 
   useEffect(() => {
     // Animate counter from 400 to 500
@@ -64,7 +64,7 @@ export const HeroSection: FC = () => {
                 className="group"
                 onClick={() => {
                   track("CTA Clicked", { button: "Start Practicing Free", location: "hero" });
-                  openModal();
+                  router.push("/signup");
                 }}
               >
                 Start Practicing Free
