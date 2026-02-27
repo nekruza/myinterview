@@ -54,7 +54,7 @@ const ComingSoon: FC = () => (
     </p>
     <Link
       href="/app/practice"
-      className="inline-flex items-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm transition-opacity hover:opacity-90"
+      className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-sm transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A]"
       style={{ background: "#2dec29", color: "#112715" }}
     >
       Practice with AI in the meantime
@@ -348,7 +348,7 @@ const SessionCard: FC<{
             <>
               <button
                 onClick={(e) => { e.stopPropagation(); window.open(session.meeting_link, "_blank", "noopener,noreferrer"); }}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A]"
                 style={{ background: "#2dec29", color: "#112715" }}
               >
                 <Video className="w-4 h-4" />
@@ -363,7 +363,7 @@ const SessionCard: FC<{
             <>
               <button
                 onClick={(e) => { e.stopPropagation(); window.open(session.meeting_link, "_blank", "noopener,noreferrer"); }}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A]"
                 style={{ background: "#2dec29", color: "#112715" }}
               >
                 <Video className="w-4 h-4" />
@@ -649,7 +649,7 @@ const CreateSessionDialog: FC<{
           <button
             onClick={handleCreate}
             disabled={creating}
-            className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-xl font-semibold text-sm transition-opacity hover:opacity-90 disabled:opacity-60"
+            className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-2xl font-bold text-sm transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A] disabled:opacity-60 disabled:shadow-none disabled:translate-y-0"
             style={{ background: "#2dec29", color: "#112715" }}
           >
             {creating ? (
@@ -684,7 +684,7 @@ const EmptyState: FC<{ onCreateClick: () => void }> = ({ onCreateClick }) => (
     </p>
     <button
       onClick={onCreateClick}
-      className="inline-flex items-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm transition-opacity hover:opacity-90"
+      className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-sm transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A]"
       style={{ background: "#2dec29", color: "#112715" }}
     >
       <Plus className="w-4 h-4" />
@@ -795,7 +795,7 @@ const PeerPracticeContent: FC = () => {
         </div>
         <button
           onClick={() => setDialogOpen(true)}
-          className="flex items-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm shrink-0 transition-opacity hover:opacity-90"
+          className="flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-sm shrink-0 transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A]"
           style={{ background: "#2dec29", color: "#112715" }}
         >
           <Plus className="w-4 h-4" />

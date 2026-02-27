@@ -360,7 +360,7 @@ const NotFoundState: FC = () => (
     </p>
     <Link
       href="/app/peer-practice"
-      className="inline-flex items-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm transition-opacity hover:opacity-90"
+      className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-sm transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A]"
       style={{ background: "#2dec29", color: "#112715" }}
     >
       Browse open sessions
@@ -849,7 +849,7 @@ export default function PeerSessionDetailPage({
                       <button
                         onClick={() => handleRespond(p.user_id, "accept")}
                         disabled={responding === p.user_id}
-                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition hover:opacity-80 disabled:opacity-50"
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-100 shadow-[3px_3px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-0.5 active:shadow-[1px_1px_0px_0px_#1A1A1A] disabled:opacity-50 disabled:shadow-none disabled:translate-y-0"
                         style={{ background: "#2dec29", color: "#112715" }}
                       >
                         {responding === p.user_id ? (
@@ -882,7 +882,7 @@ export default function PeerSessionDetailPage({
                   href={session.meeting_link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-xl font-semibold text-sm transition-opacity hover:opacity-90"
+                  className="flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-2xl font-bold text-sm transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A]"
                   style={{ background: "#2dec29", color: "#112715" }}
                 >
                   <Video className="w-4 h-4" />
@@ -899,7 +899,7 @@ export default function PeerSessionDetailPage({
                   href={session.meeting_link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-xl font-semibold text-sm transition-opacity hover:opacity-90"
+                  className="flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-2xl font-bold text-sm transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A]"
                   style={{ background: "#2dec29", color: "#112715" }}
                 >
                   <Video className="w-4 h-4" />
@@ -951,7 +951,7 @@ export default function PeerSessionDetailPage({
                 <button
                   onClick={handleJoin}
                   disabled={joining}
-                  className="flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-xl font-semibold text-sm transition-all hover:opacity-90 disabled:opacity-60"
+                  className="flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-2xl font-bold text-sm transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A] disabled:opacity-60 disabled:shadow-none disabled:translate-y-0"
                   style={{ background: "#2dec29", color: "#112715" }}
                 >
                   {joining ? (

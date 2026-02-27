@@ -573,13 +573,13 @@ export default function PracticePage() {
         </div>
 
       {/* ── Sticky Start Button ── */}
-      <div className="sticky bottom-0 -mx-6 -mb-8 px-6 py-4 mt-6 bg-white/95 backdrop-blur-sm border-t border-neutral-100">
+      <div className="sticky bottom-0 -mx-6 -mb-8 px-6 py-4 mt-6 border-t border-neutral-100">
         <button
           onClick={startSession}
-          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold transition hover:opacity-90"
-          style={{ background: "#112715", color: "#fff" }}
+          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A]"
+          style={{ background: "#2dec29", color: "#112715" }}
         >
-          <Sparkles className="w-4 h-4" style={{ color: "#2dec29" }} />
+          <Sparkles className="w-4 h-4" />
           Start Voice Practice
         </button>
       </div>
@@ -730,7 +730,7 @@ export default function PracticePage() {
             setFeedbackData(null);
             setFeedbackLoading(false);
           }}
-          className="px-6 py-2.5 rounded-xl font-semibold text-sm transition hover:opacity-90"
+          className="px-6 py-2.5 rounded-2xl font-bold text-sm transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A]"
           style={{ background: "#2dec29", color: "#112715" }}
         >
           Practice Again
