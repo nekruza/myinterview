@@ -1,12 +1,12 @@
 "use client";
 
 import { FC } from "react";
+import { useRouter } from "next/navigation";
 import { Button, Card } from "../ui";
-import { useComingSoon } from "../ComingSoonProvider";
 import { track } from "@/lib/mixpanel";
 
 export const PricingSection: FC = () => {
-  const { openModal } = useComingSoon();
+  const router = useRouter();
   const tiers = [
     {
       name: "Free",
@@ -21,6 +21,7 @@ export const PricingSection: FC = () => {
         { text: "Progress dashboard", bold: false },
       ],
       cta: "Start Free",
+      href: "/signup",
       variant: "outline" as const,
       popular: false,
     },
@@ -39,6 +40,7 @@ export const PricingSection: FC = () => {
         { text: "Resume review (1x/month)", bold: false },
       ],
       cta: "Start Pro Trial",
+      href: "/signup",
       variant: "primary" as const,
       popular: true,
     },
@@ -57,6 +59,7 @@ export const PricingSection: FC = () => {
         { text: "Company-specific prep", bold: false },
       ],
       cta: "Contact Sales",
+      href: "/contact",
       variant: "secondary" as const,
       popular: false,
     },
@@ -174,7 +177,7 @@ export const PricingSection: FC = () => {
                   className={`w-full py-4 text-lg ${
                     tier.popular ? "bg-white text-black hover:bg-neutral-100" : ""
                   }`}
-                  onClick={() => { track("CTA Clicked", { button: tier.cta, location: "pricing", plan: tier.name }); openModal(); }}
+                  onClick={() => { track("CTA Clicked", { button: tier.cta, location: "pricing", plan: tier.name }); router.push(tier.href); }}
                 >
                   {tier.cta}
                 </Button>

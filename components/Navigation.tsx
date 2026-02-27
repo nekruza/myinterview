@@ -8,14 +8,12 @@ import { Button } from "./ui";
 import { createClient } from "@/lib/supabase/client";
 import { track } from "@/lib/mixpanel";
 import type { User } from "@supabase/supabase-js";
-import { useComingSoon } from "./ComingSoonProvider";
 
 export const Navigation: FC = () => {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
-  const { openModal } = useComingSoon();
   const supabase = createClient();
 
   useEffect(() => {
@@ -107,26 +105,18 @@ export const Navigation: FC = () => {
               </>
             ) : (
               <>
-                <button
+                <Link
+                  href="/login"
                   className="text-secondary hover:text-primary transition font-medium"
-                  onClick={() => {
-                    track("CTA Clicked", {
-                      button: "Sign In",
-                      location: "nav_desktop",
-                    });
-                    openModal();
-                  }}
+                  onClick={() => track("CTA Clicked", { button: "Sign In", location: "nav_desktop" })}
                 >
                   Sign In
-                </button>
+                </Link>
                 <Button
                   size="md"
                   onClick={() => {
-                    track("CTA Clicked", {
-                      button: "Join Free",
-                      location: "nav_desktop",
-                    });
-                    openModal();
+                    track("CTA Clicked", { button: "Join Free", location: "nav_desktop" });
+                    router.push("/signup");
                   }}
                 >
                   Join Free
@@ -211,29 +201,23 @@ export const Navigation: FC = () => {
               </>
             ) : (
               <>
-                <button
+                <Link
+                  href="/login"
                   className="text-secondary hover:text-primary transition font-medium text-left py-2"
                   onClick={() => {
-                    track("CTA Clicked", {
-                      button: "Sign In",
-                      location: "nav_mobile",
-                    });
+                    track("CTA Clicked", { button: "Sign In", location: "nav_mobile" });
                     setMenuOpen(false);
-                    openModal();
                   }}
                 >
                   Sign In
-                </button>
+                </Link>
                 <Button
                   size="md"
                   className="w-full justify-center"
                   onClick={() => {
-                    track("CTA Clicked", {
-                      button: "Join Free",
-                      location: "nav_mobile",
-                    });
+                    track("CTA Clicked", { button: "Join Free", location: "nav_mobile" });
                     setMenuOpen(false);
-                    openModal();
+                    router.push("/signup");
                   }}
                 >
                   Join Free
