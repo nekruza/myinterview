@@ -90,6 +90,8 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
 
     const init = async () => {
       // Request mic (required) + camera (optional)
+      let micAcquired = false;
+
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: true,
@@ -97,6 +99,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
         });
         // Permission granted — always record this (state persists across Strict Mode re-mounts)
         setMicPermission(true);
+        micAcquired = true;
         if (mounted) {
           setWebcamStream(stream);
           webcamStreamRef.current = stream;
@@ -111,12 +114,13 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
           stream.getTracks().forEach((t) => t.stop());
         }
       } catch {
-        // Try audio only
+        // Try audio only (no camera)
         try {
           const stream = await navigator.mediaDevices.getUserMedia({
             audio: true,
           });
           setMicPermission(true);
+          micAcquired = true;
           if (mounted) {
             webcamStreamRef.current = stream;
             visualizer.startAnalyser(stream);
@@ -129,18 +133,17 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
         }
       }
 
-      // Start timer
-      if (mounted) {
-        timer.start();
+      // Abort session start if mic was never acquired
+      if (!micAcquired || !mounted) return;
 
-        // Send initial AI message
-        await sendToAI([
-          {
-            role: "user",
-            content: `[SESSION START] I'm a ${LEVELS.find((l) => l.value === level)?.label} engineer. Please present the practice question and guide me through the session.`,
-          },
-        ]);
-      }
+      // Start timer and kick off AI
+      timer.start();
+      await sendToAI([
+        {
+          role: "user",
+          content: `[SESSION START] I'm a ${LEVELS.find((l) => l.value === level)?.label} engineer. Please present the practice question and guide me through the session.`,
+        },
+      ]);
     };
 
     init();
@@ -433,13 +436,31 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
   // ── Cleanup on unmount ──
   useEffect(() => {
     return () => {
+      // Stop all active processes
       speech.stopListening();
       tts.cancel();
       visualizer.stopAnalyser();
       timer.pause();
-      // Stop all media tracks so the browser camera/mic indicator goes off
+
+      // Clear pending silence detection timer
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
+
+      // Stop all media tracks so browser camera/mic indicator goes off
       webcamStreamRef.current?.getTracks().forEach((t) => t.stop());
       webcamStreamRef.current = null;
+
+      // Reset refs
+      lastFinalTranscriptRef.current = "";
+
+      // Reset state
+      setWebcamStream(null);
+      setCurrentHint(null);
+      setHintLoading(false);
+      setConvState("initializing");
+      setMessages([]);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -544,9 +565,15 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
           {micPermission === false && (
             <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/15 border border-red-500/25 mb-1">
               <MicOff className="w-4 h-4 text-red-400 shrink-0" />
-              <p className="text-xs text-red-300">
-                Microphone access denied — allow it in your browser and refresh.
+              <p className="text-xs text-red-300 flex-1">
+                Microphone access denied — allow it in your browser settings.
               </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="text-xs text-red-300 underline underline-offset-2 hover:text-red-200 shrink-0"
+              >
+                Retry
+              </button>
             </div>
           )}
           {speech.error && (
