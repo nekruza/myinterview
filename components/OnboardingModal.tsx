@@ -327,19 +327,29 @@ export function OnboardingModal({ onComplete }: { onComplete: () => void }) {
     setSaving(true);
     try {
       const supabase = createClient();
-      if (skipped) {
-        await supabase.auth.updateUser({ data: { onboarding_skipped: true } });
-      } else {
-        await supabase.auth.updateUser({
-          data: { ...data, onboarding_complete: true },
-        });
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (user) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        if (skipped) {
           await supabase
             .from("profiles")
-            .update({ experience_level: data.experience_level })
+            .update({ onboarding_complete: true })
+            .eq("id", user.id);
+        } else {
+          await supabase
+            .from("profiles")
+            .update({
+              experience_level: data.experience_level,
+              interview_style: data.interview_style,
+              interview_duration: data.interview_duration,
+              practice_partner: data.practice_partner,
+              interview_language: data.interview_language,
+              interview_platform: data.interview_platform,
+              feedback_preference: data.feedback_preference,
+              wants_tips: data.wants_tips,
+              onboarding_complete: true,
+            })
             .eq("id", user.id);
         }
       }
