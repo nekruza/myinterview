@@ -37,6 +37,55 @@ const TIMELINE_OPTIONS = [
   { value: "exploring", label: "Just exploring" },
 ];
 
+const INTERVIEW_STYLE_OPTIONS = [
+  { value: "behavioral", label: "Behavioral" },
+  { value: "technical", label: "Technical" },
+  { value: "case", label: "Case Study" },
+  { value: "mixed", label: "Mixed" },
+];
+
+const DURATION_OPTIONS = [
+  { value: "15", label: "15 minutes" },
+  { value: "30", label: "30 minutes" },
+  { value: "45", label: "45 minutes" },
+  { value: "60+", label: "60+ minutes" },
+];
+
+const PRACTICE_PARTNER_OPTIONS = [
+  { value: "ai", label: "With AI" },
+  { value: "people", label: "With other people" },
+  { value: "both", label: "Both" },
+];
+
+const LANGUAGE_OPTIONS = [
+  { value: "english", label: "English" },
+  { value: "spanish", label: "Spanish" },
+  { value: "french", label: "French" },
+  { value: "german", label: "German" },
+  { value: "mandarin", label: "Mandarin" },
+  { value: "other", label: "Other" },
+];
+
+const PLATFORM_OPTIONS = [
+  { value: "zoom", label: "Zoom" },
+  { value: "meet", label: "Google Meet" },
+  { value: "teams", label: "MS Teams" },
+  { value: "coderpad", label: "CoderPad" },
+  { value: "hirevue", label: "HireVue" },
+  { value: "any", label: "No Preference" },
+];
+
+const FEEDBACK_OPTIONS = [
+  { value: "detailed", label: "Detailed Critique" },
+  { value: "overview", label: "High-Level Overview" },
+  { value: "score", label: "Score Only" },
+  { value: "none", label: "No Feedback" },
+];
+
+function optionLabel(opts: { value: string; label: string }[], val: string) {
+  return opts.find((o) => o.value === val)?.label ?? val;
+}
+
 const COMPANY_SUGGESTIONS = [
   "Google",
   "Meta",
@@ -86,6 +135,15 @@ const SettingsPage: FC<SettingsProps> = () => {
   const [resumeName, setResumeName] = useState<string | null>(null);
   const [uploadingResume, setUploadingResume] = useState(false);
 
+  // Onboarding preferences
+  const [interviewStyle, setInterviewStyle] = useState("");
+  const [interviewDuration, setInterviewDuration] = useState("");
+  const [practicePartner, setPracticePartner] = useState("");
+  const [interviewLanguage, setInterviewLanguage] = useState("");
+  const [interviewPlatform, setInterviewPlatform] = useState("");
+  const [feedbackPreference, setFeedbackPreference] = useState("");
+  const [wantsTips, setWantsTips] = useState<boolean | null>(null);
+
   // Edit modes
   const [editingProfile, setEditingProfile] = useState(false);
   const [editingPrefs, setEditingPrefs] = useState(false);
@@ -110,6 +168,14 @@ const SettingsPage: FC<SettingsProps> = () => {
       if (meta.email_notifications !== undefined)
         setEmailNotifs(meta.email_notifications);
       if (meta.match_alerts !== undefined) setMatchAlerts(meta.match_alerts);
+      if (meta.interview_style) setInterviewStyle(meta.interview_style);
+      if (meta.interview_duration) setInterviewDuration(meta.interview_duration);
+      if (meta.practice_partner) setPracticePartner(meta.practice_partner);
+      if (meta.interview_language) setInterviewLanguage(meta.interview_language);
+      if (meta.interview_platform) setInterviewPlatform(meta.interview_platform);
+      if (meta.feedback_preference) setFeedbackPreference(meta.feedback_preference);
+      if (meta.wants_tips !== undefined && meta.wants_tips !== null)
+        setWantsTips(meta.wants_tips);
 
       const { data: profile } = await supabase
         .from("profiles")
@@ -297,6 +363,13 @@ const SettingsPage: FC<SettingsProps> = () => {
           target_companies: targetCompanies,
           email_notifications: emailNotifs,
           match_alerts: matchAlerts,
+          interview_style: interviewStyle,
+          interview_duration: interviewDuration,
+          practice_partner: practicePartner,
+          interview_language: interviewLanguage,
+          interview_platform: interviewPlatform,
+          feedback_preference: feedbackPreference,
+          wants_tips: wantsTips,
         },
       });
       toast.success("Settings saved");
@@ -705,6 +778,130 @@ const SettingsPage: FC<SettingsProps> = () => {
                   ))}
                 </div>
               </div>
+              {/* ── Onboarding preferences ── */}
+              <div className="pt-2 border-t border-neutral-100">
+                <p className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-4">
+                  Practice Preferences
+                </p>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-500 mb-1">
+                      Interview Style
+                    </label>
+                    <select
+                      value={interviewStyle}
+                      onChange={(e) => setInterviewStyle(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-secondary outline-none focus:border-primary transition bg-white"
+                    >
+                      <option value="">Select style</option>
+                      {INTERVIEW_STYLE_OPTIONS.map(({ value, label }) => (
+                        <option key={value} value={value}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-500 mb-1">
+                      Session Duration
+                    </label>
+                    <select
+                      value={interviewDuration}
+                      onChange={(e) => setInterviewDuration(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-secondary outline-none focus:border-primary transition bg-white"
+                    >
+                      <option value="">Select duration</option>
+                      {DURATION_OPTIONS.map(({ value, label }) => (
+                        <option key={value} value={value}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-500 mb-1">
+                      Practice With
+                    </label>
+                    <select
+                      value={practicePartner}
+                      onChange={(e) => setPracticePartner(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-secondary outline-none focus:border-primary transition bg-white"
+                    >
+                      <option value="">Select preference</option>
+                      {PRACTICE_PARTNER_OPTIONS.map(({ value, label }) => (
+                        <option key={value} value={value}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-500 mb-1">
+                      Language
+                    </label>
+                    <select
+                      value={interviewLanguage}
+                      onChange={(e) => setInterviewLanguage(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-secondary outline-none focus:border-primary transition bg-white"
+                    >
+                      <option value="">Select language</option>
+                      {LANGUAGE_OPTIONS.map(({ value, label }) => (
+                        <option key={value} value={value}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-500 mb-1">
+                      Platform
+                    </label>
+                    <select
+                      value={interviewPlatform}
+                      onChange={(e) => setInterviewPlatform(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-secondary outline-none focus:border-primary transition bg-white"
+                    >
+                      <option value="">Select platform</option>
+                      {PLATFORM_OPTIONS.map(({ value, label }) => (
+                        <option key={value} value={value}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-500 mb-1">
+                      Feedback Style
+                    </label>
+                    <select
+                      value={feedbackPreference}
+                      onChange={(e) => setFeedbackPreference(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-secondary outline-none focus:border-primary transition bg-white"
+                    >
+                      <option value="">Select feedback style</option>
+                      {FEEDBACK_OPTIONS.map(({ value, label }) => (
+                        <option key={value} value={value}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-500 mb-2">
+                      Interview Tips
+                    </label>
+                    <div className="flex gap-2">
+                      {[
+                        { val: true, label: "Yes, please" },
+                        { val: false, label: "No thanks" },
+                      ].map(({ val, label }) => (
+                        <button
+                          key={String(val)}
+                          type="button"
+                          onClick={() => setWantsTips(val)}
+                          className="flex-1 py-2 rounded-xl border-2 text-sm font-semibold transition-all"
+                          style={{
+                            borderColor: wantsTips === val ? "#2dec29" : "#e5e7eb",
+                            background: wantsTips === val ? "rgba(45,236,41,0.1)" : "white",
+                            color: wantsTips === val ? "#112715" : "#6b7280",
+                          }}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex gap-2 pt-1">
                 <button
                   onClick={handleSave}
@@ -736,6 +933,62 @@ const SettingsPage: FC<SettingsProps> = () => {
                   {timelineLabel(timeline)}
                 </span>
               </div>
+              {interviewStyle && (
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-neutral-400">Style</span>
+                  <span className="text-sm font-medium text-secondary">
+                    {optionLabel(INTERVIEW_STYLE_OPTIONS, interviewStyle)}
+                  </span>
+                </div>
+              )}
+              {interviewDuration && (
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-neutral-400">Duration</span>
+                  <span className="text-sm font-medium text-secondary">
+                    {optionLabel(DURATION_OPTIONS, interviewDuration)}
+                  </span>
+                </div>
+              )}
+              {practicePartner && (
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-neutral-400">Practice With</span>
+                  <span className="text-sm font-medium text-secondary">
+                    {optionLabel(PRACTICE_PARTNER_OPTIONS, practicePartner)}
+                  </span>
+                </div>
+              )}
+              {interviewLanguage && (
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-neutral-400">Language</span>
+                  <span className="text-sm font-medium text-secondary">
+                    {optionLabel(LANGUAGE_OPTIONS, interviewLanguage)}
+                  </span>
+                </div>
+              )}
+              {interviewPlatform && (
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-neutral-400">Platform</span>
+                  <span className="text-sm font-medium text-secondary">
+                    {optionLabel(PLATFORM_OPTIONS, interviewPlatform)}
+                  </span>
+                </div>
+              )}
+              {feedbackPreference && (
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-neutral-400">Feedback</span>
+                  <span className="text-sm font-medium text-secondary">
+                    {optionLabel(FEEDBACK_OPTIONS, feedbackPreference)}
+                  </span>
+                </div>
+              )}
+              {wantsTips !== null && (
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-neutral-400">Tips</span>
+                  <span className="text-sm font-medium text-secondary">
+                    {wantsTips ? "Yes" : "No"}
+                  </span>
+                </div>
+              )}
               {targetCompanies.length > 0 && (
                 <div>
                   <span className="text-xs text-neutral-400">
