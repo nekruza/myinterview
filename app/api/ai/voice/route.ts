@@ -91,12 +91,19 @@ CRITICAL VOICE RULES:
 For ${level === "staff" || level === "senior" ? "senior/staff level, expect org-wide impact, ambiguity navigation, and strategic thinking. Push hard on these." : "mid-level, focus on clear individual contribution, conflict resolution, and ownership. Be encouraging but thorough."}.`;
 };
 
-const HINT_SYSTEM_PROMPT = (resumeText?: string) => {
+const HINT_SYSTEM_PROMPT = (question: string, role?: string, resumeText?: string) => {
+  console.log("HINT_SYSTEM_PROMPT", {question, role, resumeText});
+  const roleBlock = role && role !== "general"
+    ? `\nThe candidate is interviewing for a ${role.replace(/-/g, " ")} role — tailor the hint and example answer to that discipline.`
+    : "";
+
   const resumeBlock = resumeText?.trim()
     ? `\n\nThe candidate's resume:\n---\n${resumeText.trim()}\n---\nWhen writing the example answer, reference something specific from their resume (a project, role, or technology they've listed).`
     : `\n\nNo resume provided — write a realistic example for a software engineer.`;
 
-  return `You are coaching a candidate mid-interview who is stuck and needs help right now.
+  return `You are coaching a candidate mid-interview who is stuck and needs help right now. This is his role and interview question:
+
+"${roleBlock || "General"}: ${question}"
 
 Give exactly two things, separated by a blank line:
 
@@ -142,9 +149,32 @@ export async function POST(req: Request) {
   }
 
   const systemPrompt = isHint
-    ? HINT_SYSTEM_PROMPT(resumeText)
+    ? HINT_SYSTEM_PROMPT(question, role, resumeText)
     : VOICE_SYSTEM_PROMPT(category, level, question, interviewType, jobContext, resumeText, role);
 
+  // ── Hint: plain JSON response, no streaming needed ──────────────────────────
+  if (isHint) {
+    try {
+      let hint = "";
+      for await (const chunk of streamLLM({
+        systemPrompt,
+        messages,
+        maxTokens: 400,
+        temperature: 0.7,
+        model: "gemini-3-flash-preview",
+      })) {
+        hint += chunk;
+      }
+      return new Response(JSON.stringify({ hint }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "AI service error";
+      return new Response(JSON.stringify({ error: message }), { status: 500 });
+    }
+  }
+
+  // ── Interview turn: SSE stream ───────────────────────────────────────────────
   let fullResponse = "";
   const encoder = new TextEncoder();
 
@@ -154,7 +184,7 @@ export async function POST(req: Request) {
         for await (const chunk of streamLLM({
           systemPrompt,
           messages,
-          maxTokens: isHint ? 400 : 300,
+          maxTokens: 300,
           temperature: 0.7,
         })) {
           fullResponse += chunk;
@@ -164,7 +194,7 @@ export async function POST(req: Request) {
         }
 
         // Save AI response to DB
-        if (sessionId && fullResponse && !isHint) {
+        if (sessionId && fullResponse) {
           await supabase.from("interview_messages").insert({
             session_id: sessionId,
             role: "assistant",
