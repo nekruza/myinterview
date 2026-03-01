@@ -158,7 +158,9 @@ export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
   const initials = userEmail.split("@")[0].slice(0, 2).toUpperCase();
 
   return (
-    <aside className="shrink-0 h-screen py-3 pl-3" style={{ width: 76 }}>
+    <>
+    {/* ── Desktop sidebar (hidden on mobile) ──────────────────── */}
+    <aside className="hidden md:block shrink-0 h-screen py-3 pl-3" style={{ width: 76 }}>
       {/* ── Liquid glass pill ─────────────────────────────────── */}
       <div
         className="relative flex flex-col h-full items-center rounded-[28px] py-4 gap-1 overflow-hidden"
@@ -481,5 +483,45 @@ export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
         </Tooltip>
       </div>
     </aside>
+
+    {/* ── Mobile bottom navigation (hidden on desktop) ─────────── */}
+    <nav
+      className="md:hidden fixed bottom-0 inset-x-0 z-50"
+      style={{
+        background: "linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.88) 100%)",
+        backdropFilter: "blur(20px) saturate(1.8)",
+        WebkitBackdropFilter: "blur(20px) saturate(1.8)",
+        borderTop: "1px solid rgba(255,255,255,0.6)",
+        boxShadow: "0 -4px 24px rgba(0,0,0,0.06)",
+      }}
+    >
+      <div
+        className="flex items-center justify-around px-2 py-2"
+        style={{ paddingBottom: "max(8px, env(safe-area-inset-bottom))" }}
+      >
+        {navItems.map(({ href, label, icon: Icon }) => {
+          const active = pathname === href || pathname.startsWith(href + "/");
+          return (
+            <Link
+              key={href}
+              href={href}
+              className="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl min-w-[44px] transition-all duration-200"
+              style={
+                active
+                  ? {
+                      background: "linear-gradient(145deg, rgba(45,236,41,0.25) 0%, rgba(45,236,41,0.12) 100%)",
+                      color: "#0d6e0c",
+                    }
+                  : { color: "rgba(0,0,0,0.4)" }
+              }
+            >
+              <Icon className="w-5 h-5" />
+              <span className="text-[9px] font-semibold leading-none mt-0.5">{label}</span>
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+    </>
   );
 };

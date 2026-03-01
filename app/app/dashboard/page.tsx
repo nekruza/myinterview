@@ -222,7 +222,7 @@ export default async function DashboardPage() {
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-secondary leading-tight">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-secondary leading-tight">
             {greeting}, {firstName}! 👋
           </h1>
           <p className="text-neutral-500 text-sm mt-1">
@@ -244,7 +244,7 @@ export default async function DashboardPage() {
           <div className="pointer-events-none absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/15" />
 
           {/* Top: left streak info + right sparkline */}
-          <div className="relative z-10 flex items-stretch gap-0 p-4 h-[200px] justify-between">
+          <div className="relative z-10 flex items-stretch gap-0 p-4 h-auto sm:h-[200px] justify-between">
 
             {/* Left: streak info — shrink-0 so it doesn't eat all flex space */}
             <div className="shrink-0 flex flex-col gap-2.5 pr-4">
@@ -277,12 +277,12 @@ export default async function DashboardPage() {
                 </div>
               </div>
               {/* Week activity dots */}
-              <div className="flex items-center gap-1 m-2">
+              <div className="flex items-center gap-0.5 sm:gap-1 m-2">
                 {weekActivity.map((day, i) => (
                   <div key={i} className="flex flex-col items-center gap-0.5">
                     <div
                       className={cn(
-                        "w-8 h-8 rounded-full flex items-center justify-center text-[9px] font-black border",
+                        "w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-[9px] font-black border",
                         day.active
                           ? "bg-white text-orange-500 border-white shadow-sm"
                           : day.isToday
@@ -299,8 +299,8 @@ export default async function DashboardPage() {
 
             </div>
 
-            {/* Right: sparkline chart */} 
-            <div className="flex-1 min-w-0 mx-4 flex flex-col border-l border-white/20 pl-4 max-w-[700px] justify-end">
+            {/* Right: sparkline chart — hidden on small screens */}
+            <div className="hidden sm:flex flex-1 min-w-0 mx-4 flex-col border-l border-white/20 pl-4 max-w-[700px] justify-end">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Score trend</span>
                 <div className="flex items-center gap-2">
@@ -333,7 +333,7 @@ export default async function DashboardPage() {
         </Link>
       ) : (
         /* Zero-streak state */
-        <div className="relative rounded-2xl overflow-hidden border border-neutral-200 bg-white hover:shadow-md transition-shadow">
+        <div className="glass-card relative rounded-2xl overflow-hidden hover:shadow-md transition-shadow">
           <div className="pointer-events-none absolute -right-4 -top-4 w-28 h-28 rounded-full bg-primary/5" />
           <div className="relative z-10 p-5">
             <div className="flex items-center gap-4 mb-4">
@@ -429,7 +429,7 @@ export default async function DashboardPage() {
         {/* ── Peer Practice card */}
         <Link
           href="/app/peer-practice"
-          className="group relative rounded-2xl overflow-hidden bg-white border border-neutral-100 shadow-sm flex flex-col gap-3 p-5 hover:shadow-md transition-shadow"
+          className="glass-card group relative rounded-2xl overflow-hidden flex flex-col gap-3 p-5 hover:shadow-md transition-shadow"
         >
           {/* Purple glow */}
           <div className="pointer-events-none absolute -bottom-8 -right-8 w-36 h-36 rounded-full blur-3xl opacity-10 bg-purple-500" />
@@ -500,13 +500,13 @@ export default async function DashboardPage() {
           </Link>
         </div>
 
-        <div className="overflow-x-auto pb-2 -mx-6 px-6">
+        <div className="overflow-x-auto pb-2 -mx-4 sm:-mx-6 px-4 sm:px-6">
           <div className="flex gap-3 w-max">
             {posts.slice(0, 3).map((post) => (
               <Link
                 key={post.slug}
                 href={`/blog/${post.slug}`}
-                className="group w-52 shrink-0 bg-white rounded-2xl border border-neutral-100 overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+                className="glass-card group w-52 shrink-0 rounded-2xl overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
               >
                 <div className="h-2" style={{ background: "#2dec29" }} />
                 <div className="p-4">
@@ -539,7 +539,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-2 gap-3">
         <Link
           href="/app/progress"
-          className="group flex items-center gap-3 bg-white rounded-2xl border border-neutral-100 px-4 py-3.5 hover:shadow-sm transition-shadow"
+          className="glass-card group flex items-center gap-3 rounded-2xl px-4 py-3.5 hover:shadow-sm transition-shadow"
         >
           <div
             className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
@@ -560,7 +560,7 @@ export default async function DashboardPage() {
 
         <Link
           href="/app/settings"
-          className="group flex items-center gap-3 bg-white rounded-2xl border border-neutral-100 px-4 py-3.5 hover:shadow-sm transition-shadow"
+          className="glass-card group flex items-center gap-3 rounded-2xl px-4 py-3.5 hover:shadow-sm transition-shadow"
         >
           <div className="w-8 h-8 rounded-xl bg-neutral-100 flex items-center justify-center shrink-0">
             <Users className="w-4 h-4 text-neutral-500" />

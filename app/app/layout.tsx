@@ -37,7 +37,7 @@ export default async function AppLayout({
       />
       <AppSidebar userEmail={user.email ?? ""} avatarUrl={profile?.avatar_url ?? null} />
       <main className="relative z-10 flex-1 overflow-y-auto">
-        <div className="max-w-6xl mx-auto px-6 py-8">{children}</div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8 pb-24 md:pb-8">{children}</div>
       </main>
       <Toaster position="top-right" />
     </div>

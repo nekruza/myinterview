@@ -76,7 +76,7 @@ export default function ResourcesPage() {
               <Link
                 key={post.slug}
                 href={`/blog/${post.slug}`}
-                className="group bg-white rounded-2xl border border-neutral-100 overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col"
+                className="glass-card group rounded-2xl overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col"
               >
                 <div className="h-1.5" style={{ background: "#2dec29" }} />
                 <div className="p-4 flex flex-col flex-1">

@@ -216,7 +216,7 @@ const SessionCard: FC<{
 
   return (
     <div
-      className={`relative bg-white rounded-2xl border shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden cursor-pointer ${
+      className={`glass-card relative rounded-2xl hover:shadow-md transition-all duration-200 overflow-hidden cursor-pointer ${
         session.is_featured
           ? "border-primary/30 ring-1 ring-primary/10"
           : "border-neutral-100 hover:border-neutral-200"
@@ -891,7 +891,7 @@ const PeerPracticeContent: FC = () => {
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="bg-white rounded-2xl border border-neutral-100 p-5 animate-pulse"
+              className="glass-card rounded-2xl p-5 animate-pulse"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
