@@ -158,32 +158,32 @@ const SettingsPage: FC<SettingsProps> = () => {
 
       setEmail(user.email ?? "");
       setUserId(user.id);
-      setDisplayName(user.user_metadata?.full_name ?? "");
-
-      // Load preferences from metadata
-      const meta = user.user_metadata ?? {};
-      if (meta.experience_level) setExperienceLevel(meta.experience_level);
-      if (meta.interview_timeline) setTimeline(meta.interview_timeline);
-      if (meta.target_companies) setTargetCompanies(meta.target_companies);
-      if (meta.email_notifications !== undefined)
-        setEmailNotifs(meta.email_notifications);
-      if (meta.match_alerts !== undefined) setMatchAlerts(meta.match_alerts);
-      if (meta.interview_style) setInterviewStyle(meta.interview_style);
-      if (meta.interview_duration) setInterviewDuration(meta.interview_duration);
-      if (meta.practice_partner) setPracticePartner(meta.practice_partner);
-      if (meta.interview_language) setInterviewLanguage(meta.interview_language);
-      if (meta.interview_platform) setInterviewPlatform(meta.interview_platform);
-      if (meta.feedback_preference) setFeedbackPreference(meta.feedback_preference);
-      if (meta.wants_tips !== undefined && meta.wants_tips !== null)
-        setWantsTips(meta.wants_tips);
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("avatar_url, resume_url")
+        .select(
+          "full_name, avatar_url, resume_url, experience_level, interview_timeline, target_companies, email_notifications, match_alerts, interview_style, interview_duration, practice_partner, interview_language, interview_platform, feedback_preference, wants_tips"
+        )
         .eq("id", user.id)
         .single();
 
       if (profile) {
+        if (profile.full_name) setDisplayName(profile.full_name);
+        if (profile.experience_level) setExperienceLevel(profile.experience_level);
+        if (profile.interview_timeline) setTimeline(profile.interview_timeline);
+        if (profile.target_companies?.length) setTargetCompanies(profile.target_companies);
+        if (profile.email_notifications !== null && profile.email_notifications !== undefined)
+          setEmailNotifs(profile.email_notifications);
+        if (profile.match_alerts !== null && profile.match_alerts !== undefined)
+          setMatchAlerts(profile.match_alerts);
+        if (profile.interview_style) setInterviewStyle(profile.interview_style);
+        if (profile.interview_duration) setInterviewDuration(profile.interview_duration);
+        if (profile.practice_partner) setPracticePartner(profile.practice_partner);
+        if (profile.interview_language) setInterviewLanguage(profile.interview_language);
+        if (profile.interview_platform) setInterviewPlatform(profile.interview_platform);
+        if (profile.feedback_preference) setFeedbackPreference(profile.feedback_preference);
+        if (profile.wants_tips !== null && profile.wants_tips !== undefined)
+          setWantsTips(profile.wants_tips);
         setAvatarUrl(profile.avatar_url);
         setResumeUrl(profile.resume_url);
         if (profile.resume_url) {
@@ -355,8 +355,9 @@ const SettingsPage: FC<SettingsProps> = () => {
   async function handleSave() {
     setSaving(true);
     try {
-      await supabase.auth.updateUser({
-        data: {
+      await supabase
+        .from("profiles")
+        .update({
           full_name: displayName,
           experience_level: experienceLevel,
           interview_timeline: timeline,
@@ -370,8 +371,13 @@ const SettingsPage: FC<SettingsProps> = () => {
           interview_platform: interviewPlatform,
           feedback_preference: feedbackPreference,
           wants_tips: wantsTips,
-        },
-      });
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userId);
+
+      // Keep auth display name in sync
+      await supabase.auth.updateUser({ data: { full_name: displayName } });
+
       toast.success("Settings saved");
       setEditingProfile(false);
       setEditingPrefs(false);

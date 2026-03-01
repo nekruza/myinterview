@@ -20,13 +20,11 @@ export default async function AppLayout({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("avatar_url")
+    .select("avatar_url, onboarding_complete")
     .eq("id", user.id)
     .single();
 
-  const isOnboarded = !!(
-    user.user_metadata?.onboarding_complete || user.user_metadata?.onboarding_skipped
-  );
+  const isOnboarded = !!profile?.onboarding_complete;
 
   return (
     <div className="flex h-screen overflow-hidden relative" style={{
