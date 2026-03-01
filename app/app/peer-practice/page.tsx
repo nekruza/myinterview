@@ -26,42 +26,6 @@ import {
 } from "@/components/ui/dialog";
 import { TECH_ROLES } from "@/lib/practice-data";
 
-/* ─── Coming Soon ─────────────────────────────────────────────────────────── */
-
-const SHOW_COMING_SOON = true
-
-const ComingSoon: FC = () => (
-  <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
-    <div
-      className="w-20 h-20 rounded-3xl flex items-center justify-center mb-6"
-      style={{ background: "linear-gradient(145deg, #112715 0%, #1c4220 100%)" }}
-    >
-      <Users className="w-9 h-9" style={{ color: "#2dec29" }} />
-    </div>
-    <div
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold mb-4"
-      style={{ background: "#2dec2918", color: "#0a5c09" }}
-    >
-      <Sparkles className="w-3 h-3" />
-      Coming Soon · April 1st
-    </div>
-    <h1 className="text-3xl font-black text-secondary mb-3 leading-tight">
-      Peer Practice
-    </h1>
-    <p className="text-neutral-500 text-sm leading-relaxed max-w-sm mb-8">
-      Practice live mock interviews with real engineers. We&apos;re putting the
-      finishing touches on this feature — launching April 1st.
-    </p>
-    <Link
-      href="/app/practice"
-      className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-sm transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A]"
-      style={{ background: "#2dec29", color: "#112715" }}
-    >
-      Practice with AI in the meantime
-    </Link>
-  </div>
-);
-
 /* ─── types ─── */
 
 interface Profile {
@@ -440,8 +404,34 @@ const CreateSessionDialog: FC<{
   const [customRole, setCustomRole] = useState("");
   const [interviewType, setInterviewType] = useState("");
   const [creating, setCreating] = useState(false);
+  const [linkError, setLinkError] = useState("");
+
+  function validateMeetingLink(url: string): string {
+    if (!url.trim()) return "";
+    try {
+      const raw = url.trim();
+      const parsed = new URL(/^https?:\/\//i.test(raw) ? raw : "https://" + raw);
+      const ALLOWED = [
+        "zoom.us", "us02web.zoom.us", "us04web.zoom.us",
+        "meet.google.com",
+        "teams.microsoft.com", "teams.live.com",
+        "whereby.com",
+        "meet.jit.si",
+        "webex.com",
+      ];
+      const host = parsed.hostname.toLowerCase();
+      if (!ALLOWED.some((d) => host === d || host.endsWith("." + d))) {
+        return "Please use Zoom, Google Meet, Microsoft Teams, Whereby, Jitsi, or Webex";
+      }
+      return "";
+    } catch {
+      return "Please enter a valid URL (e.g. https://meet.google.com/...)";
+    }
+  }
 
   async function handleCreate() {
+    const linkErr = validateMeetingLink(meetingLink);
+    if (linkErr) { setLinkError(linkErr); return; }
     if (!title.trim() || !date || !time || !meetingLink.trim()) {
       toast.error("Please fill in all required fields");
       return;
@@ -626,11 +616,27 @@ const CreateSessionDialog: FC<{
               <input
                 type="url"
                 value={meetingLink}
-                onChange={(e) => setMeetingLink(e.target.value)}
+                onChange={(e) => {
+                  setMeetingLink(e.target.value);
+                  setLinkError(validateMeetingLink(e.target.value));
+                }}
+                onBlur={(e) => setLinkError(validateMeetingLink(e.target.value))}
                 placeholder="https://meet.google.com/... or https://zoom.us/..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-secondary outline-none focus:border-primary transition"
+                className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm text-secondary outline-none transition ${
+                  linkError ? "border-red-400 focus:border-red-400" : "border-neutral-200 focus:border-primary"
+                }`}
               />
             </div>
+            {linkError && (
+              <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">
+                {linkError}
+              </p>
+            )}
+            {!linkError && meetingLink && !validateMeetingLink(meetingLink) && (
+              <p className="mt-1.5 text-xs text-green-600 flex items-center gap-1">
+                ✓ Valid meeting link
+              </p>
+            )}
           </div>
 
           <div>
@@ -695,14 +701,7 @@ const EmptyState: FC<{ onCreateClick: () => void }> = ({ onCreateClick }) => (
 
 /* ─── main page ─── */
 
-const PeerPracticePage: FC = () => {
-  // Show Coming Soon until April 1st 2026
-  if (SHOW_COMING_SOON) {
-    return <ComingSoon />;
-  }
-
-  return <PeerPracticeContent />;
-};
+const PeerPracticePage: FC = () => <PeerPracticeContent />;
 
 const PeerPracticeContent: FC = () => {
   const [sessions, setSessions] = useState<PeerSession[]>([]);
