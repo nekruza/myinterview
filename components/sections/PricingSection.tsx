@@ -95,7 +95,7 @@ export const PricingSection: FC = () => {
               className={`relative ${
                 tier.popular
                   ? "bg-secondary text-white rounded-3xl p-8 shadow-2xl md:transform md:scale-105 border-2 border-primary"
-                  : ""
+                  : "shadow-lg rounded-2xl border border-primary-200 p-8 "
               }`}
             >
               {tier.popular && (
@@ -103,10 +103,10 @@ export const PricingSection: FC = () => {
                   MOST POPULAR
                 </div>
               )}
-              <Card
+              <div
                 className={
                   tier.popular
-                    ? "bg-transparent border-none shadow-none p-0"
+                    ? "[background:none] [border:none] shadow-none p-0"
                     : ""
                 }
               >
@@ -181,7 +181,7 @@ export const PricingSection: FC = () => {
                 >
                   {tier.cta}
                 </Button>
-              </Card>
+              </div>
             </div>
           ))}
         </div>

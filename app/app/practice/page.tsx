@@ -210,7 +210,7 @@ export default function PracticePage() {
   // ── Render: Setup ──
   if (phase === "setup") {
     return (
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-5xl mx-auto w-full">
         {/* Hidden resume input */}
         <input
           ref={resumeInputRef}
@@ -234,7 +234,7 @@ export default function PracticePage() {
           {/* ── Left: Form ── */}
           <div className="flex-1 min-w-0 space-y-5">
             {/* Interview Type */}
-            <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-6">
+            <div className="glass-card rounded-2xl p-6">
               <label className="block text-xs font-semibold text-neutral-600 uppercase tracking-wide mb-3">
                 1. Interview Type
               </label>
@@ -303,7 +303,7 @@ export default function PracticePage() {
             </div>
 
             {/* Target Role */}
-            <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-6">
+            <div className="glass-card rounded-2xl p-6">
               <label className="block text-xs font-semibold text-neutral-600 uppercase tracking-wide mb-3">
                 2. Target Role
               </label>
@@ -328,7 +328,7 @@ export default function PracticePage() {
             </div>
 
             {/* Job Context */}
-            <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-6">
+            <div className="glass-card rounded-2xl p-6">
               <label className="block text-xs font-semibold text-neutral-600 uppercase tracking-wide mb-3">
                 3. Job Context
               </label>
@@ -400,7 +400,7 @@ export default function PracticePage() {
 
             {/* Resume — always shown once loaded */}
             {hasResume !== null && (
-              <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-6">
+              <div className="glass-card rounded-2xl p-6">
                 <div className="flex items-center justify-between mb-3">
                   <label className="block text-xs font-semibold text-neutral-600 uppercase tracking-wide">
                     4. Your Resume
@@ -468,7 +468,7 @@ export default function PracticePage() {
             )}
 
             {/* Level + Confidence */}
-            <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-6 space-y-5">
+            <div className="glass-card rounded-2xl p-6 space-y-5">
               <div>
                 <label className="block text-xs font-semibold text-neutral-600 uppercase tracking-wide mb-3">
                   5. Your Experience Level
@@ -497,7 +497,7 @@ export default function PracticePage() {
 
           {/* ── Right: Tips panel ── */}
           <div className="w-64 shrink-0 hidden lg:block space-y-4">
-            <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-5">
+            <div className="glass-card rounded-2xl p-5">
               <p className="text-xs font-semibold text-neutral-600 uppercase tracking-wide mb-3">
                 Get a tailored interview
               </p>
@@ -573,7 +573,7 @@ export default function PracticePage() {
         </div>
 
       {/* ── Sticky Start Button ── */}
-      <div className="sticky bottom-0 -mx-6 -mb-8 px-6 py-4 mt-6 border-t border-neutral-100">
+      <div className="sticky bottom-16 md:bottom-0 -mx-4 sm:-mx-6 md:-mb-8 px-4 sm:px-6 py-4 mt-6 border-t border-neutral-100" style={{ background: "rgba(250,249,246,0.97)", backdropFilter: "blur(8px)" }}>
         <button
           onClick={startSession}
           className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A]"
@@ -638,7 +638,7 @@ export default function PracticePage() {
       </div>
 
       {/* Performance Score card */}
-      <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-6">
+      <div className="glass-card rounded-2xl p-6">
         <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-4">
           Performance Score
         </p>
@@ -678,7 +678,7 @@ export default function PracticePage() {
 
       {/* Improvements section */}
       {(feedbackLoading || (feedbackData && feedbackData.improvements.length > 0)) && (
-        <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-6">
+        <div className="glass-card rounded-2xl p-6">
           <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-4">
             What to improve
           </p>

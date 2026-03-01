@@ -318,14 +318,14 @@ const DetailSkeleton: FC = () => (
     <div className="h-56 rounded-2xl" style={{ background: "#112715" }} />
     <div className="grid lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 space-y-4">
-        <div className="bg-white rounded-2xl border border-neutral-100 p-6">
+        <div className="glass-card rounded-2xl p-6">
           <div className="h-5 w-40 bg-neutral-100 rounded-lg mb-4" />
           <div className="space-y-2">
             <div className="h-3 w-full bg-neutral-100 rounded" />
             <div className="h-3 w-3/4 bg-neutral-100 rounded" />
           </div>
         </div>
-        <div className="bg-white rounded-2xl border border-neutral-100 p-6">
+        <div className="glass-card rounded-2xl p-6">
           <div className="h-5 w-36 bg-neutral-100 rounded-lg mb-4" />
           {[1, 2, 3].map((i) => (
             <div key={i} className="flex items-center gap-3 py-3">
@@ -336,8 +336,8 @@ const DetailSkeleton: FC = () => (
         </div>
       </div>
       <div className="space-y-4">
-        <div className="bg-white rounded-2xl border border-neutral-100 p-6 h-32" />
-        <div className="bg-white rounded-2xl border border-neutral-100 p-6 h-24" />
+        <div className="glass-card rounded-2xl p-6 h-32" />
+        <div className="glass-card rounded-2xl p-6 h-24" />
         <div className="h-12 bg-neutral-100 rounded-xl" />
       </div>
     </div>
@@ -601,7 +601,7 @@ export default function PeerSessionDetailPage({
         {/* Left column */}
         <div className="lg:col-span-2 space-y-4">
           {/* About */}
-          <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-6 animate-slide-up">
+          <div className="glass-card rounded-2xl p-6 animate-slide-up">
             <h2 className="font-bold text-secondary text-lg mb-3">About this session</h2>
             {session.notes ? (
               <p className="text-neutral-600 text-sm leading-relaxed whitespace-pre-line">
@@ -653,7 +653,7 @@ export default function PeerSessionDetailPage({
           <PracticeTipsBanner />
 
           {/* Attendees */}
-          <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-6 animate-slide-up">
+          <div className="glass-card rounded-2xl p-6 animate-slide-up">
             <div className="flex items-center justify-between mb-5">
               <h2 className="font-bold text-secondary text-lg">
                 Who&apos;s attending
@@ -760,7 +760,7 @@ export default function PeerSessionDetailPage({
         {/* ───────── Right column (sticky) ───────── */}
         <div className="space-y-4 lg:sticky lg:top-8 lg:self-start">
           {/* Date/time card */}
-          <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-6 animate-slide-up">
+          <div className="glass-card rounded-2xl p-6 animate-slide-up">
             <div className="flex items-start gap-4">
               {/* Mini calendar block */}
               <div className="rounded-xl overflow-hidden border border-neutral-100 shrink-0 w-14 text-center shadow-sm">
@@ -799,7 +799,7 @@ export default function PeerSessionDetailPage({
           </div>
 
           {/* Host card */}
-          <div className="relative bg-white rounded-2xl border border-neutral-100 shadow-sm p-6 overflow-hidden">
+          <div className="glass-card relative rounded-2xl p-6 overflow-hidden">
             {/* Subtle decorative corner */}
             <div
               className="absolute -top-6 -right-6 w-20 h-20 rounded-full opacity-[0.07]"
@@ -825,7 +825,7 @@ export default function PeerSessionDetailPage({
 
           {/* Host: Pending requests panel */}
           {isHost && pendingParticipants.length > 0 && (
-            <div className="bg-white rounded-2xl border border-amber-200 shadow-sm p-5 animate-slide-up">
+            <div className="glass-card rounded-2xl border border-amber-300/50 p-5 animate-slide-up">
               <h3 className="text-sm font-bold text-secondary mb-3 flex items-center gap-2">
                 <Hourglass className="w-4 h-4 text-amber-500" />
                 Pending Requests

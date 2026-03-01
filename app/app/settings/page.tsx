@@ -339,7 +339,7 @@ const SettingsPage: FC<SettingsProps> = () => {
       />
 
       {/* ── Profile Card (full width, LinkedIn-style) ── */}
-      <section className="bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden">
+      <section className="glass-card rounded-2xl overflow-hidden">
         {/* Banner */}
         <div
           className="h-36 relative"
@@ -522,7 +522,7 @@ const SettingsPage: FC<SettingsProps> = () => {
       {/* ── Two-column grid ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left: Resume */}
-        <section className="bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden">
+        <section className="glass-card rounded-2xl overflow-hidden">
           <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100">
             <div className="flex items-center gap-3">
               <FileText className="w-4 h-4 text-neutral-400" />
@@ -603,7 +603,7 @@ const SettingsPage: FC<SettingsProps> = () => {
         </section>
 
         {/* Right: Interview Preferences */}
-        <section className="bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden">
+        <section className="glass-card rounded-2xl overflow-hidden">
           <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100">
             <div className="flex items-center gap-3">
               <Briefcase className="w-4 h-4 text-neutral-400" />
@@ -759,14 +759,14 @@ const SettingsPage: FC<SettingsProps> = () => {
         </section>
 
         {/* Subscription — full width */}
-        <section className="bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden lg:col-span-2">
+        <section className="glass-card rounded-2xl overflow-hidden lg:col-span-2">
           <div className="flex items-center gap-3 px-6 py-4 border-b border-neutral-100">
             <CreditCard className="w-4 h-4 text-neutral-400" />
             <h2 className="font-semibold text-secondary text-sm">
               Subscription
             </h2>
           </div>
-          <div className="p-6 flex items-center justify-between">
+          <div className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <p className="text-sm font-semibold text-secondary">Free Plan</p>
               <p className="text-xs text-neutral-400 mt-0.5">
@@ -774,7 +774,7 @@ const SettingsPage: FC<SettingsProps> = () => {
               </p>
             </div>
             <button
-              className="px-4 py-2 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90"
+              className="self-start sm:self-auto px-4 py-2 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90"
               style={{ background: "#112715", color: "#fff" }}
               disabled
             >
@@ -784,12 +784,12 @@ const SettingsPage: FC<SettingsProps> = () => {
         </section>
 
         {/* Account — full width */}
-        <section className="bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden lg:col-span-2">
+        <section className="glass-card rounded-2xl overflow-hidden lg:col-span-2">
           <div className="flex items-center gap-3 px-6 py-4 border-b border-neutral-100">
             <LogOut className="w-4 h-4 text-neutral-400" />
             <h2 className="font-semibold text-secondary text-sm">Account</h2>
           </div>
-          <div className="p-6 flex items-center justify-between">
+          <div className="p-6 flex flex-wrap items-center justify-between gap-3">
             <button
               onClick={handleSave}
               disabled={saving}

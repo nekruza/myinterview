@@ -326,7 +326,7 @@ export default async function ProgressPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-secondary">Progress</h1>
           <p className="text-neutral-500 mt-1 text-sm">
@@ -335,7 +335,7 @@ export default async function ProgressPage() {
         </div>
         <Link
           href="/app/practice"
-          className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A]"
+          className="self-start sm:self-auto flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A]"
           style={{ background: "#2dec29", color: "#112715" }}
         >
           <Sparkles className="w-4 h-4" />
@@ -348,7 +348,7 @@ export default async function ProgressPage() {
         {stats.map(({ label, value, icon: Icon, color, sub }) => (
           <div
             key={label}
-            className="bg-white rounded-2xl p-5 border border-neutral-100 shadow-sm"
+            className="glass-card rounded-2xl p-5"
           >
             <div
               className="w-9 h-9 rounded-xl flex items-center justify-center mb-3"
@@ -365,14 +365,14 @@ export default async function ProgressPage() {
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Performance Trend Line Chart */}
-        <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-6">
+        <div className="glass-card rounded-2xl p-6">
           <h2 className="font-semibold text-secondary mb-1">Performance Trend</h2>
           <p className="text-xs text-neutral-400 mb-4">AI score across all sessions</p>
           <PerformanceTrendLineChart sessions={scoresWithValue} />
         </div>
 
         {/* Recent sessions bar chart */}
-        <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-6">
+        <div className="glass-card rounded-2xl p-6">
           <h2 className="font-semibold text-secondary mb-1">Recent Sessions</h2>
           <p className="text-xs text-neutral-400 mb-4">Last 8 scored sessions</p>
           {scoresWithValue.length === 0 ? (
@@ -408,7 +408,7 @@ export default async function ProgressPage() {
       </div>
 
       {/* Session History */}
-      <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden">
+      <div className="glass-card rounded-2xl overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100">
           <h2 className="font-semibold text-secondary">Session History</h2>
           {completed.length > 0 && (

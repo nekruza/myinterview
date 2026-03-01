@@ -305,6 +305,24 @@ html {
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+/* Apple liquid glass card */
+.glass-card {
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.68) 0%,
+    rgba(255, 255, 255, 0.38) 52%,
+    rgba(255, 255, 255, 0.52) 100%
+  );
+  backdrop-filter: blur(20px) saturate(1.8) brightness(1.04);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8) brightness(1.04);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.07),
+    0 1px 4px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.03);
+}
+
 .video-overlay {
   position: relative;
   overflow: hidden;
