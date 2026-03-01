@@ -18,12 +18,12 @@ export const HintOverlay: FC<HintOverlayProps> = ({ hint, onDismiss }) => {
   if (!hint) return null;
 
   return (
-    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 animate-hint-enter">
-      <div className="flex items-start gap-3 px-5 py-4 rounded-2xl bg-black/70 backdrop-blur-xl border border-[#2dec29]/30 max-w-lg shadow-lg shadow-[#2dec29]/10">
+    <div className="z-20 animate-hint-enter w-full max-w-lg px-4">
+      <div className="flex items-start gap-3 px-5 py-4 rounded-2xl bg-black/70 backdrop-blur-xl border border-[#2dec29]/30 shadow-lg shadow-[#2dec29]/10">
         <div className="w-8 h-8 rounded-full bg-[#2dec29]/20 flex items-center justify-center shrink-0 mt-0.5">
           <Lightbulb className="w-4 h-4 text-[#2dec29]" />
         </div>
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 max-h-120 overflow-y-auto">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-[#2dec29] mb-1">
             Hint
           </p>

@@ -1,17 +1,9 @@
-// Kokoro TTS proxy — calls Chutes AI Kokoro and streams audio back to the client.
+// TTS proxy — primary: Inworld TTS 1.5 Mini, fallback: Chutes AI Kokoro.
 // Returns 503 on failure so the client can fall back to Web SpeechSynthesis.
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
-  const apiKey = process.env.CHUTES_API_KEY;
-  if (!apiKey) {
-    return new Response(JSON.stringify({ error: "CHUTES_API_KEY not configured" }), {
-      status: 503,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
   let text: string;
   try {
     const body = await req.json();
@@ -30,11 +22,54 @@ export async function POST(req: Request) {
     });
   }
 
+  // ── Primary: Inworld TTS 1.5 Mini ──────────────────────────────────────────
+  const inworldKey = process.env.INWORLD_API_KEY;
+  if (inworldKey) {
+    try {
+      console.log('Chatting with Inworld...');
+      const inworldRes = await fetch("https://api.inworld.ai/tts/v1/voice", {
+        method: "POST",
+        headers: {
+          Authorization: `Basic ${inworldKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text,
+          voiceId: process.env.INWORLD_VOICE_ID ?? "Ashley",
+          modelId: "inworld-tts-1.5-mini",
+        }),
+      });
+
+      if (inworldRes.ok) {
+        const json = await inworldRes.json();
+        if (json.audioContent) {
+          const audio = Buffer.from(json.audioContent, "base64");
+          return new Response(audio, {
+            status: 200,
+            headers: {
+              "Content-Type": "audio/mpeg",
+              "Cache-Control": "no-store",
+            },
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Inworld TTS failed, falling back to Kokoro:", err);
+    }
+  }
+
+  // ── Fallback: Chutes AI Kokoro ──────────────────────────────────────────────
+  const chutesKey = process.env.CHUTES_API_KEY;
+  if (!chutesKey) {
+    return new Response(null, { status: 503 });
+  }
+
   try {
+    console.log('Chatting with Chutes...');
     const kokoroRes = await fetch("https://chutes-kokoro.chutes.ai/speak", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${chutesKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ text }),
@@ -44,10 +79,7 @@ export async function POST(req: Request) {
       return new Response(null, { status: 503 });
     }
 
-    // Proxy the audio stream back to the client
-    const contentType =
-      kokoroRes.headers.get("Content-Type") ?? "audio/mpeg";
-
+    const contentType = kokoroRes.headers.get("Content-Type") ?? "audio/mpeg";
     return new Response(kokoroRes.body, {
       status: 200,
       headers: {

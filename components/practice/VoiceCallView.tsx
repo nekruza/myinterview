@@ -354,12 +354,35 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
   const handleHint = useCallback(async () => {
     setHintLoading(true);
     try {
-      const hint = await sendToAI(messagesRef.current, true);
+      // Use the last AI message as the current question, not the session label
+      const msgs = messagesRef.current;
+      const lastAiMessage = [...msgs].reverse().find((m) => m.role === "assistant")?.content ?? selectedQuestion;
+
+      const res = await fetch("/api/ai/voice", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: msgs,
+          question: lastAiMessage,
+          category: selectedCategory.id,
+          level,
+          role,
+          sessionId,
+          isHint: true,
+          interviewType,
+          jobContext,
+          resumeText,
+        }),
+      });
+      const { hint, error } = await res.json();
+      if (error) throw new Error(error);
       if (hint) setCurrentHint(hint);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Hint failed");
     } finally {
       setHintLoading(false);
     }
-  }, [sendToAI]);
+  }, [selectedQuestion, selectedCategory.id, level, role, sessionId, interviewType, jobContext, resumeText]);
 
   // ── Pause / Resume ──
   const handlePause = useCallback(() => {

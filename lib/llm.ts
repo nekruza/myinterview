@@ -1,8 +1,5 @@
 // Server-only LLM provider helper.
-// Default: OpenAI gpt-5-nano-2025-08-07 with automatic fallback to Chutes AI Mistral on error.
-// Override via NEXT_PUBLIC_LLM_PROVIDER env var:
-//   "gemini" → Google Gemini 2.0 Flash
-//   "chutes" → Chutes AI — Mistral-Small-3.1-24B-Instruct-2503 (no fallback)
+// Default: Google Gemini 2.5 Flash Lite with automatic fallback to Chutes AI on error.
 
 export interface LLMMessage {
   role: string;
@@ -14,20 +11,24 @@ export interface StreamLLMOptions {
   messages: LLMMessage[];
   maxTokens: number;
   temperature?: number;
+  geminiModel?: string;
 }
 
 export async function* streamLLM(
   opts: StreamLLMOptions
 ): AsyncGenerator<string> {
   try {
-    yield* streamChutes(opts);
+    // console.log('Chatting with OpenAI...'); 
+    // yield* streamOpenAI(opts);
+    console.log('Chatting with Gemini...');
+    yield* streamGemini(opts);
   } catch (err) {
-    console.error("Chutes failed, falling back to OpenAI:", err);
-    yield* streamOpenAI(opts);
+    console.error("OpenAI/Gemini failed, falling back to Chutes:", err);
+    yield* streamChutes(opts);
   }
 }
 
-// ── OpenAI — gpt-5-nano-2025-08-07 ───────────────────────────────────────────
+// ── OpenAI — gpt-5-mini ───────────────────────────────────────────────────────
 
 async function* streamOpenAI(opts: StreamLLMOptions): AsyncGenerator<string> {
   console.log('Chatting with OpenAI...');
@@ -48,7 +49,7 @@ async function* streamOpenAI(opts: StreamLLMOptions): AsyncGenerator<string> {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-5-nano-2025-08-07",
+        model: "gpt-5-mini",
         messages: [
           { role: "system", content: opts.systemPrompt },
           ...opts.messages.map((m) => ({ role: m.role, content: m.content })),
@@ -169,17 +170,24 @@ async function* streamChutes(opts: StreamLLMOptions): AsyncGenerator<string> {
   }
 }
 
-// ── Google Gemini 2.0 Flash ───────────────────────────────────────────────────
+// ── Google Gemini 2.5 Flash Lite ─────────────────────────────────────────────
 
 async function* streamGemini(opts: StreamLLMOptions): AsyncGenerator<string> {
   const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
   if (!apiKey) throw new Error("GOOGLE_GEMINI_API_KEY not configured");
 
-  // Map OpenAI roles to Gemini roles ("assistant" → "model")
-  const contents = opts.messages.map((m) => ({
+  // Map OpenAI roles to Gemini roles ("assistant" → "model").
+  // Gemini requires the last turn to be "user" — trim trailing model turns.
+  // If no user turn exists at all (e.g. first AI greeting), inject a synthetic one.
+  const mapped = opts.messages.map((m) => ({
     role: m.role === "assistant" ? "model" : "user",
     parts: [{ text: m.content }],
   }));
+  const lastUserIdx = mapped.map((m) => m.role).lastIndexOf("user");
+  const contents =
+    lastUserIdx === -1
+      ? [{ role: "user", parts: [{ text: "Begin." }] }]
+      : mapped.slice(0, lastUserIdx + 1);
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 30_000);
@@ -187,7 +195,7 @@ async function* streamGemini(opts: StreamLLMOptions): AsyncGenerator<string> {
   let res: Response;
   try {
     res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse&key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${opts.geminiModel ?? "gemini-2.5-flash-lite"}:streamGenerateContent?alt=sse&key=${apiKey}`,
       {
         method: "POST",
         signal: controller.signal,
