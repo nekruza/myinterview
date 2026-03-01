@@ -18,6 +18,7 @@ import {
   UserCheck,
   UserX,
   BookOpen,
+  LifeBuoy,
 } from "lucide-react";
 import {
   Popover,
@@ -260,6 +261,37 @@ export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
             );
           })}
         </nav>
+
+        {/* ── Contact Us ───────────────────────────────────────── */}
+        <div className="relative z-10 w-full px-2 shrink-0">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                href="/app/contact"
+                className="flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 mx-auto"
+                style={
+                  pathname === "/app/contact"
+                    ? glassActivePill
+                    : { color: "rgba(0,0,0,0.45)", border: "1px solid transparent" }
+                }
+                onMouseEnter={(e) => {
+                  if (pathname !== "/app/contact")
+                    Object.assign((e.currentTarget as HTMLElement).style, glassHoverPill);
+                }}
+                onMouseLeave={(e) => {
+                  if (pathname !== "/app/contact") {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.background = "";
+                    el.style.boxShadow = "";
+                  }
+                }}
+              >
+                <LifeBuoy className="w-5 h-5" style={{ filter: "drop-shadow(0 1px 1.5px rgba(0,0,0,0.12))" }} />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent side="right">Help & Contact</TooltipContent>
+          </Tooltip>
+        </div>
 
         {/* ── Notification bell ────────────────────────────────── */}
         <div className="relative z-10 w-full px-2 shrink-0">
