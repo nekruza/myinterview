@@ -10,11 +10,13 @@ import {
   CalendarPlus,
   Check,
   Clock,
+  Copy,
   ExternalLink,
   Hourglass,
   Loader2,
   Lock,
   MessageSquare,
+  Share2,
   Star,
   UserCheck,
   UserPlus,
@@ -383,6 +385,22 @@ export default function PeerSessionDetailPage({
   const [notFound, setNotFound] = useState(false);
   const [joining, setJoining] = useState(false);
   const [responding, setResponding] = useState<string | null>(null); // user_id being responded to
+  const [copied, setCopied] = useState(false);
+
+  async function handleShare() {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: session?.title ?? "Peer Practice Session", url });
+      } catch {
+        // user cancelled — do nothing
+      }
+    } else {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  }
 
   async function fetchSession() {
     try {
@@ -873,6 +891,24 @@ export default function PeerSessionDetailPage({
               </div>
             </div>
           )}
+
+          {/* Share */}
+          <button
+            onClick={handleShare}
+            className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-2xl font-semibold text-sm border border-neutral-200 text-neutral-600 hover:bg-neutral-50 transition"
+          >
+            {copied ? (
+              <>
+                <Copy className="w-4 h-4 text-green-500" />
+                <span className="text-green-600">Link copied!</span>
+              </>
+            ) : (
+              <>
+                <Share2 className="w-4 h-4" />
+                Invite a friend
+              </>
+            )}
+          </button>
 
           {/* CTA */}
           <div className="space-y-2">
