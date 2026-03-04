@@ -55,4 +55,9 @@ export interface UserProfile {
 
   // Subscription
   plan: "free" | "pro";
+
+  // Usage tracking (lifetime)
+  practice_sessions_used: number;
+  peer_sessions_joined: number;
+  isAdmin: boolean;
 }

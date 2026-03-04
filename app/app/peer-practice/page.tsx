@@ -25,6 +25,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { TECH_ROLES } from "@/lib/practice-data";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 /* ─── types ─── */
 
@@ -708,15 +709,28 @@ const PeerPracticeContent: FC = () => {
   const [userId, setUserId] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [comingSoonOpen, setComingSoonOpen] = useState(false);
   const [joiningId, setJoiningId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"all" | "weekly">("all");
+  const [plan, setPlan] = useState<"free" | "pro">("free");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [joinsUsed, setJoinsUsed] = useState(0);
+  const upgradeReason = "peer_limit" as const;
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   async function fetchSessions() {
     try {
-      const res = await fetch("/api/peer-sessions");
-      const data = await res.json();
-      setSessions(data.sessions ?? []);
-      setUserId(data.userId ?? "");
+      const [sessionsRes, profileRes] = await Promise.all([
+        fetch("/api/peer-sessions"),
+        fetch("/api/profile"),
+      ]);
+      const sessionsData = await sessionsRes.json();
+      const profileData = await profileRes.json();
+      setSessions(sessionsData.sessions ?? []);
+      setUserId(sessionsData.userId ?? "");
+      setPlan(profileData.plan ?? "free");
+      setIsAdmin(profileData.isAdmin ?? false);
+      setJoinsUsed(profileData.peer_sessions_joined ?? 0);
     } catch {
       toast.error("Failed to load sessions");
     } finally {
@@ -729,6 +743,12 @@ const PeerPracticeContent: FC = () => {
   }, []);
 
   async function handleJoin(sessionId: string) {
+    // Check limit client-side first
+    if (plan === "free" && joinsUsed >= 3) {
+      setShowUpgrade(true);
+      return;
+    }
+
     setJoiningId(sessionId);
     try {
       const res = await fetch("/api/peer-sessions/join", {
@@ -737,11 +757,21 @@ const PeerPracticeContent: FC = () => {
         body: JSON.stringify({ session_id: sessionId }),
       });
 
+      if (res.status === 403) {
+        const data = await res.json();
+        if (data.error === "limit_reached") {
+          setShowUpgrade(true);
+          return;
+        }
+        throw new Error(data.error || "Failed to join");
+      }
+
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || "Failed to join");
       }
 
+      setJoinsUsed((prev) => prev + 1);
       toast.success("Join request sent! The host will review it.");
       fetchSessions();
     } catch (err: unknown) {
@@ -793,7 +823,7 @@ const PeerPracticeContent: FC = () => {
           </p>
         </div>
         <button
-          onClick={() => setDialogOpen(true)}
+          onClick={() => isAdmin ? setDialogOpen(true) : setComingSoonOpen(true)}
           className="flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-sm shrink-0 transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A]"
           style={{ background: "#2dec29", color: "#112715" }}
         >
@@ -908,7 +938,7 @@ const PeerPracticeContent: FC = () => {
           ))}
         </div>
       ) : displaySessions.length === 0 ? (
-        <EmptyState onCreateClick={() => setDialogOpen(true)} />
+        <EmptyState onCreateClick={() => isAdmin ? setDialogOpen(true) : setComingSoonOpen(true)} />
       ) : (
         <div className="space-y-4">
           {/* Weekly sessions section (only on "all" tab) */}
@@ -988,11 +1018,56 @@ const PeerPracticeContent: FC = () => {
         </div>
       )}
 
+      {/* Free tier join usage */}
+      {plan === "free" && (
+        <p className="text-xs text-neutral-400 text-center">
+          {joinsUsed >= 3 ? (
+            <span className="text-amber-600 font-medium">Free join limit reached — upgrade for unlimited peer sessions</span>
+          ) : (
+            <span>{3 - joinsUsed} free peer join{3 - joinsUsed !== 1 ? "s" : ""} remaining</span>
+          )}
+        </p>
+      )}
+
       {/* Create dialog */}
       <CreateSessionDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         onCreated={fetchSessions}
+      />
+
+      {/* Coming soon dialog for non-admin users */}
+      <Dialog open={comingSoonOpen} onOpenChange={setComingSoonOpen}>
+        <DialogContent className="sm:max-w-sm rounded-2xl text-center">
+          <DialogHeader>
+            <div
+              className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
+              style={{ background: "#f4fdf3" }}
+            >
+              <Sparkles className="w-7 h-7" style={{ color: "#2dec29" }} />
+            </div>
+            <DialogTitle className="text-secondary text-xl">
+              Coming Soon
+            </DialogTitle>
+            <DialogDescription className="text-sm text-neutral-500 mt-2">
+              User-created sessions are coming soon. For now, sessions are hosted
+              by the MyInterview team — browse below and request to join one!
+            </DialogDescription>
+          </DialogHeader>
+          <button
+            onClick={() => setComingSoonOpen(false)}
+            className="mt-4 w-full px-5 py-3 rounded-2xl font-bold text-sm transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A]"
+            style={{ background: "#2dec29", color: "#112715" }}
+          >
+            Browse Sessions
+          </button>
+        </DialogContent>
+      </Dialog>
+
+      <UpgradeModal
+        open={showUpgrade}
+        onClose={() => setShowUpgrade(false)}
+        reason={upgradeReason}
       />
     </div>
   );

@@ -21,6 +21,22 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Enforce free tier limit of 5 practice sessions
+  const [{ data: subscription }, { data: profileUsage }] = await Promise.all([
+    supabase.from("subscriptions").select("plan").eq("user_id", user.id).single(),
+    supabase.from("profiles").select("practice_sessions_used").eq("id", user.id).single(),
+  ]);
+
+  const plan = (subscription?.plan as "free" | "pro") ?? "free";
+  const sessionsUsed = profileUsage?.practice_sessions_used ?? 0;
+
+  if (plan === "free" && sessionsUsed >= 5) {
+    return NextResponse.json(
+      { error: "limit_reached", type: "practice" },
+      { status: 403 }
+    );
+  }
+
   const { data, error } = await supabase
     .from("interview_sessions")
     .insert({
@@ -38,6 +54,12 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
+
+  // Increment usage counter for free users (fire-and-forget)
+  await supabase
+    .from("profiles")
+    .update({ practice_sessions_used: sessionsUsed + 1 })
+    .eq("id", user.id);
 
   return NextResponse.json({ sessionId: data.id });
 }

@@ -48,6 +48,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Only admin users can create peer sessions
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("isAdmin")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile?.isAdmin) {
+    return NextResponse.json(
+      { error: "admin_required" },
+      { status: 403 }
+    );
+  }
+
   const body = await req.json();
   const { title, scheduled_at, duration_minutes, meeting_link, type, notes, max_participants, developer_type, interview_type } =
     body;

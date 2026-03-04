@@ -54,12 +54,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Session is full" }, { status: 400 });
   }
 
-  // Get requester profile name for the notification
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("full_name")
-    .eq("id", user.id)
-    .single();
+  // Enforce free tier limit of 3 peer session joins
+  const [{ data: subscription }, { data: profile }] = await Promise.all([
+    supabase.from("subscriptions").select("plan").eq("user_id", user.id).single(),
+    supabase.from("profiles").select("full_name, peer_sessions_joined").eq("id", user.id).single(),
+  ]);
+
+  const plan = (subscription?.plan as "free" | "pro") ?? "free";
+  const joinsUsed = profile?.peer_sessions_joined ?? 0;
+
+  if (plan === "free" && joinsUsed >= 3) {
+    return NextResponse.json(
+      { error: "limit_reached", type: "peer_join" },
+      { status: 403 }
+    );
+  }
 
   const requesterName = profile?.full_name || user.email || "Someone";
 
@@ -73,6 +82,12 @@ export async function POST(req: NextRequest) {
   if (joinError) {
     return NextResponse.json({ error: joinError.message }, { status: 500 });
   }
+
+  // Increment peer join counter (fire-and-forget)
+  await supabase
+    .from("profiles")
+    .update({ peer_sessions_joined: joinsUsed + 1 })
+    .eq("id", user.id);
 
   // Create notification for the host
   await supabase.from("notifications").insert({
