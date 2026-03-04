@@ -74,6 +74,19 @@ export async function POST(req: NextRequest) {
 
       const isActive = sub.status === "active" || sub.status === "trialing";
       await setPlan(profileRow.id, isActive ? "pro" : "free");
+
+      // Store cancellation details so UI can show "cancels on X date"
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const subAny = sub as any;
+      const periodEndTs = subAny.current_period_end;
+      const periodEnd = periodEndTs ? new Date(periodEndTs * 1000).toISOString() : null;
+      await supabaseAdmin
+        .from("subscriptions")
+        .update({
+          cancel_at_period_end: subAny.cancel_at_period_end ?? false,
+          current_period_end: periodEnd,
+        })
+        .eq("user_id", profileRow.id);
       break;
     }
 

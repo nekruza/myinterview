@@ -146,6 +146,8 @@ const SettingsPage: FC<SettingsProps> = () => {
 
   // Subscription
   const [plan, setPlan] = useState<"free" | "pro">("free");
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
+  const [currentPeriodEnd, setCurrentPeriodEnd] = useState<string | null>(null);
   const [upgradingPlan, setUpgradingPlan] = useState(false);
 
   // Edit modes
@@ -156,9 +158,15 @@ const SettingsPage: FC<SettingsProps> = () => {
   const loadPlan = useCallback(async (): Promise<"free" | "pro"> => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return "free";
-    const { data: subscription } = await supabase.from("subscriptions").select("plan").eq("user_id", user.id).single();
+    const { data: subscription } = await supabase
+      .from("subscriptions")
+      .select("plan, cancel_at_period_end, current_period_end")
+      .eq("user_id", user.id)
+      .single();
     const fetched = (subscription?.plan as "free" | "pro") ?? "free";
     setPlan(fetched);
+    setCancelAtPeriodEnd(subscription?.cancel_at_period_end ?? false);
+    setCurrentPeriodEnd(subscription?.current_period_end ?? null);
     return fetched;
   }, [supabase]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -211,10 +219,12 @@ const SettingsPage: FC<SettingsProps> = () => {
           )
           .eq("id", user.id)
           .single(),
-        supabase.from("subscriptions").select("plan").eq("user_id", user.id).single(),
+        supabase.from("subscriptions").select("plan, cancel_at_period_end, current_period_end").eq("user_id", user.id).single(),
       ]);
 
       setPlan((subscription?.plan as "free" | "pro") ?? "free");
+      setCancelAtPeriodEnd(subscription?.cancel_at_period_end ?? false);
+      setCurrentPeriodEnd(subscription?.current_period_end ?? null);
 
       if (profile) {
         if (profile.full_name) setDisplayName(profile.full_name);
@@ -689,7 +699,7 @@ const SettingsPage: FC<SettingsProps> = () => {
                 <p className="text-sm font-semibold text-secondary">
                   {plan === "pro" ? "Pro Plan" : "Free Plan"}
                 </p>
-                {plan === "pro" && (
+                {plan === "pro" && !cancelAtPeriodEnd && (
                   <span
                     className="text-[10px] font-bold px-2 py-0.5 rounded-full"
                     style={{ background: "#f4fdf3", color: "#112715" }}
@@ -697,9 +707,19 @@ const SettingsPage: FC<SettingsProps> = () => {
                     Active
                   </span>
                 )}
+                {cancelAtPeriodEnd && (
+                  <span
+                    className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                    style={{ background: "#fff7ed", color: "#c2410c" }}
+                  >
+                    Cancels {currentPeriodEnd ? new Date(currentPeriodEnd).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "soon"}
+                  </span>
+                )}
               </div>
               <p className="text-xs text-neutral-400 mt-0.5">
-                {plan === "pro"
+                {cancelAtPeriodEnd
+                  ? `Your Pro access continues until ${currentPeriodEnd ? new Date(currentPeriodEnd).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "the end of your billing period"}, then reverts to Free.`
+                  : plan === "pro"
                   ? "Unlimited AI practice, unlimited peer sessions, and the ability to create meetings."
                   : "5 free AI practice sessions · 3 peer session joins · Upgrade for unlimited access."}
               </p>
