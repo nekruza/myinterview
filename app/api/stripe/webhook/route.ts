@@ -12,6 +12,15 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+async function setPlan(userId: string, plan: "free" | "pro") {
+  const { error } = await supabaseAdmin
+    .from("subscriptions")
+    .update({ plan })
+    .eq("user_id", userId);
+  if (error) console.error("[webhook] subscriptions update error:", error);
+  else console.log("[webhook] subscriptions plan set to", plan, "for", userId);
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.text();
   const sig = req.headers.get("stripe-signature");
@@ -31,26 +40,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
-  const supabase = supabaseAdmin;
-
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
       const userId = session.client_reference_id;
-      if (!userId) break;
+      console.log("[webhook] checkout.session.completed userId:", userId);
+      if (!userId) { console.error("[webhook] No client_reference_id"); break; }
 
-      // Upsert subscription as pro
-      await supabase.from("subscriptions").upsert(
-        { user_id: userId, plan: "pro" },
-        { onConflict: "user_id" }
-      );
+      await setPlan(userId, "pro");
 
-      // Store stripe_customer_id on profile if not already set
+      // Store stripe_customer_id on profile
       if (session.customer) {
-        await supabase
+        const { error: profErr } = await supabaseAdmin
           .from("profiles")
           .update({ stripe_customer_id: session.customer as string })
           .eq("id", userId);
+        if (profErr) console.error("[webhook] profiles update error:", profErr);
       }
       break;
     }
@@ -59,22 +64,16 @@ export async function POST(req: NextRequest) {
       const sub = event.data.object as Stripe.Subscription;
       const customerId = sub.customer as string;
 
-      // Find user by stripe_customer_id
-      const { data: profileRow } = await supabase
+      const { data: profileRow } = await supabaseAdmin
         .from("profiles")
         .select("id")
         .eq("stripe_customer_id", customerId)
         .single();
 
-      if (!profileRow) break;
+      if (!profileRow) { console.error("[webhook] no profile for customer", customerId); break; }
 
       const isActive = sub.status === "active" || sub.status === "trialing";
-      await supabase
-        .from("subscriptions")
-        .upsert(
-          { user_id: profileRow.id, plan: isActive ? "pro" : "free" },
-          { onConflict: "user_id" }
-        );
+      await setPlan(profileRow.id, isActive ? "pro" : "free");
       break;
     }
 
@@ -82,20 +81,15 @@ export async function POST(req: NextRequest) {
       const sub = event.data.object as Stripe.Subscription;
       const customerId = sub.customer as string;
 
-      const { data: profileRow } = await supabase
+      const { data: profileRow } = await supabaseAdmin
         .from("profiles")
         .select("id")
         .eq("stripe_customer_id", customerId)
         .single();
 
-      if (!profileRow) break;
+      if (!profileRow) { console.error("[webhook] no profile for customer", customerId); break; }
 
-      await supabase
-        .from("subscriptions")
-        .upsert(
-          { user_id: profileRow.id, plan: "free" },
-          { onConflict: "user_id" }
-        );
+      await setPlan(profileRow.id, "free");
       break;
     }
   }
