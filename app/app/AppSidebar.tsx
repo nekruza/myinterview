@@ -205,7 +205,7 @@ export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
         />
 
         {/* ── Logo ─────────────────────────────────────────────── */}
-        <Link href="/" className="relative z-10 mb-1 shrink-0">
+        <Link href="/app/dashboard" className="relative z-10 mb-1 shrink-0">
           <Image
             src="/logo.jpg"
             alt="MyInterview"
