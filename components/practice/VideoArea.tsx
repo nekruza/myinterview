@@ -9,7 +9,7 @@ import { Mic } from "lucide-react";
 const INTERVIEWER = {
   name: "Maria Rodriguez",
   title: "Head of Digital Transformation",
-  photo: "https://randomuser.me/api/portraits/women/44.jpg",
+  photo: "https://randomuser.me/api/portraits/women/43.jpg",
 };
 
 interface VideoAreaProps {
