@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 import { ChevronRight, PlayCircle, Users, Sparkles, Zap } from "lucide-react";
+import { FreeBanner } from "@/components/FreeBanner";
 import Image from "next/image";
 import Link from "next/link";
 import { posts } from "@/lib/blog";
@@ -177,13 +178,29 @@ export default async function DashboardPage() {
     "there";
   const firstName = displayName.split(" ")[0];
 
-  const { data: sessions } = await supabase
-    .from("interview_sessions")
-    .select("id, status, started_at, completed_at, score")
-    .eq("user_id", user!.id)
-    .eq("type", "ai")
-    .order("started_at", { ascending: false })
-    .limit(50);
+  const [{ data: sessions }, { data: subRow }, { data: profileRow }] = await Promise.all([
+    supabase
+      .from("interview_sessions")
+      .select("id, status, started_at, completed_at, score")
+      .eq("user_id", user!.id)
+      .eq("type", "ai")
+      .order("started_at", { ascending: false })
+      .limit(50),
+    supabase
+      .from("subscriptions")
+      .select("plan")
+      .eq("user_id", user!.id)
+      .maybeSingle(),
+    supabase
+      .from("profiles")
+      .select("practice_sessions_used, peer_sessions_joined")
+      .eq("id", user!.id)
+      .maybeSingle(),
+  ]);
+
+  const plan = (subRow?.plan ?? "free") as "free" | "pro";
+  const practiceUsed = profileRow?.practice_sessions_used ?? 0;
+  const peerJoinsUsed = profileRow?.peer_sessions_joined ?? 0;
 
   const sessionList = sessions ?? [];
   const completed = sessionList.filter((s) => s.status === "completed");
@@ -198,11 +215,6 @@ export default async function DashboardPage() {
       : null;
 
   const greeting = getGreeting();
-  const todayStr = new Date().toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
   const weekActivity = getWeekActivity(sessionList);
   const scoreHistory = getScoreHistory(sessionList);
   const _weekRangeStart = (() => {
@@ -230,6 +242,16 @@ export default async function DashboardPage() {
           </p>
         </div>
       </div>
+
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {/* 2 ▸ FREE TIER USAGE BANNER (free users only)                          */}
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {plan === "free" && (
+        <FreeBanner
+          practiceLeft={Math.max(0, 5 - practiceUsed)}
+          peerJoinsLeft={Math.max(0, 3 - peerJoinsUsed)}
+        />
+      )}
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       {/* 3 ▸ STREAK HERO (Duolingo-style)                                      */}
