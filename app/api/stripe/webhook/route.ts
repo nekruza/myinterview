@@ -75,24 +75,26 @@ export async function POST(req: NextRequest) {
       const isActive = sub.status === "active" || sub.status === "trialing";
       await setPlan(profileRow.id, isActive ? "pro" : "free");
 
-      // Store cancellation details so UI can show "cancels on X date"
+      // Store cancellation details — newer Stripe API uses `cancel_at` (Unix ts)
+      // instead of cancel_at_period_end boolean for portal cancellations.
+      // Also, current_period_end lives inside items.data[0] in this API version.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const subAny = sub as any;
-      console.log("[webhook] subscription object keys:", Object.keys(subAny));
-      console.log("[webhook] cancel_at_period_end:", subAny.cancel_at_period_end);
-      console.log("[webhook] current_period_end:", subAny.current_period_end);
-      console.log("[webhook] status:", subAny.status);
-      const periodEndTs = subAny.current_period_end;
+      const cancelAt: number | null = subAny.cancel_at ?? null;
+      const periodEndFromItems: number | null =
+        subAny.items?.data?.[0]?.current_period_end ?? null;
+      const periodEndTopLevel: number | null = subAny.current_period_end ?? null;
+      const periodEndTs = cancelAt ?? periodEndFromItems ?? periodEndTopLevel;
+      const isCancelling = subAny.cancel_at_period_end === true || cancelAt !== null;
       const periodEnd = periodEndTs ? new Date(periodEndTs * 1000).toISOString() : null;
+
+      console.log("[webhook] cancel_at:", cancelAt, "cancel_at_period_end:", subAny.cancel_at_period_end, "isCancelling:", isCancelling, "periodEnd:", periodEnd);
+
       const { error: updateErr } = await supabaseAdmin
         .from("subscriptions")
-        .update({
-          cancel_at_period_end: subAny.cancel_at_period_end ?? false,
-          current_period_end: periodEnd,
-        })
+        .update({ cancel_at_period_end: isCancelling, current_period_end: periodEnd })
         .eq("user_id", profileRow.id);
       if (updateErr) console.error("[webhook] update cancel details error:", updateErr);
-      else console.log("[webhook] updated cancel_at_period_end:", subAny.cancel_at_period_end, "period_end:", periodEnd);
       break;
     }
 
