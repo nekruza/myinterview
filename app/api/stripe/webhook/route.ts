@@ -78,15 +78,21 @@ export async function POST(req: NextRequest) {
       // Store cancellation details so UI can show "cancels on X date"
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const subAny = sub as any;
+      console.log("[webhook] subscription object keys:", Object.keys(subAny));
+      console.log("[webhook] cancel_at_period_end:", subAny.cancel_at_period_end);
+      console.log("[webhook] current_period_end:", subAny.current_period_end);
+      console.log("[webhook] status:", subAny.status);
       const periodEndTs = subAny.current_period_end;
       const periodEnd = periodEndTs ? new Date(periodEndTs * 1000).toISOString() : null;
-      await supabaseAdmin
+      const { error: updateErr } = await supabaseAdmin
         .from("subscriptions")
         .update({
           cancel_at_period_end: subAny.cancel_at_period_end ?? false,
           current_period_end: periodEnd,
         })
         .eq("user_id", profileRow.id);
+      if (updateErr) console.error("[webhook] update cancel details error:", updateErr);
+      else console.log("[webhook] updated cancel_at_period_end:", subAny.cancel_at_period_end, "period_end:", periodEnd);
       break;
     }
 
