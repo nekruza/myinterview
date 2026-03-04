@@ -20,6 +20,7 @@ import { VoiceCallView } from "@/components/practice/VoiceCallView";
 import { LEVELS, TECH_ROLES } from "@/lib/practice-data";
 import type { Phase, Message } from "@/lib/practice-data";
 import { createClient } from "@/lib/supabase/client";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 type InterviewType = "technical" | "behavioural";
 type JobContextMode = "paste" | "general";
@@ -40,6 +41,11 @@ export default function PracticePage() {
   const [feedbackData, setFeedbackData] = useState<{ score: number; improvements: { point: string; example: string }[] } | null>(null);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
 
+  // Usage / plan
+  const [plan, setPlan] = useState<"free" | "pro">("free");
+  const [sessionsUsed, setSessionsUsed] = useState(0);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+
   // Resume
   const [hasResume, setHasResume] = useState<boolean | null>(null);
   const [uploadingResume, setUploadingResume] = useState(false);
@@ -49,18 +55,21 @@ export default function PracticePage() {
   const supabase = createClient();
 
   useEffect(() => {
-    async function checkResume() {
+    async function checkProfile() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       setUserId(user.id);
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("resume_url")
-        .eq("id", user.id)
-        .single();
+
+      const [{ data: profile }, { data: subscription }] = await Promise.all([
+        supabase.from("profiles").select("resume_url, practice_sessions_used").eq("id", user.id).single(),
+        supabase.from("subscriptions").select("plan").eq("user_id", user.id).single(),
+      ]);
+
       setHasResume(!!profile?.resume_url);
+      setSessionsUsed(profile?.practice_sessions_used ?? 0);
+      setPlan((subscription?.plan as "free" | "pro") ?? "free");
     }
-    checkResume();
+    checkProfile();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleResumeUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -130,6 +139,11 @@ export default function PracticePage() {
   };
 
   const startSession = async () => {
+    if (plan === "free" && sessionsUsed >= 5) {
+      setShowUpgrade(true);
+      return;
+    }
+
     const jobContext = getJobContext();
 
     try {
@@ -144,7 +158,12 @@ export default function PracticePage() {
         }),
       });
       const data = await res.json();
+      if (res.status === 403 && data.error === "limit_reached") {
+        setShowUpgrade(true);
+        return;
+      }
       if (!res.ok) throw new Error(data.error);
+      setSessionsUsed((prev) => prev + 1);
       setSessionId(data.sessionId);
       setPhase("chat");
     } catch {
@@ -574,15 +593,30 @@ export default function PracticePage() {
 
       {/* ── Sticky Start Button ── */}
       <div className="sticky bottom-16 md:bottom-0 -mx-4 sm:-mx-6 md:-mb-8 px-4 sm:px-6 py-4 mt-6 border-t border-neutral-100" style={{ background: "rgba(250,249,246,0.97)", backdropFilter: "blur(8px)" }}>
+        {plan === "free" && (
+          <p className="text-center text-xs text-neutral-400 mb-2">
+            {sessionsUsed >= 5 ? (
+              <span className="text-amber-600 font-medium">Free limit reached — upgrade for unlimited sessions</span>
+            ) : (
+              <span>{5 - sessionsUsed} free session{5 - sessionsUsed !== 1 ? "s" : ""} remaining</span>
+            )}
+          </p>
+        )}
         <button
           onClick={startSession}
           className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A]"
           style={{ background: "#2dec29", color: "#112715" }}
         >
           <Sparkles className="w-4 h-4" />
-          Start Voice Practice
+          {plan === "free" && sessionsUsed >= 5 ? "Upgrade to Continue" : "Start Voice Practice"}
         </button>
       </div>
+
+      <UpgradeModal
+        open={showUpgrade}
+        onClose={() => setShowUpgrade(false)}
+        reason="practice_limit"
+      />
     </div>
     );
   }

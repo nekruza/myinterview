@@ -28,7 +28,7 @@ export async function GET() {
     supabase
       .from("profiles")
       .select(
-        "id, full_name, avatar_url, resume_url, experience_level, target_role, interview_timeline, target_companies, email_notifications, match_alerts, created_at"
+        "id, full_name, avatar_url, resume_url, experience_level, target_role, interview_timeline, target_companies, email_notifications, match_alerts, created_at, practice_sessions_used, peer_sessions_joined, isAdmin"
       )
       .eq("id", user.id)
       .single(),
@@ -209,6 +209,10 @@ export async function GET() {
     },
 
     plan: (subscription?.plan as "free" | "pro") ?? "free",
+
+    practice_sessions_used: profile?.practice_sessions_used ?? 0,
+    peer_sessions_joined: profile?.peer_sessions_joined ?? 0,
+    isAdmin: profile?.isAdmin ?? false,
   };
 
   return NextResponse.json(result);

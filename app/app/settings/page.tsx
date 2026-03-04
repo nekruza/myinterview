@@ -1,7 +1,7 @@
 "use client";
 
-import { FC, useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { FC, useState, useRef, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
@@ -113,6 +113,7 @@ interface SettingsProps {
 
 const SettingsPage: FC<SettingsProps> = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const resumeInputRef = useRef<HTMLInputElement>(null);
@@ -144,11 +145,32 @@ const SettingsPage: FC<SettingsProps> = () => {
   const [feedbackPreference, setFeedbackPreference] = useState("");
   const [wantsTips, setWantsTips] = useState<boolean | null>(null);
 
+  // Subscription
+  const [plan, setPlan] = useState<"free" | "pro">("free");
+  const [upgradingPlan, setUpgradingPlan] = useState(false);
+
   // Edit modes
   const [editingProfile, setEditingProfile] = useState(false);
   const [editingPrefs, setEditingPrefs] = useState(false);
 
   // Load user + profile on mount
+  const loadPlan = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data: subscription } = await supabase.from("subscriptions").select("plan").eq("user_id", user.id).single();
+    setPlan((subscription?.plan as "free" | "pro") ?? "free");
+  }, [supabase]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (searchParams?.get("upgraded") === "true") {
+      toast.success("Welcome to Pro!");
+      // Poll a couple times to wait for the webhook to update the DB
+      setTimeout(() => loadPlan(), 1500);
+      setTimeout(() => loadPlan(), 4000);
+      router.replace("/app/settings");
+    }
+  }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     async function load() {
       const {
@@ -159,13 +181,18 @@ const SettingsPage: FC<SettingsProps> = () => {
       setEmail(user.email ?? "");
       setUserId(user.id);
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select(
-          "full_name, avatar_url, resume_url, experience_level, interview_timeline, target_companies, email_notifications, match_alerts, interview_style, interview_duration, practice_partner, interview_language, interview_platform, feedback_preference, wants_tips"
-        )
-        .eq("id", user.id)
-        .single();
+      const [{ data: profile }, { data: subscription }] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select(
+            "full_name, avatar_url, resume_url, experience_level, interview_timeline, target_companies, email_notifications, match_alerts, interview_style, interview_duration, practice_partner, interview_language, interview_platform, feedback_preference, wants_tips"
+          )
+          .eq("id", user.id)
+          .single(),
+        supabase.from("subscriptions").select("plan").eq("user_id", user.id).single(),
+      ]);
+
+      setPlan((subscription?.plan as "free" | "pro") ?? "free");
 
       if (profile) {
         if (profile.full_name) setDisplayName(profile.full_name);
@@ -350,6 +377,32 @@ const SettingsPage: FC<SettingsProps> = () => {
 
   function removeCompany(company: string) {
     setTargetCompanies((prev) => prev.filter((c) => c !== company));
+  }
+
+  async function handleUpgrade() {
+    setUpgradingPlan(true);
+    try {
+      const res = await fetch("/api/stripe/checkout", { method: "POST" });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    } catch {
+      toast.error("Could not start checkout. Please try again.");
+    } finally {
+      setUpgradingPlan(false);
+    }
+  }
+
+  async function handleManageSubscription() {
+    setUpgradingPlan(true);
+    try {
+      const res = await fetch("/api/stripe/portal", { method: "POST" });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    } catch {
+      toast.error("Could not open billing portal. Please try again.");
+    } finally {
+      setUpgradingPlan(false);
+    }
   }
 
   async function handleSave() {
@@ -1027,18 +1080,44 @@ const SettingsPage: FC<SettingsProps> = () => {
           </div>
           <div className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-secondary">Free Plan</p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-semibold text-secondary">
+                  {plan === "pro" ? "Pro Plan" : "Free Plan"}
+                </p>
+                {plan === "pro" && (
+                  <span
+                    className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                    style={{ background: "#f4fdf3", color: "#112715" }}
+                  >
+                    Active
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-neutral-400 mt-0.5">
-                Upgrade to Pro for unlimited sessions and AI practice.
+                {plan === "pro"
+                  ? "Unlimited AI practice, unlimited peer sessions, and the ability to create meetings."
+                  : "5 free AI practice sessions · 3 peer session joins · Upgrade for unlimited access."}
               </p>
             </div>
-            <button
-              className="self-start sm:self-auto px-4 py-2 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90"
-              style={{ background: "#112715", color: "#fff" }}
-              disabled
-            >
-              Upgrade — Coming Soon
-            </button>
+            {plan === "pro" ? (
+              <button
+                onClick={handleManageSubscription}
+                disabled={upgradingPlan}
+                className="self-start sm:self-auto px-4 py-2 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-60"
+                style={{ background: "#112715", color: "#fff" }}
+              >
+                {upgradingPlan ? "Loading…" : "Manage Subscription"}
+              </button>
+            ) : (
+              <button
+                onClick={handleUpgrade}
+                disabled={upgradingPlan}
+                className="self-start sm:self-auto px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A] disabled:opacity-60 disabled:shadow-none disabled:translate-y-0"
+                style={{ background: "#2dec29", color: "#112715" }}
+              >
+                {upgradingPlan ? "Loading…" : "Upgrade to Pro — $19/mo"}
+              </button>
+            )}
           </div>
         </section>
 
