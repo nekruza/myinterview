@@ -7,7 +7,6 @@ import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import {
   Briefcase,
-  Bell,
   CreditCard,
   LogOut,
   Save,
@@ -153,22 +152,45 @@ const SettingsPage: FC<SettingsProps> = () => {
   const [editingProfile, setEditingProfile] = useState(false);
   const [editingPrefs, setEditingPrefs] = useState(false);
 
-  // Load user + profile on mount
-  const loadPlan = useCallback(async () => {
+  // Returns the fetched plan so callers can act on it directly
+  const loadPlan = useCallback(async (): Promise<"free" | "pro"> => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) return "free";
     const { data: subscription } = await supabase.from("subscriptions").select("plan").eq("user_id", user.id).single();
-    setPlan((subscription?.plan as "free" | "pro") ?? "free");
+    const fetched = (subscription?.plan as "free" | "pro") ?? "free";
+    setPlan(fetched);
+    return fetched;
   }, [supabase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (searchParams?.get("upgraded") === "true") {
-      toast.success("Welcome to Pro!");
-      // Poll a couple times to wait for the webhook to update the DB
-      setTimeout(() => loadPlan(), 1500);
-      setTimeout(() => loadPlan(), 4000);
-      router.replace("/app/settings");
-    }
+    if (searchParams?.get("upgraded") !== "true") return;
+
+    toast.success("Welcome to Pro! Setting up your account…");
+    router.replace("/app/settings");
+
+    let cancelled = false;
+    const delays = [2000, 4000, 6000, 8000, 10000, 12000, 15000, 20000];
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    const poll = async (attemptIndex: number) => {
+      if (cancelled) return;
+      const fetched = await loadPlan();
+      if (cancelled) return;
+      if (fetched === "pro") {
+        toast.success("You're now on Pro! Enjoy unlimited access.");
+        return;
+      }
+      if (attemptIndex + 1 < delays.length) {
+        timeoutId = setTimeout(() => poll(attemptIndex + 1), delays[attemptIndex + 1]);
+      }
+    };
+
+    timeoutId = setTimeout(() => poll(0), delays[0]);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
   }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
