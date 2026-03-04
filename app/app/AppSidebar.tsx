@@ -19,6 +19,7 @@ import {
   UserX,
   BookOpen,
   LifeBuoy,
+  Zap,
 } from "lucide-react";
 import {
   Popover,
@@ -106,6 +107,9 @@ export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
   const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [plan, setPlan] = useState<"free" | "pro" | null>(null);
+  const [practiceUsed, setPracticeUsed] = useState(0);
+  const [peerJoinsUsed, setPeerJoinsUsed] = useState(0);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -119,6 +123,13 @@ export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
 
   useEffect(() => {
     fetchNotifications();
+    fetch("/api/profile").then((r) => r.ok ? r.json() : null).then((data) => {
+      if (data?.profile) {
+        setPlan(data.profile.plan ?? "free");
+        setPracticeUsed(data.profile.practice_sessions_used ?? 0);
+        setPeerJoinsUsed(data.profile.peer_sessions_joined ?? 0);
+      }
+    });
   }, [fetchNotifications]);
 
   async function markAllRead() {
@@ -292,6 +303,51 @@ export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
             <TooltipContent side="right">Help & Contact</TooltipContent>
           </Tooltip>
         </div>
+
+        {/* ── Free tier usage indicator (free users only) ──────── */}
+        {plan === "free" && (
+          <div className="relative z-10 w-full px-2 shrink-0">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link
+                  href="/app/settings"
+                  className="flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 mx-auto relative"
+                  style={{
+                    color: (practiceUsed >= 5 || peerJoinsUsed >= 3)
+                      ? "#f59e0b"
+                      : "rgba(0,0,0,0.45)",
+                    border: "1px solid transparent",
+                  }}
+                  onMouseEnter={(e) => {
+                    Object.assign((e.currentTarget as HTMLElement).style, glassHoverPill);
+                  }}
+                  onMouseLeave={(e) => {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.background = "";
+                    el.style.boxShadow = "";
+                  }}
+                >
+                  <Zap
+                    className="w-5 h-5"
+                    style={{ filter: "drop-shadow(0 1px 1.5px rgba(0,0,0,0.12))" }}
+                  />
+                  {(practiceUsed >= 5 || peerJoinsUsed >= 3) && (
+                    <span
+                      className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full animate-pulse"
+                      style={{ background: "#f59e0b" }}
+                    />
+                  )}
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="max-w-[200px]">
+                <p className="font-semibold text-xs mb-1">Free Plan</p>
+                <p className="text-xs">{Math.max(0, 5 - practiceUsed)}/5 AI sessions left</p>
+                <p className="text-xs">{Math.max(0, 3 - peerJoinsUsed)}/3 peer joins left</p>
+                <p className="text-xs mt-1 opacity-70">Click to upgrade →</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        )}
 
         {/* ── Notification bell ────────────────────────────────── */}
         <div className="relative z-10 w-full px-2 shrink-0">
