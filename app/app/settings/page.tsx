@@ -653,6 +653,57 @@ const SettingsPage: FC<SettingsProps> = () => {
 
       {/* ── Two-column grid ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Subscription — full width */}
+        <section className="glass-card rounded-2xl overflow-hidden lg:col-span-2">
+          <div className="flex items-center gap-3 px-6 py-4 border-b border-neutral-100">
+            <CreditCard className="w-4 h-4 text-neutral-400" />
+            <h2 className="font-semibold text-secondary text-sm">
+              Subscription
+            </h2>
+          </div>
+          <div className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-semibold text-secondary">
+                  {plan === "pro" ? "Pro Plan" : "Free Plan"}
+                </p>
+                {plan === "pro" && (
+                  <span
+                    className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                    style={{ background: "#f4fdf3", color: "#112715" }}
+                  >
+                    Active
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-neutral-400 mt-0.5">
+                {plan === "pro"
+                  ? "Unlimited AI practice, unlimited peer sessions, and the ability to create meetings."
+                  : "5 free AI practice sessions · 3 peer session joins · Upgrade for unlimited access."}
+              </p>
+            </div>
+            {plan === "pro" ? (
+              <button
+                onClick={handleManageSubscription}
+                disabled={upgradingPlan}
+                className="self-start sm:self-auto px-4 py-2 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-60"
+                style={{ background: "#112715", color: "#fff" }}
+              >
+                {upgradingPlan ? "Loading…" : "Manage Subscription"}
+              </button>
+            ) : (
+              <button
+                onClick={handleUpgrade}
+                disabled={upgradingPlan}
+                className="self-start sm:self-auto px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A] disabled:opacity-60 disabled:shadow-none disabled:translate-y-0"
+                style={{ background: "#2dec29", color: "#112715" }}
+              >
+                {upgradingPlan ? "Loading…" : "Upgrade to Pro — $19/mo"}
+              </button>
+            )}
+          </div>
+        </section>
+
         {/* Left: Resume */}
         <section className="glass-card rounded-2xl overflow-hidden">
           <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100">
@@ -1068,57 +1119,6 @@ const SettingsPage: FC<SettingsProps> = () => {
               )}
             </div>
           )}
-        </section>
-
-        {/* Subscription — full width */}
-        <section className="glass-card rounded-2xl overflow-hidden lg:col-span-2">
-          <div className="flex items-center gap-3 px-6 py-4 border-b border-neutral-100">
-            <CreditCard className="w-4 h-4 text-neutral-400" />
-            <h2 className="font-semibold text-secondary text-sm">
-              Subscription
-            </h2>
-          </div>
-          <div className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-semibold text-secondary">
-                  {plan === "pro" ? "Pro Plan" : "Free Plan"}
-                </p>
-                {plan === "pro" && (
-                  <span
-                    className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                    style={{ background: "#f4fdf3", color: "#112715" }}
-                  >
-                    Active
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-neutral-400 mt-0.5">
-                {plan === "pro"
-                  ? "Unlimited AI practice, unlimited peer sessions, and the ability to create meetings."
-                  : "5 free AI practice sessions · 3 peer session joins · Upgrade for unlimited access."}
-              </p>
-            </div>
-            {plan === "pro" ? (
-              <button
-                onClick={handleManageSubscription}
-                disabled={upgradingPlan}
-                className="self-start sm:self-auto px-4 py-2 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-60"
-                style={{ background: "#112715", color: "#fff" }}
-              >
-                {upgradingPlan ? "Loading…" : "Manage Subscription"}
-              </button>
-            ) : (
-              <button
-                onClick={handleUpgrade}
-                disabled={upgradingPlan}
-                className="self-start sm:self-auto px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A] disabled:opacity-60 disabled:shadow-none disabled:translate-y-0"
-                style={{ background: "#2dec29", color: "#112715" }}
-              >
-                {upgradingPlan ? "Loading…" : "Upgrade to Pro — $19/mo"}
-              </button>
-            )}
-          </div>
         </section>
 
         {/* Account — full width */}
