@@ -11,6 +11,7 @@ export interface StreamLLMOptions {
   messages: LLMMessage[];
   maxTokens: number;
   temperature?: number;
+  model?: string;
   geminiModel?: string;
 }
 
