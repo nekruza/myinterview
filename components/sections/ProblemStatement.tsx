@@ -1,22 +1,21 @@
 import { FC } from "react";
-import Image from "next/image";
 
 export const ProblemStatement: FC = () => {
   const problems = [
     {
-      img: "/problem/blank.png",
+      emoji: "🧠",
       title: "Your Mind Goes Blank",
       quote: "I know the answers, but when the interviewer asks, my mind freezes. Everything I studied just disappears.",
       stat: "→ 93% experience this",
     },
     {
-      img: "/problem/overthinking.png",
+      emoji: "😰",
       title: "You Overthink Everything",
       quote: "Every question feels like a trap. I second-guess every word. Did I say too much? Too little?",
       stat: "→ Anxiety feedback loop",
     },
     {
-      img: "/problem/alone.png",
+      emoji: "😔",
       title: "You Feel Alone",
       quote: "Everyone else seems confident. I feel like I'm the only one struggling. I don't know who to talk to.",
       stat: "→ You're not alone",
@@ -51,16 +50,12 @@ export const ProblemStatement: FC = () => {
           {problems.map((problem, index) => (
             <div
               key={index}
-              className="group bg-cream rounded-2xl p-6 border-2 border-transparent hover:border-secondary transition-all duration-300"
+              className="group bg-white shadow-sm rounded-2xl p-6 border-2 border-transparent hover:border-secondary transition-all duration-300"
             >
               <div className="mb-4 md:mb-0 md:relative md:-top-12">
-                <Image
-                  src={problem.img}
-                  alt={problem.title}
-                  width={96}
-                  height={96}
-                  className="object-cover rounded-full border-4 border-secondary"
-                />
+                <div className="w-24 h-24 rounded-full border-4 bg-white flex items-center justify-center text-5xl border-primary">
+                  {problem.emoji}
+                </div>
               </div>
               <div className="md:-mt-6">
                 <h3 className="text-xl font-bold mb-3 text-secondary">
