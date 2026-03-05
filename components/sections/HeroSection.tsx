@@ -1,32 +1,12 @@
 "use client";
 
-import { FC, useEffect, useState } from "react";
+import { FC } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "../ui";
 import { track } from "@/lib/mixpanel";
 
 export const HeroSection: FC = () => {
-  const [userCount, setUserCount] = useState(400);
   const router = useRouter();
-
-  useEffect(() => {
-    // Animate counter from 400 to 500
-    const duration = 2000;
-    const increment = 100 / (duration / 16);
-    let current = 0;
-
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= 100) {
-        setUserCount(500);
-        clearInterval(timer);
-      } else {
-        setUserCount(Math.floor(400 + current));
-      }
-    }, 16);
-
-    return () => clearInterval(timer);
-  }, []);
 
   return (
     <section
@@ -42,8 +22,7 @@ export const HeroSection: FC = () => {
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
               </span>
               <span className="text-secondary">
-                Join <span className="counter font-bold">{userCount}+</span> beta
-                users practicing now
+                The interview prep tool that actually works
               </span>
             </div>
             <h1 className="text-5xl md:text-6xl font-black leading-tight mb-6 text-secondary">
@@ -97,7 +76,7 @@ export const HeroSection: FC = () => {
                   />
                 </svg>
                 <span className="font-medium text-secondary">
-                  Free forever plan
+                  Start Free
                 </span>
               </div>
               <div className="flex items-center">
@@ -113,7 +92,7 @@ export const HeroSection: FC = () => {
                   />
                 </svg>
                 <span className="font-medium text-secondary">
-                  Cancel anytime
+                  Cancel Anytime
                 </span>
               </div>
             </div>

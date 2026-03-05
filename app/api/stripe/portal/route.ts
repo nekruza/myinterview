@@ -28,10 +28,16 @@ export async function POST(req: NextRequest) {
 
   const origin = process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
 
-  const portalSession = await stripe.billingPortal.sessions.create({
-    customer: profile.stripe_customer_id,
-    return_url: `${origin}/app/settings`,
-  });
+  try {
+    const portalSession = await stripe.billingPortal.sessions.create({
+      customer: profile.stripe_customer_id,
+      return_url: `${origin}/app/settings`,
+    });
 
-  return NextResponse.json({ url: portalSession.url });
+    return NextResponse.json({ url: portalSession.url });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Stripe error";
+    console.error("[stripe/portal]", message);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
