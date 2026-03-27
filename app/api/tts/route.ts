@@ -26,7 +26,6 @@ export async function POST(req: Request) {
   const inworldKey = process.env.INWORLD_API_KEY;
   if (inworldKey) {
     try {
-      console.log('Chatting with Inworld...');
       const inworldRes = await fetch("https://api.inworld.ai/tts/v1/voice", {
         method: "POST",
         headers: {
@@ -53,8 +52,8 @@ export async function POST(req: Request) {
           });
         }
       }
-    } catch (err) {
-      console.error("Inworld TTS failed, falling back to Kokoro:", err);
+    } catch {
+      // Inworld failed — fall through to Chutes Kokoro
     }
   }
 
@@ -65,7 +64,6 @@ export async function POST(req: Request) {
   }
 
   try {
-    console.log('Chatting with Chutes...');
     const kokoroRes = await fetch("https://chutes-kokoro.chutes.ai/speak", {
       method: "POST",
       headers: {
