@@ -186,13 +186,13 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
           }),
         });
 
-        if (!res.ok || !res.body) throw new Error("Stream failed");
+        if (!res.ok || !res.body) throw new Error(`Stream failed: HTTP ${res.status}`);
 
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
         let buffer = "";
 
-        while (true) {
+        outer: while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
@@ -203,27 +203,28 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
           for (const line of lines) {
             if (!line.startsWith("data: ")) continue;
             const payload = line.slice(6);
-            if (payload === "[DONE]") break;
+            if (payload === "[DONE]") break outer;
 
+            let parsed: { text?: string; error?: string } | null = null;
             try {
-              const { text, error } = JSON.parse(payload);
-              if (error) throw new Error(error);
-              if (text) {
-                fullText += text;
-                if (!isHint) {
-                  setMessages((prev) => {
-                    const updated = [...prev];
-                    updated[updated.length - 1] = {
-                      role: "assistant",
-                      content:
-                        updated[updated.length - 1].content + text,
-                    };
-                    return updated;
-                  });
-                }
-              }
+              parsed = JSON.parse(payload);
             } catch {
-              // skip malformed
+              // skip malformed JSON chunks
+              continue;
+            }
+            if (parsed?.error) throw new Error(parsed.error);
+            if (parsed?.text) {
+              fullText += parsed.text;
+              if (!isHint) {
+                setMessages((prev) => {
+                  const updated = [...prev];
+                  updated[updated.length - 1] = {
+                    role: "assistant",
+                    content: updated[updated.length - 1].content + parsed!.text,
+                  };
+                  return updated;
+                });
+              }
             }
           }
         }
@@ -242,6 +243,9 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
           if (stateAfterSpeak !== "ending" && stateAfterSpeak !== "paused") {
             startListeningToUser();
           }
+        } else if (stateBeforeSpeak !== "ending") {
+          // Empty response — recover so we don't stay stuck in "processing"
+          startListeningToUser();
         }
       } catch (err) {
         const msg = err instanceof Error ? err.message : "AI error";

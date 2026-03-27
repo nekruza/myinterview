@@ -1,5 +1,5 @@
 // Server-only LLM provider helper.
-// Default: Google Gemini 2.5 Flash Lite with automatic fallback to Chutes AI on error.
+// Default: Google Gemini 2.5 Flash Lite with automatic fallback to OpenAI GPT-4.1 mini on error.
 
 export interface LLMMessage {
   role: string;
@@ -19,22 +19,17 @@ export async function* streamLLM(
   opts: StreamLLMOptions
 ): AsyncGenerator<string> {
   try {
-    // console.log('Chatting with OpenAI...'); 
-    // yield* streamOpenAI(opts);
-    console.log('Chatting with Gemini...');
     yield* streamGemini(opts);
   } catch (err) {
-    console.error("OpenAI/Gemini failed, falling back to Chutes:", err);
-    yield* streamChutes(opts);
+    console.error("Gemini failed, falling back to OpenAI:", err);
+    yield* streamOpenAI(opts);
   }
 }
 
-// ── OpenAI — gpt-5-mini ───────────────────────────────────────────────────────
+// ── OpenAI — gpt-5.4-mini-2026-03-17 (fallback) ──────────────────────────────
 
 async function* streamOpenAI(opts: StreamLLMOptions): AsyncGenerator<string> {
-  console.log('Chatting with OpenAI...');
   const apiKey = process.env.OPENAI_API_KEY;
-  console.log({apiKey});
   if (!apiKey) throw new Error("OPENAI_API_KEY not configured");
 
   const controller = new AbortController();
@@ -50,7 +45,7 @@ async function* streamOpenAI(opts: StreamLLMOptions): AsyncGenerator<string> {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-5-mini",
+        model: "gpt-5.4-mini-2026-03-17",
         messages: [
           { role: "system", content: opts.systemPrompt },
           ...opts.messages.map((m) => ({ role: m.role, content: m.content })),
@@ -90,7 +85,6 @@ async function* streamOpenAI(opts: StreamLLMOptions): AsyncGenerator<string> {
       try {
         const parsed = JSON.parse(payload);
         const content = parsed.choices?.[0]?.delta?.content;
-        console.log('OpenAI chunk:', JSON.stringify(parsed));
         if (content) yield content;
       } catch {
         // skip malformed chunks
@@ -109,8 +103,6 @@ async function* streamChutes(opts: StreamLLMOptions): AsyncGenerator<string> {
   const timeout = setTimeout(() => controller.abort(), 30_000);
 
   let res: Response;
-  console.log('Chatting with Chutes...');
-
   try {
     res = await fetch("https://llm.chutes.ai/v1/chat/completions", {
       method: "POST",
@@ -243,9 +235,17 @@ async function* streamGemini(opts: StreamLLMOptions): AsyncGenerator<string> {
       try {
         const parsed = JSON.parse(payload);
         const text = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) yield text;
-      } catch {
-        // skip malformed chunks
+        if (text) {
+          yield text;
+        } else if (parsed.error) {
+          throw new Error(`Gemini stream error: ${JSON.stringify(parsed.error)}`);
+        }
+      } catch (e) {
+        if (e instanceof SyntaxError) {
+          // skip malformed chunks
+        } else {
+          throw e;
+        }
       }
     }
   }

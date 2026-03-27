@@ -92,7 +92,6 @@ For ${level === "staff" || level === "senior" ? "senior/staff level, expect org-
 };
 
 const HINT_SYSTEM_PROMPT = (question: string, role?: string, resumeText?: string) => {
-  console.log("HINT_SYSTEM_PROMPT", {question, role, resumeText});
   const roleBlock = role && role !== "general"
     ? `\nThe candidate is interviewing for a ${role.replace(/-/g, " ")} role — tailor the hint and example answer to that discipline.`
     : "";
