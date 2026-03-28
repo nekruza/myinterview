@@ -456,6 +456,9 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
   const handleSkip = useCallback(() => {
     speech.stopListening();
     tts.cancel();
+    lipSync.cancel();
+    lipSyncResolveRef.current?.();
+    lipSyncResolveRef.current = null;
     const skipMsg: Message = {
       role: "user",
       content: "Let's move on to the next aspect of this question. What else should I think about?",
@@ -463,7 +466,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
     const updated = [...messagesRef.current, skipMsg];
     setMessages(updated);
     sendToAI(updated);
-  }, [speech, tts, sendToAI]);
+  }, [speech, tts, lipSync, sendToAI]);
 
   // ── Cleanup on unmount ──
   useEffect(() => {
