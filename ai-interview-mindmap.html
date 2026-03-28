@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Interview Conversation — Mindmap</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0a1f0e;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: #fff;
+    overflow: auto;
+    min-height: 100vh;
+  }
+  h1 {
+    text-align: center;
+    padding: 28px 20px 8px;
+    font-size: 22px;
+    font-weight: 700;
+    color: #2dec29;
+    letter-spacing: -0.5px;
+  }
+  p.subtitle {
+    text-align: center;
+    color: rgba(255,255,255,0.4);
+    font-size: 13px;
+    padding-bottom: 24px;
+  }
+  svg {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+  }
+
+  /* Node styles */
+  .node-root rect    { fill: #2dec29; rx: 14; }
+  .node-root text    { fill: #0a1f0e; font-weight: 800; font-size: 15px; }
+
+  .node-l1 rect      { fill: #1a3d1e; stroke: #2dec29; stroke-width: 1.5; rx: 10; }
+  .node-l1 text      { fill: #2dec29; font-weight: 700; font-size: 12px; }
+
+  .node-l2 rect      { fill: #112715; stroke: rgba(45,236,41,0.25); stroke-width: 1; rx: 8; }
+  .node-l2 text      { fill: rgba(255,255,255,0.8); font-weight: 500; font-size: 11px; }
+
+  .node-l3 rect      { fill: transparent; stroke: rgba(255,255,255,0.1); stroke-width: 1; rx: 6; }
+  .node-l3 text      { fill: rgba(255,255,255,0.5); font-weight: 400; font-size: 10px; }
+
+  .edge              { fill: none; stroke: rgba(45,236,41,0.2); stroke-width: 1.5; }
+  .edge-root         { fill: none; stroke: rgba(45,236,41,0.5); stroke-width: 2; }
+</style>
+</head>
+<body>
+<h1>AI Interview Conversation — How It Works</h1>
+<p class="subtitle">myinterview.io · Full conversation flow from session start to feedback</p>
+
+<svg width="1500" height="1120" viewBox="0 0 1500 1120">
+<defs>
+  <marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L6,3 z" fill="rgba(45,236,41,0.35)"/>
+  </marker>
+</defs>
+
+<!-- ═══════════════════════════════════════════════════════
+     EDGES  (drawn first so nodes sit on top)
+     ═══════════════════════════════════════════════════════ -->
+
+<!-- Root → L1 -->
+<path class="edge-root" d="M750,90 C750,110 340,130 340,160"/>
+<path class="edge-root" d="M750,90 C750,110 560,130 560,160"/>
+<path class="edge-root" d="M750,90 C750,110 750,130 750,160"/>
+<path class="edge-root" d="M750,90 C750,110 950,130 950,160"/>
+<path class="edge-root" d="M750,90 C750,110 1160,130 1160,160"/>
+
+<!-- 1 Session Setup → children -->
+<path class="edge" d="M340,200 C340,220 200,240 200,270"/>
+<path class="edge" d="M340,200 C340,220 340,240 340,270"/>
+<path class="edge" d="M340,200 C340,220 480,240 480,270"/>
+
+<!-- 2 Media & Speech → children -->
+<path class="edge" d="M560,200 C560,220 470,240 470,270"/>
+<path class="edge" d="M560,200 C560,220 560,240 560,270"/>
+<path class="edge" d="M560,200 C560,220 660,240 660,270"/>
+
+<!-- 3 Conversation States → children -->
+<path class="edge" d="M750,200 C750,220 660,240 660,270"/>
+<path class="edge" d="M750,200 C750,220 720,240 720,270"/>
+<path class="edge" d="M750,200 C750,220 780,240 780,270"/>
+<path class="edge" d="M750,200 C750,220 850,240 850,270"/>
+
+<!-- 4 AI Backend → children -->
+<path class="edge" d="M950,200 C950,220 870,240 870,270"/>
+<path class="edge" d="M950,200 C950,220 950,240 950,270"/>
+<path class="edge" d="M950,200 C950,220 1040,240 1040,270"/>
+
+<!-- 5 Post-Session → children -->
+<path class="edge" d="M1160,200 C1160,220 1090,240 1090,270"/>
+<path class="edge" d="M1160,200 C1160,220 1160,240 1160,270"/>
+<path class="edge" d="M1160,200 C1160,220 1240,240 1240,270"/>
+
+<!-- Session Setup → L3 details -->
+<path class="edge" d="M200,310 C200,330 140,360 140,390"/>
+<path class="edge" d="M200,310 C200,330 200,360 200,390"/>
+<path class="edge" d="M200,310 C200,330 260,360 260,390"/>
+
+<path class="edge" d="M340,310 C340,330 310,360 310,390"/>
+<path class="edge" d="M340,310 C340,330 370,360 370,390"/>
+
+<path class="edge" d="M480,310 C480,330 460,360 460,390"/>
+<path class="edge" d="M480,310 C480,330 510,360 510,390"/>
+
+<!-- Speech → L3 -->
+<path class="edge" d="M470,310 C470,330 430,360 430,390"/>
+<path class="edge" d="M470,310 C470,330 470,360 470,390"/>
+
+<path class="edge" d="M560,310 C560,330 540,360 540,390"/>
+<path class="edge" d="M560,310 C560,330 575,360 575,390"/>
+
+<path class="edge" d="M660,310 C660,330 640,360 640,390"/>
+<path class="edge" d="M660,310 C660,330 680,360 680,390"/>
+
+<!-- Conv States → flow arrows (L3) -->
+<path class="edge" d="M660,310 C660,330 630,380 630,420"/>
+<path class="edge" d="M720,310 C720,330 720,380 720,420"/>
+<path class="edge" d="M780,310 C780,330 780,380 780,420"/>
+<path class="edge" d="M850,310 C850,330 850,380 850,420"/>
+
+<!-- AI Backend → L3 -->
+<path class="edge" d="M870,310 C870,330 840,360 840,390"/>
+<path class="edge" d="M870,310 C870,330 880,360 880,390"/>
+
+<path class="edge" d="M950,310 C950,330 940,360 940,390"/>
+<path class="edge" d="M950,310 C950,330 970,360 970,390"/>
+
+<path class="edge" d="M1040,310 C1040,330 1010,360 1010,390"/>
+<path class="edge" d="M1040,310 C1040,330 1050,360 1050,390"/>
+
+<!-- Post-Session → L3 -->
+<path class="edge" d="M1090,310 C1090,330 1060,360 1060,390"/>
+<path class="edge" d="M1090,310 C1090,330 1090,360 1090,390"/>
+
+<path class="edge" d="M1160,310 C1160,330 1140,360 1140,390"/>
+<path class="edge" d="M1160,310 C1160,330 1180,360 1180,390"/>
+
+<path class="edge" d="M1240,310 C1240,330 1210,360 1210,390"/>
+<path class="edge" d="M1240,310 C1240,330 1250,360 1250,390"/>
+
+<!-- ─── Silence Detection flow (deep level) ─── -->
+<path class="edge" d="M780,460 C780,480 750,510 750,540"/>
+<path class="edge" d="M780,460 C780,480 810,510 810,540"/>
+
+<!-- ─── LLM Providers (deep) ─── -->
+<path class="edge" d="M940,430 C940,460 910,490 910,520"/>
+<path class="edge" d="M940,430 C940,460 960,490 960,520"/>
+
+<!-- ─── Streaming SSE (deep) ─── -->
+<path class="edge" d="M970,430 C970,460 970,490 970,520"/>
+
+<!-- ─── Feedback score details (deep) ─── -->
+<path class="edge" d="M1090,430 C1090,460 1060,490 1060,520"/>
+<path class="edge" d="M1090,430 C1090,460 1100,490 1100,520"/>
+
+<!-- ═══════════════════════════════════════════════════════
+     NODES
+     ═══════════════════════════════════════════════════════ -->
+
+<!-- ── ROOT ── -->
+<g class="node-root" transform="translate(680,55)">
+  <rect width="140" height="36" rx="14"/>
+  <text x="70" y="23" text-anchor="middle" dominant-baseline="middle">AI Interview Conv</text>
+</g>
+
+<!-- ══════════ L1 NODES ══════════ -->
+
+<!-- 1. Session Setup -->
+<g class="node-l1" transform="translate(270,160)">
+  <rect width="140" height="34" rx="10"/>
+  <text x="70" y="17" text-anchor="middle" dominant-baseline="middle">1. Session Setup</text>
+</g>
+
+<!-- 2. Media & Speech -->
+<g class="node-l1" transform="translate(490,160)">
+  <rect width="140" height="34" rx="10"/>
+  <text x="70" y="17" text-anchor="middle" dominant-baseline="middle">2. Media &amp; Speech</text>
+</g>
+
+<!-- 3. Conversation States -->
+<g class="node-l1" transform="translate(685,160)">
+  <rect width="140" height="34" rx="10"/>
+  <text x="70" y="17" text-anchor="middle" dominant-baseline="middle">3. Conv. States</text>
+</g>
+
+<!-- 4. AI Backend -->
+<g class="node-l1" transform="translate(880,160)">
+  <rect width="140" height="34" rx="10"/>
+  <text x="70" y="17" text-anchor="middle" dominant-baseline="middle">4. AI Backend</text>
+</g>
+
+<!-- 5. Post-Session -->
+<g class="node-l1" transform="translate(1090,160)">
+  <rect width="140" height="34" rx="10"/>
+  <text x="70" y="17" text-anchor="middle" dominant-baseline="middle">5. Post-Session</text>
+</g>
+
+<!-- ══════════ L2 NODES ══════════ -->
+
+<!-- Session Setup subtopics -->
+<g class="node-l2" transform="translate(130,270)">
+  <rect width="130" height="28" rx="8"/>
+  <text x="65" y="14" text-anchor="middle" dominant-baseline="middle">User Config</text>
+</g>
+<g class="node-l2" transform="translate(275,270)">
+  <rect width="130" height="28" rx="8"/>
+  <text x="65" y="14" text-anchor="middle" dominant-baseline="middle">Context Injection</text>
+</g>
+<g class="node-l2" transform="translate(415,270)">
+  <rect width="130" height="28" rx="8"/>
+  <text x="65" y="14" text-anchor="middle" dominant-baseline="middle">Session Start Msg</text>
+</g>
+
+<!-- Media & Speech subtopics -->
+<g class="node-l2" transform="translate(400,270)">
+  <rect width="130" height="28" rx="8"/>
+  <text x="65" y="14" text-anchor="middle" dominant-baseline="middle">Mic + Camera</text>
+</g>
+<g class="node-l2" transform="translate(495,270)">
+  <rect width="130" height="28" rx="8"/>
+  <text x="65" y="14" text-anchor="middle" dominant-baseline="middle">Speech Recogn.</text>
+</g>
+<g class="node-l2" transform="translate(595,270)">
+  <rect width="130" height="28" rx="8"/>
+  <text x="65" y="14" text-anchor="middle" dominant-baseline="middle">Text-to-Speech</text>
+</g>
+
+<!-- Conversation States subtopics -->
+<g class="node-l2" transform="translate(595,270)">
+  <rect width="130" height="28" rx="8"/>
+  <text x="65" y="14" text-anchor="middle" dominant-baseline="middle">initializing</text>
+</g>
+<g class="node-l2" transform="translate(655,270)">
+  <rect width="110" height="28" rx="8"/>
+  <text x="55" y="14" text-anchor="middle" dominant-baseline="middle">ai_speaking</text>
+</g>
+<g class="node-l2" transform="translate(720,270)">
+  <rect width="100" height="28" rx="8"/>
+  <text x="50" y="14" text-anchor="middle" dominant-baseline="middle">listening</text>
+</g>
+<g class="node-l2" transform="translate(790,270)">
+  <rect width="100" height="28" rx="8"/>
+  <text x="50" y="14" text-anchor="middle" dominant-baseline="middle">processing</text>
+</g>
+
+<!-- AI Backend subtopics -->
+<g class="node-l2" transform="translate(810,270)">
+  <rect width="120" height="28" rx="8"/>
+  <text x="60" y="14" text-anchor="middle" dominant-baseline="middle">System Prompt</text>
+</g>
+<g class="node-l2" transform="translate(895,270)">
+  <rect width="110" height="28" rx="8"/>
+  <text x="55" y="14" text-anchor="middle" dominant-baseline="middle">LLM Provider</text>
+</g>
+<g class="node-l2" transform="translate(980,270)">
+  <rect width="120" height="28" rx="8"/>
+  <text x="60" y="14" text-anchor="middle" dominant-baseline="middle">SSE Streaming</text>
+</g>
+
+<!-- Post-Session subtopics -->
+<g class="node-l2" transform="translate(1025,270)">
+  <rect width="120" height="28" rx="8"/>
+  <text x="60" y="14" text-anchor="middle" dominant-baseline="middle">Feedback API</text>
+</g>
+<g class="node-l2" transform="translate(1100,270)">
+  <rect width="110" height="28" rx="8"/>
+  <text x="55" y="14" text-anchor="middle" dominant-baseline="middle">Score + Tips</text>
+</g>
+<g class="node-l2" transform="translate(1180,270)">
+  <rect width="120" height="28" rx="8"/>
+  <text x="60" y="14" text-anchor="middle" dominant-baseline="middle">Supabase Save</text>
+</g>
+
+<!-- ══════════ L3 NODES ══════════ -->
+
+<!-- User Config details -->
+<g class="node-l3" transform="translate(72,390)">
+  <rect width="136" height="24" rx="6"/>
+  <text x="68" y="12" text-anchor="middle" dominant-baseline="middle">Category / Question</text>
+</g>
+<g class="node-l3" transform="translate(140,390)">
+  <rect width="128" height="24" rx="6"/>
+  <text x="64" y="12" text-anchor="middle" dominant-baseline="middle">Level (mid/senior)</text>
+</g>
+<g class="node-l3" transform="translate(218,390)">
+  <rect width="140" height="24" rx="6"/>
+  <text x="70" y="12" text-anchor="middle" dominant-baseline="middle">Interview Type (tech/behav)</text>
+</g>
+
+<!-- Context Injection details -->
+<g class="node-l3" transform="translate(282,390)">
+  <rect width="108" height="24" rx="6"/>
+  <text x="54" y="12" text-anchor="middle" dominant-baseline="middle">Job Description</text>
+</g>
+<g class="node-l3" transform="translate(352,390)">
+  <rect width="100" height="24" rx="6"/>
+  <text x="50" y="12" text-anchor="middle" dominant-baseline="middle">Resume Text</text>
+</g>
+
+<!-- Session Start details -->
+<g class="node-l3" transform="translate(430,390)">
+  <rect width="136" height="24" rx="6"/>
+  <text x="68" y="12" text-anchor="middle" dominant-baseline="middle">[SESSION START] msg</text>
+</g>
+<g class="node-l3" transform="translate(490,390)">
+  <rect width="100" height="24" rx="6"/>
+  <text x="50" y="12" text-anchor="middle" dominant-baseline="middle">AI greets user</text>
+</g>
+
+<!-- Mic + Camera details -->
+<g class="node-l3" transform="translate(395,390)">
+  <rect width="120" height="24" rx="6"/>
+  <text x="60" y="12" text-anchor="middle" dominant-baseline="middle">getUserMedia()</text>
+</g>
+<g class="node-l3" transform="translate(436,390)">
+  <rect width="100" height="24" rx="6"/>
+  <text x="50" y="12" text-anchor="middle" dominant-baseline="middle">Audio Visualizer</text>
+</g>
+
+<!-- Speech Recog details -->
+<g class="node-l3" transform="translate(508,390)">
+  <rect width="110" height="24" rx="6"/>
+  <text x="55" y="12" text-anchor="middle" dominant-baseline="middle">Web Speech API</text>
+</g>
+<g class="node-l3" transform="translate(546,390)">
+  <rect width="78" height="24" rx="6"/>
+  <text x="39" y="12" text-anchor="middle" dominant-baseline="middle">Chrome only</text>
+</g>
+
+<!-- TTS details -->
+<g class="node-l3" transform="translate(600,390)">
+  <rect width="108" height="24" rx="6"/>
+  <text x="54" y="12" text-anchor="middle" dominant-baseline="middle">SpeechSynthesis</text>
+</g>
+<g class="node-l3" transform="translate(650,390)">
+  <rect width="84" height="24" rx="6"/>
+  <text x="42" y="12" text-anchor="middle" dominant-baseline="middle">"Maria" voice</text>
+</g>
+
+<!-- Conv States flow details (L3) -->
+<g class="node-l3" transform="translate(590,420)">
+  <rect width="106" height="24" rx="6"/>
+  <text x="53" y="12" text-anchor="middle" dominant-baseline="middle">↓ sends first msg</text>
+</g>
+<g class="node-l3" transform="translate(690,420)">
+  <rect width="106" height="24" rx="6"/>
+  <text x="53" y="12" text-anchor="middle" dominant-baseline="middle">AI reads response</text>
+</g>
+<g class="node-l3" transform="translate(745,420)">
+  <rect width="100" height="24" rx="6"/>
+  <text x="50" y="12" text-anchor="middle" dominant-baseline="middle">Silence detect</text>
+</g>
+<g class="node-l3" transform="translate(810,420)">
+  <rect width="100" height="24" rx="6"/>
+  <text x="50" y="12" text-anchor="middle" dominant-baseline="middle">LLM call waits</text>
+</g>
+
+<!-- Silence detection sub-nodes -->
+<g class="node-l3" transform="translate(714,540)">
+  <rect width="108" height="24" rx="6"/>
+  <text x="54" y="12" text-anchor="middle" dominant-baseline="middle">2s timeout fires</text>
+</g>
+<g class="node-l3" transform="translate(784,540)">
+  <rect width="108" height="24" rx="6"/>
+  <text x="54" y="12" text-anchor="middle" dominant-baseline="middle">Manual Send btn</text>
+</g>
+
+<!-- System Prompt details -->
+<g class="node-l3" transform="translate(805,390)">
+  <rect width="114" height="24" rx="6"/>
+  <text x="57" y="12" text-anchor="middle" dominant-baseline="middle">R-STAR framework</text>
+</g>
+<g class="node-l3" transform="translate(850,390)">
+  <rect width="90" height="24" rx="6"/>
+  <text x="45" y="12" text-anchor="middle" dominant-baseline="middle">Level-aware</text>
+</g>
+
+<!-- LLM Provider details -->
+<g class="node-l3" transform="translate(890,390)">
+  <rect width="126" height="24" rx="6"/>
+  <text x="63" y="12" text-anchor="middle" dominant-baseline="middle">Gemini 2.5 Flash Lite</text>
+</g>
+<g class="node-l3" transform="translate(952,390)">
+  <rect width="108" height="24" rx="6"/>
+  <text x="54" y="12" text-anchor="middle" dominant-baseline="middle">GPT-4 (fallback)</text>
+</g>
+
+<!-- LLM sub-nodes (primary / fallback detail) -->
+<g class="node-l3" transform="translate(878,520)">
+  <rect width="96" height="24" rx="6"/>
+  <text x="48" y="12" text-anchor="middle" dominant-baseline="middle">Primary / fast</text>
+</g>
+<g class="node-l3" transform="translate(934,520)">
+  <rect width="104" height="24" rx="6"/>
+  <text x="52" y="12" text-anchor="middle" dominant-baseline="middle">Auto-fallback</text>
+</g>
+
+<!-- SSE Streaming details -->
+<g class="node-l3" transform="translate(980,390)">
+  <rect width="110" height="24" rx="6"/>
+  <text x="55" y="12" text-anchor="middle" dominant-baseline="middle">Chunk-by-chunk</text>
+</g>
+
+<!-- SSE sub detail -->
+<g class="node-l3" transform="translate(956,520)">
+  <rect width="108" height="24" rx="6"/>
+  <text x="54" y="12" text-anchor="middle" dominant-baseline="middle">data: [DONE] end</text>
+</g>
+
+<!-- Feedback API details -->
+<g class="node-l3" transform="translate(1026,390)">
+  <rect width="110" height="24" rx="6"/>
+  <text x="55" y="12" text-anchor="middle" dominant-baseline="middle">/api/ai/feedback</text>
+</g>
+<g class="node-l3" transform="translate(1060,390)">
+  <rect width="90" height="24" rx="6"/>
+  <text x="45" y="12" text-anchor="middle" dominant-baseline="middle">Temp 0.2</text>
+</g>
+
+<!-- Feedback sub-nodes -->
+<g class="node-l3" transform="translate(1030,520)">
+  <rect width="100" height="24" rx="6"/>
+  <text x="50" y="12" text-anchor="middle" dominant-baseline="middle">Score 0–100</text>
+</g>
+<g class="node-l3" transform="translate(1090,520)">
+  <rect width="120" height="24" rx="6"/>
+  <text x="60" y="12" text-anchor="middle" dominant-baseline="middle">1–5 improvements</text>
+</g>
+
+<!-- Score + Tips details -->
+<g class="node-l3" transform="translate(1112,390)">
+  <rect width="120" height="24" rx="6"/>
+  <text x="60" y="12" text-anchor="middle" dominant-baseline="middle">point + example</text>
+</g>
+<g class="node-l3" transform="translate(1156,390)">
+  <rect width="100" height="24" rx="6"/>
+  <text x="50" y="12" text-anchor="middle" dominant-baseline="middle">Strict scoring</text>
+</g>
+
+<!-- Supabase Save details -->
+<g class="node-l3" transform="translate(1185,390)">
+  <rect width="120" height="24" rx="6"/>
+  <text x="60" y="12" text-anchor="middle" dominant-baseline="middle">interview_messages</text>
+</g>
+<g class="node-l3" transform="translate(1240,390)">
+  <rect width="114" height="24" rx="6"/>
+  <text x="57" y="12" text-anchor="middle" dominant-baseline="middle">user + AI turns</text>
+</g>
+
+<!-- ═════════════════════════════════════════════════════════
+     FLOW SEQUENCE (bottom of diagram)
+     ═════════════════════════════════════════════════════════ -->
+
+<!-- Flow title -->
+<text x="750" y="640" text-anchor="middle" fill="rgba(45,236,41,0.7)" font-size="13" font-weight="700" letter-spacing="1">CONVERSATION LOOP</text>
+
+<!-- Flow boxes -->
+<!-- Box dimensions: ~160 wide, 48 tall -->
+<g transform="translate(60,660)">
+  <rect width="160" height="48" rx="10" fill="#1a3d1e" stroke="#2dec29" stroke-width="1.5"/>
+  <text x="80" y="20" text-anchor="middle" fill="#2dec29" font-size="11" font-weight="700">1. Session Starts</text>
+  <text x="80" y="36" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9">Media + timer + AI greeting</text>
+</g>
+<line x1="220" y1="684" x2="255" y2="684" stroke="rgba(45,236,41,0.5)" stroke-width="2" marker-end="url(#arrow)"/>
+
+<g transform="translate(255,660)">
+  <rect width="160" height="48" rx="10" fill="#1a3d1e" stroke="#2dec29" stroke-width="1.5"/>
+  <text x="80" y="20" text-anchor="middle" fill="#2dec29" font-size="11" font-weight="700">2. AI Speaks</text>
+  <text x="80" y="36" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9">TTS reads AI response</text>
+</g>
+<line x1="415" y1="684" x2="450" y2="684" stroke="rgba(45,236,41,0.5)" stroke-width="2" marker-end="url(#arrow)"/>
+
+<g transform="translate(450,660)">
+  <rect width="160" height="48" rx="10" fill="#1a3d1e" stroke="#2dec29" stroke-width="1.5"/>
+  <text x="80" y="20" text-anchor="middle" fill="#2dec29" font-size="11" font-weight="700">3. User Listens</text>
+  <text x="80" y="36" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9">Speech Recog. active</text>
+</g>
+<line x1="610" y1="684" x2="645" y2="684" stroke="rgba(45,236,41,0.5)" stroke-width="2" marker-end="url(#arrow)"/>
+
+<g transform="translate(645,660)">
+  <rect width="160" height="48" rx="10" fill="#1a3d1e" stroke="#2dec29" stroke-width="1.5"/>
+  <text x="80" y="20" text-anchor="middle" fill="#2dec29" font-size="11" font-weight="700">4. User Speaks</text>
+  <text x="80" y="36" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9">2s silence → auto-send</text>
+</g>
+<line x1="805" y1="684" x2="840" y2="684" stroke="rgba(45,236,41,0.5)" stroke-width="2" marker-end="url(#arrow)"/>
+
+<g transform="translate(840,660)">
+  <rect width="160" height="48" rx="10" fill="#1a3d1e" stroke="#2dec29" stroke-width="1.5"/>
+  <text x="80" y="20" text-anchor="middle" fill="#2dec29" font-size="11" font-weight="700">5. AI Processes</text>
+  <text x="80" y="36" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9">Gemini → streams SSE</text>
+</g>
+<line x1="1000" y1="684" x2="1035" y2="684" stroke="rgba(45,236,41,0.5)" stroke-width="2" marker-end="url(#arrow)"/>
+
+<g transform="translate(1035,660)">
+  <rect width="160" height="48" rx="10" fill="#1a3d1e" stroke="#2dec29" stroke-width="1.5"/>
+  <text x="80" y="20" text-anchor="middle" fill="#2dec29" font-size="11" font-weight="700">6. Save + Repeat</text>
+  <text x="80" y="36" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9">Supabase → loop to step 2</text>
+</g>
+<line x1="1195" y1="684" x2="1240" y2="684" stroke="rgba(45,236,41,0.5)" stroke-width="2" marker-end="url(#arrow)"/>
+
+<g transform="translate(1240,660)">
+  <rect width="160" height="48" rx="10" fill="#112715" stroke="rgba(45,236,41,0.4)" stroke-width="1.5"/>
+  <text x="80" y="20" text-anchor="middle" fill="#2dec29" font-size="11" font-weight="700">7. End + Feedback</text>
+  <text x="80" y="36" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="9">Score 0–100 + tips</text>
+</g>
+
+<!-- Loop-back arrow -->
+<path d="M1115,708 C1115,740 725,760 725,740 C725,724 645,720 645,720"
+  fill="none" stroke="rgba(45,236,41,0.3)" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<text x="880" y="756" text-anchor="middle" fill="rgba(45,236,41,0.35)" font-size="10">repeats 2-3 rounds</text>
+
+<!-- ═════════════════════════════════════════════════════════
+     FEATURES ROW
+     ═════════════════════════════════════════════════════════ -->
+<text x="750" y="820" text-anchor="middle" fill="rgba(45,236,41,0.7)" font-size="13" font-weight="700" letter-spacing="1">KEY FEATURES</text>
+
+<!-- Feature chips -->
+<g transform="translate(80,840)">
+  <rect width="130" height="36" rx="18" fill="#1a3d1e" stroke="rgba(45,236,41,0.3)" stroke-width="1"/>
+  <text x="65" y="18" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.75)" font-size="11">Hint Generation</text>
+</g>
+<g transform="translate(230,840)">
+  <rect width="130" height="36" rx="18" fill="#1a3d1e" stroke="rgba(45,236,41,0.3)" stroke-width="1"/>
+  <text x="65" y="18" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.75)" font-size="11">Pause / Resume</text>
+</g>
+<g transform="translate(380,840)">
+  <rect width="130" height="36" rx="18" fill="#1a3d1e" stroke="rgba(45,236,41,0.3)" stroke-width="1"/>
+  <text x="65" y="18" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.75)" font-size="11">Skip Question</text>
+</g>
+<g transform="translate(530,840)">
+  <rect width="130" height="36" rx="18" fill="#1a3d1e" stroke="rgba(45,236,41,0.3)" stroke-width="1"/>
+  <text x="65" y="18" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.75)" font-size="11">Captions Panel</text>
+</g>
+<g transform="translate(680,840)">
+  <rect width="130" height="36" rx="18" fill="#1a3d1e" stroke="rgba(45,236,41,0.3)" stroke-width="1"/>
+  <text x="65" y="18" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.75)" font-size="11">Notes Panel</text>
+</g>
+<g transform="translate(830,840)">
+  <rect width="130" height="36" rx="18" fill="#1a3d1e" stroke="rgba(45,236,41,0.3)" stroke-width="1"/>
+  <text x="65" y="18" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.75)" font-size="11">Camera Toggle</text>
+</g>
+<g transform="translate(980,840)">
+  <rect width="130" height="36" rx="18" fill="#1a3d1e" stroke="rgba(45,236,41,0.3)" stroke-width="1"/>
+  <text x="65" y="18" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.75)" font-size="11">Auth Guard</text>
+</g>
+<g transform="translate(1130,840)">
+  <rect width="130" height="36" rx="18" fill="#1a3d1e" stroke="rgba(45,236,41,0.3)" stroke-width="1"/>
+  <text x="65" y="18" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.75)" font-size="11">R-STAR Feedback</text>
+</g>
+<g transform="translate(1300,840)">
+  <rect width="130" height="36" rx="18" fill="#1a3d1e" stroke="rgba(45,236,41,0.3)" stroke-width="1"/>
+  <text x="65" y="18" text-anchor="middle" dominant-baseline="middle" fill="rgba(255,255,255,0.75)" font-size="11">Auto-send (2s)</text>
+</g>
+
+<!-- ─── Footer ─── -->
+<text x="750" y="1100" text-anchor="middle" fill="rgba(255,255,255,0.18)" font-size="11">
+  myinterview.io · VoiceCallView.tsx · /api/ai/voice · /api/ai/feedback · lib/llm.ts
+</text>
+
+</svg>
+</body>
+</html>
