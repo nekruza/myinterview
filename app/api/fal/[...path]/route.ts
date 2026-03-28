@@ -19,7 +19,7 @@ async function handler(req: NextRequest) {
   const contentType = req.headers.get("Content-Type");
   if (contentType) headers["Content-Type"] = contentType;
 
-  const body = req.method !== "GET" ? await req.text() : undefined;
+  const body = req.method !== "GET" ? req.body : undefined;
 
   const falRes = await fetch(targetUrl, {
     method: req.method,
