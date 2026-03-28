@@ -19,6 +19,8 @@ interface VideoAreaProps {
   analyserData: Uint8Array;
   userName?: string;
   avatarUrl?: string | null;
+  lipSyncVideoUrl?: string | null;
+  onLipSyncEnded?: () => void;
 }
 
 export const VideoArea: FC<VideoAreaProps> = ({
@@ -28,6 +30,8 @@ export const VideoArea: FC<VideoAreaProps> = ({
   analyserData,
   userName = "You",
   avatarUrl,
+  lipSyncVideoUrl,
+  onLipSyncEnded,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -128,7 +132,7 @@ export const VideoArea: FC<VideoAreaProps> = ({
               : "rgba(255, 255, 255, 0.08)",
           }}
         >
-          {/* Human photo avatar */}
+          {/* Interviewer avatar — static photo or lip-sync video */}
           <div className="relative">
             <div
               className="w-14 h-14 rounded-xl overflow-hidden shrink-0 transition-shadow duration-500"
@@ -138,14 +142,25 @@ export const VideoArea: FC<VideoAreaProps> = ({
                   : "none",
               }}
             >
-              <Image
-                src={INTERVIEWER.photo}
-                alt={INTERVIEWER.name}
-                width={56}
-                height={56}
-                className="w-full h-full object-cover"
-                unoptimized
-              />
+              {lipSyncVideoUrl ? (
+                <video
+                  key={lipSyncVideoUrl}
+                  src={lipSyncVideoUrl}
+                  autoPlay
+                  playsInline
+                  className="w-full h-full object-cover"
+                  onEnded={onLipSyncEnded}
+                />
+              ) : (
+                <Image
+                  src={INTERVIEWER.photo}
+                  alt={INTERVIEWER.name}
+                  width={56}
+                  height={56}
+                  className="w-full h-full object-cover"
+                  unoptimized
+                />
+              )}
             </div>
             {/* Online indicator */}
             <span
