@@ -7,6 +7,7 @@ import { useTimer } from "@/lib/hooks/useTimer";
 import { useSpeechRecognition } from "@/lib/hooks/useSpeechRecognition";
 import { useSpeechSynthesis } from "@/lib/hooks/useSpeechSynthesis";
 import { useAudioVisualizer } from "@/lib/hooks/useAudioVisualizer";
+import { useLipSync } from "@/lib/hooks/useLipSync";
 import { VideoArea } from "./VideoArea";
 import { TranscriptPanel } from "./TranscriptPanel";
 import { ControlBar } from "./ControlBar";
@@ -70,9 +71,11 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
   const speech = useSpeechRecognition();
   const tts = useSpeechSynthesis();
   const visualizer = useAudioVisualizer();
+  const lipSync = useLipSync();
 
   // Ref so cleanup effects always see the live stream regardless of closure capture
   const webcamStreamRef = useRef<MediaStream | null>(null);
+  const lipSyncResolveRef = useRef<(() => void) | null>(null);
 
   const messagesRef = useRef(messages);
   messagesRef.current = messages;
@@ -269,12 +272,31 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
   // ── Speak and wait for completion (promise-based) ──
   const speakAndWait = useCallback(
     async (text: string): Promise<void> => {
-      // Stop recognition BEFORE TTS to prevent mic picking up AI voice
       speech.stopListening();
-      await tts.speakAsync(text);
+      try {
+        await lipSync.generate(text);
+        // VideoArea will play the video and call onLipSyncEnded when done.
+        // We block here until that callback fires.
+        await new Promise<void>((resolve) => {
+          lipSyncResolveRef.current = resolve;
+        });
+      } catch {
+        // MuseTalk failed — fall back to Inworld/browser TTS with static avatar
+        lipSync.reset();
+        await tts.speakAsync(text);
+      }
     },
-    [tts, speech]
+    [lipSync, tts, speech]
   );
+
+  // ── Handle lip sync video ended ──
+  const handleLipSyncEnded = useCallback(() => {
+    lipSync.reset();
+    if (lipSyncResolveRef.current) {
+      lipSyncResolveRef.current();
+      lipSyncResolveRef.current = null;
+    }
+  }, [lipSync]);
 
   // ── Start listening to user ──
   const startListeningToUser = useCallback(() => {
@@ -401,8 +423,11 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
       timer.pause();
       speech.stopListening();
       tts.cancel();
+      lipSync.cancel();
+      lipSyncResolveRef.current?.();
+      lipSyncResolveRef.current = null;
     }
-  }, [convState, timer, speech, tts, startListeningToUser]);
+  }, [convState, timer, speech, tts, lipSync, startListeningToUser]);
 
   // ── Stop / End session ──
   const handleStop = useCallback(() => {
@@ -410,8 +435,11 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
     timer.pause();
     speech.stopListening();
     tts.cancel();
+    lipSync.cancel();
+    lipSyncResolveRef.current?.();
+    lipSyncResolveRef.current = null;
     setShowEndModal(true);
-  }, [timer, speech, tts]);
+  }, [timer, speech, tts, lipSync]);
 
   // ── Toggle camera ──
   const handleToggleCamera = useCallback(() => {
@@ -443,6 +471,9 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
       // Stop all active processes
       speech.stopListening();
       tts.cancel();
+      lipSync.cancel();
+      lipSyncResolveRef.current?.();
+      lipSyncResolveRef.current = null;
       visualizer.stopAnalyser();
       timer.pause();
 
@@ -592,6 +623,8 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
             isAISpeaking={convState === "ai_speaking"}
             isUserSpeaking={convState === "listening" && speech.isListening}
             analyserData={visualizer.analyserData}
+            lipSyncVideoUrl={lipSync.videoUrl}
+            onLipSyncEnded={handleLipSyncEnded}
           />
 
           {/* Hint overlay (positioned inside video area) */}
