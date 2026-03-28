@@ -32,7 +32,8 @@ async function handler(req: NextRequest) {
     responseHeaders.set(key, value);
   });
 
-  return new Response(falRes.body, {
+  const responseBody = await falRes.arrayBuffer();
+  return new Response(responseBody, {
     status: falRes.status,
     headers: responseHeaders,
   });
