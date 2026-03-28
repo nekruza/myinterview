@@ -5,7 +5,7 @@ import { fal } from "@fal-ai/client";
 
 fal.config({ proxyUrl: "/api/fal/proxy" });
 
-type LipSyncState = "idle" | "loading" | "uploading" | "processing" | "ready";
+export type LipSyncState = "idle" | "loading" | "uploading" | "processing" | "ready";
 
 export function useLipSync() {
   const [state, setState] = useState<LipSyncState>("idle");
@@ -29,7 +29,8 @@ export function useLipSync() {
 
       // 2. Upload audio to fal.ai storage (returns a public CDN URL)
       setState("uploading");
-      const audioFile = new File([audioBlob], "speech.mp3", { type: "audio/mpeg" });
+      const mimeType = ttsRes.headers.get("Content-Type") ?? "audio/mpeg";
+      const audioFile = new File([audioBlob], "speech.mp3", { type: mimeType });
       const audioUrl = await fal.storage.upload(audioFile);
       if (cancelledRef.current) return;
 
@@ -45,12 +46,14 @@ export function useLipSync() {
       });
       if (cancelledRef.current) return;
 
-      const video = (result.data as { video: { url: string } }).video;
-      setVideoUrl(video.url);
+      const data = result.data as { video?: { url?: string } } | undefined;
+      const videoUrl = data?.video?.url;
+      if (!videoUrl) throw new Error("Invalid MuseTalk response: missing video.url");
+      setVideoUrl(videoUrl);
       setState("ready");
-    } catch {
+    } catch (err) {
       setState("idle");
-      throw new Error("lip-sync-failed");
+      throw new Error("lip-sync-failed", { cause: err });
     }
   }, []);
 
