@@ -59,17 +59,7 @@ export function useInworldRealtime(): UseInworldRealtimeReturn {
       setAgentState("listening");
     } else if (type === "response.done") {
       setAgentState("idle");
-      const content = currentAssistantContentRef.current.trim();
-      if (content) {
-        setMessages((prev) => {
-          const last = prev[prev.length - 1];
-          if (last?.role === "assistant" && last.content === "") {
-            return [...prev.slice(0, -1), { role: "assistant", content }];
-          }
-          return [...prev, { role: "assistant", content }];
-        });
-        currentAssistantContentRef.current = "";
-      }
+      currentAssistantContentRef.current = "";
     } else if (type === "response.output_text.delta") {
       const delta = (parsed.delta as string) ?? "";
       currentAssistantContentRef.current += delta;
@@ -93,83 +83,92 @@ export function useInworldRealtime(): UseInworldRealtimeReturn {
   }, []);
 
   const connect = useCallback(async (config: RealtimeConfig) => {
+    if (pcRef.current) return;
+
     // Fetch ICE servers from our server (no API key returned)
     const configRes = await fetch("/api/realtime/config");
     if (!configRes.ok) throw new Error("Failed to fetch realtime config");
     const { iceServers } = await configRes.json() as { iceServers: RTCIceServer[] };
 
-    // Get microphone
-    const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    micStreamRef.current = micStream;
+    // Get microphone and establish connection
+    let micStream: MediaStream | null = null;
+    try {
+      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      micStreamRef.current = micStream;
 
-    // Create peer connection
-    const pc = new RTCPeerConnection({ iceServers });
-    pcRef.current = pc;
+      // Create peer connection
+      const pc = new RTCPeerConnection({ iceServers });
+      pcRef.current = pc;
 
-    // Add mic track
-    const audioTrack = micStream.getAudioTracks()[0];
-    pc.addTrack(audioTrack, micStream);
+      // Add mic track
+      const audioTrack = micStream.getAudioTracks()[0];
+      pc.addTrack(audioTrack, micStream);
 
-    // Capture remote audio track for playback
-    pc.ontrack = (event: RTCTrackEvent) => {
-      if (event.track.kind === "audio") {
-        const remoteStream = new MediaStream([event.track]);
-        setAgentAudioStream(remoteStream);
-        const audio = document.getElementById("inworld-agent-audio") as HTMLAudioElement | null;
-        if (audio) {
-          audio.srcObject = remoteStream;
-          audio.play().catch(() => {});
+      // Capture remote audio track for playback
+      pc.ontrack = (event: RTCTrackEvent) => {
+        if (event.track.kind === "audio") {
+          const remoteStream = new MediaStream([event.track]);
+          setAgentAudioStream(remoteStream);
+          const audio = document.getElementById("inworld-agent-audio") as HTMLAudioElement | null;
+          if (audio) {
+            audio.srcObject = remoteStream;
+            audio.play().catch(() => {});
+          }
         }
-      }
-    };
+      };
 
-    // Create data channel
-    const dc = pc.createDataChannel("oai-events");
-    dcRef.current = dc;
+      // Create data channel
+      const dc = pc.createDataChannel("oai-events");
+      dcRef.current = dc;
 
-    dc.onopen = () => {
-      sendEvent({
-        type: "session.update",
-        session: {
-          type: "realtime",
-          model: config.model,
-          instructions: config.instructions,
-          output_modalities: ["audio", "text"],
-          voice: {
-            model: "inworld-tts-1.5-mini",
-            name: config.voice,
+      dc.onopen = () => {
+        sendEvent({
+          type: "session.update",
+          session: {
+            type: "realtime",
+            model: config.model,
+            instructions: config.instructions,
+            output_modalities: ["audio", "text"],
+            voice: {
+              model: "inworld-tts-1.5-mini",
+              name: config.voice,
+            },
+            input_audio_transcription: { model: "inworld-stt-1" },
+            turn_detection: {
+              type: "semantic_vad",
+              create_response: true,
+              interrupt_response: true,
+            },
           },
-          input_audio_transcription: { model: "inworld-stt-1" },
-          turn_detection: {
-            type: "semantic_vad",
-            create_response: true,
-            interrupt_response: true,
-          },
-        },
+        });
+
+        sendEvent({ type: "response.create" });
+
+        setIsConnected(true);
+        setAgentState("processing");
+      };
+
+      dc.onmessage = handleDataChannelMessage;
+
+      // Exchange SDP via our server proxy (API key stays server-side)
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+
+      const sdpRes = await fetch("/api/realtime/connect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sdp: offer.sdp }),
       });
 
-      sendEvent({ type: "response.create" });
+      if (!sdpRes.ok) throw new Error(`SDP exchange failed: ${sdpRes.status}`);
 
-      setIsConnected(true);
-      setAgentState("processing");
-    };
-
-    dc.onmessage = handleDataChannelMessage;
-
-    // Exchange SDP via our server proxy (API key stays server-side)
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
-
-    const sdpRes = await fetch("/api/realtime/connect", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sdp: offer.sdp }),
-    });
-
-    if (!sdpRes.ok) throw new Error(`SDP exchange failed: ${sdpRes.status}`);
-
-    const answerSdp = await sdpRes.text();
-    await pc.setRemoteDescription({ type: "answer", sdp: answerSdp });
+      const answerSdp = await sdpRes.text();
+      await pc.setRemoteDescription({ type: "answer", sdp: answerSdp });
+    } catch (err) {
+      micStream?.getTracks().forEach((t) => t.stop());
+      micStreamRef.current = null;
+      throw err;
+    }
   }, [sendEvent, handleDataChannelMessage]);
 
   const disconnect = useCallback(() => {
