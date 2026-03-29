@@ -167,6 +167,8 @@ export function useInworldRealtime(): UseInworldRealtimeReturn {
     } catch (err) {
       micStream?.getTracks().forEach((t) => t.stop());
       micStreamRef.current = null;
+      pcRef.current?.close();
+      pcRef.current = null;
       throw err;
     }
   }, [sendEvent, handleDataChannelMessage]);
