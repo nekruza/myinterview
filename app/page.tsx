@@ -19,16 +19,16 @@ import {
 } from "@/components/structured-data/OrganizationSchema";
 
 export const metadata: Metadata = {
-  title: "MyInterview — Conquer Interview Anxiety | AI & Peer Practice",
+  title: "MyInterview — Conquer Interview Anxiety | AI Practice",
   description:
-    "MyInterview helps software engineers overcome interview anxiety through AI mock interviews and peer practice sessions. 93% of engineers experience mental freeze — we fix that. Start free.",
+    "MyInterview helps software engineers overcome interview anxiety through AI mock interviews. 93% of engineers experience mental freeze — we fix that. Start free.",
   alternates: {
     canonical: "https://myinterview.com",
   },
   openGraph: {
-    title: "MyInterview — Conquer Interview Anxiety | AI & Peer Practice",
+    title: "MyInterview — Conquer Interview Anxiety | AI Practice",
     description:
-      "AI-powered mock interview practice and peer coaching to help engineers overcome anxiety and land their dream roles. 500+ beta users. Free to start.",
+      "AI-powered mock interview practice to help engineers overcome anxiety and land their dream roles. 500+ beta users. Free to start.",
     url: "https://myinterview.com",
     type: "website",
   },

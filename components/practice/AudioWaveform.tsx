@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useMemo } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 
 interface AudioWaveformProps {
   analyserData?: Uint8Array;
@@ -17,37 +17,67 @@ export const AudioWaveform: FC<AudioWaveformProps> = ({
   variant,
   className = "",
 }) => {
-  const bars = useMemo(() => {
-    if (variant === "user" && analyserData) {
-      // Sample evenly from analyser data
-      const step = Math.floor(analyserData.length / barCount);
-      return Array.from({ length: barCount }, (_, i) => {
-        const val = analyserData[i * step] ?? 0;
-        return isActive ? Math.max(4, (val / 255) * 32) : 4;
-      });
+  const [aiBars, setAiBars] = useState<number[]>(() =>
+    Array.from({ length: barCount }, () => 4)
+  );
+  const rafRef = useRef<number | null>(null);
+  // Per-bar independent phase offsets so they don't move in sync
+  const phaseRef = useRef<number[]>(
+    Array.from({ length: barCount }, (_, i) => i * 1.3)
+  );
+
+  useEffect(() => {
+    if (variant !== "ai") return;
+
+    if (!isActive) {
+      setAiBars(Array.from({ length: barCount }, () => 4));
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      return;
     }
 
-    // AI variant: synthetic animation
-    if (isActive) {
-      return Array.from({ length: barCount }, (_, i) => {
-        const phase = (Date.now() / 200 + i * 0.8) % (Math.PI * 2);
-        return 4 + Math.sin(phase) * 14 + Math.random() * 6;
-      });
-    }
+    // Each bar has its own speed so they feel independent
+    const speeds = Array.from(
+      { length: barCount },
+      (_, i) => 0.04 + (i % 3) * 0.018
+    );
 
-    return Array.from({ length: barCount }, () => 4);
-  }, [analyserData, isActive, barCount, variant]);
+    const tick = () => {
+      phaseRef.current = phaseRef.current.map((p, i) => p + speeds[i]);
+      const next = phaseRef.current.map((phase) => {
+        // Combine two sine waves at different frequencies for organic feel
+        const base = Math.sin(phase) * 0.6 + Math.sin(phase * 2.3) * 0.4;
+        return 3 + (base + 1) * 0.5 * 14; // range ≈ 3–17 px
+      });
+      setAiBars(next);
+      rafRef.current = requestAnimationFrame(tick);
+    };
+
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [isActive, variant, barCount]);
+
+  const bars =
+    variant === "user" && analyserData
+      ? Array.from({ length: barCount }, (_, i) => {
+          const step = Math.floor(analyserData.length / barCount);
+          const val = analyserData[i * step] ?? 0;
+          return isActive ? Math.max(4, (val / 255) * 32) : 4;
+        })
+      : aiBars;
 
   return (
     <div className={`flex items-center justify-center gap-[3px] ${className}`}>
       {bars.map((height, i) => (
         <div
           key={i}
-          className="w-[3px] rounded-full transition-all duration-150 ease-out"
+          className="w-[3px] rounded-full"
           style={{
             height: `${height}px`,
             background: "#2dec29",
-            opacity: isActive ? 0.6 + (height / 32) * 0.4 : 0.3,
+            opacity: isActive ? 0.55 + (height / 20) * 0.45 : 0.3,
+            transition: variant === "user" ? "height 100ms ease-out" : undefined,
           }}
         />
       ))}

@@ -37,7 +37,6 @@ import {
 const navItems = [
   { href: "/app/dashboard", label: "Home", icon: LayoutDashboard },
   { href: "/app/practice", label: "AI Practice", icon: Sparkles },
-  { href: "/app/peer-practice", label: "Peer Practice", icon: Users },
   { href: "/app/progress", label: "Progress", icon: TrendingUp },
   { href: "/app/resources", label: "Resources", icon: BookOpen },
   { href: "/app/settings", label: "Profile", icon: Settings },
@@ -109,7 +108,6 @@ export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [plan, setPlan] = useState<"free" | "pro" | null>(null);
   const [practiceUsed, setPracticeUsed] = useState(0);
-  const [peerJoinsUsed, setPeerJoinsUsed] = useState(0);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -127,7 +125,6 @@ export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
       if (data?.profile) {
         setPlan(data.profile.plan ?? "free");
         setPracticeUsed(data.profile.practice_sessions_used ?? 0);
-        setPeerJoinsUsed(data.profile.peer_sessions_joined ?? 0);
       }
     });
   }, [fetchNotifications]);
@@ -313,7 +310,7 @@ export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
                   href="/app/settings"
                   className="flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 mx-auto relative"
                   style={{
-                    color: (practiceUsed >= 5 || peerJoinsUsed >= 3)
+                    color: practiceUsed >= 3
                       ? "#f59e0b"
                       : "rgba(0,0,0,0.45)",
                     border: "1px solid transparent",
@@ -331,7 +328,7 @@ export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
                     className="w-5 h-5"
                     style={{ filter: "drop-shadow(0 1px 1.5px rgba(0,0,0,0.12))" }}
                   />
-                  {(practiceUsed >= 5 || peerJoinsUsed >= 3) && (
+                  {practiceUsed >= 3 && (
                     <span
                       className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full animate-pulse"
                       style={{ background: "#f59e0b" }}
@@ -341,8 +338,7 @@ export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
               </TooltipTrigger>
               <TooltipContent side="right" className="max-w-[200px]">
                 <p className="font-semibold text-xs mb-1">Free Plan</p>
-                <p className="text-xs">{Math.max(0, 5 - practiceUsed)}/5 AI sessions left</p>
-                <p className="text-xs">{Math.max(0, 3 - peerJoinsUsed)}/3 peer joins left</p>
+                <p className="text-xs">{Math.max(0, 3 - practiceUsed)}/3 AI sessions left</p>
                 <p className="text-xs mt-1 opacity-70">Click to upgrade →</p>
               </TooltipContent>
             </Tooltip>

@@ -34,7 +34,7 @@ export async function POST(req: Request) {
         },
         body: JSON.stringify({
           text,
-          voiceId: process.env.INWORLD_VOICE_ID ?? "Ashley",
+          voiceId: process.env.INWORLD_VOICE_ID ?? "Jason",
           modelId: "inworld-tts-1.5-mini",
         }),
       });

@@ -59,7 +59,7 @@ export const TranscriptPanel: FC<TranscriptPanelProps> = ({
                     msg.role === "user" ? "#2dec29" : "rgba(255,255,255,0.45)",
                 }}
               >
-                {msg.role === "user" ? "You" : "Maria"}
+                {msg.role === "user" ? "You" : "Jason"}
               </p>
               <p className="text-[13px] text-white/85 leading-relaxed">
                 {msg.content}

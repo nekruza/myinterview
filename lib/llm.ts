@@ -21,7 +21,6 @@ export async function* streamLLM(
   try {
     yield* streamGemini(opts);
   } catch (err) {
-    console.error("Gemini failed, falling back to OpenAI:", err);
     yield* streamOpenAI(opts);
   }
 }

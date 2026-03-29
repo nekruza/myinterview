@@ -24,7 +24,7 @@ export const FeaturesSection: FC = () => {
             Everything You Need to Succeed
           </h2>
           <p className="text-xl text-neutral-700 max-w-3xl mx-auto">
-            AI + peer practice + anxiety techniques + behavioral &amp; technical
+            AI practice + anxiety techniques + behavioral &amp; technical
             prep + progress tracking
           </p>
         </div>
@@ -76,43 +76,25 @@ export const FeaturesSection: FC = () => {
                 </div>
               </div>
 
-              {/* Practice Partners Card */}
-              <div className="bg-cream rounded-3xl p-6 border-2 border-neutral-200">
-                <div className="flex items-center justify-between mb-6">
-                  <h4 className="font-bold text-lg text-secondary">
-                    Practice Partners
-                  </h4>
-                  <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">
-                    3 Live
-                  </span>
-                </div>
-                <div className="space-y-3">
-                  {[
-                    { name: "Marcus T.", level: "Senior • Google", img: "https://randomuser.me/api/portraits/men/9.jpg" },
-                    { name: "Aisha K.", level: "Staff • Stripe", img: "https://randomuser.me/api/portraits/women/37.jpg" },
-                    { name: "Alex B.", level: "Mid • Amazon", img: "https://randomuser.me/api/portraits/men/41.jpg" },
-                  ].map((partner, i) => (
-                    <div
-                      key={i}
-                      className="group bg-white rounded-xl p-3 border border-neutral-200 hover:border-primary hover:shadow-md transition cursor-pointer"
-                    >
-                      <div className="flex items-center space-x-3 mb-2">
-                        <img
-                          src={partner.img}
-                          alt={partner.name}
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                        <div className="flex-1">
-                          <p className="font-bold text-sm">{partner.name}</p>
-                          <p className="text-xs text-neutral-500">{partner.level}</p>
-                        </div>
+              {/* Quick Start Card */}
+              <div className="bg-cream rounded-3xl p-6 border-2 border-neutral-200 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-6">
+                    <h4 className="font-bold text-lg text-secondary">Start in seconds</h4>
+                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">24/7</span>
+                  </div>
+                  <div className="space-y-3">
+                    {["Pick a question type", "Answer out loud or in text", "Get instant R-STAR feedback"].map((step, i) => (
+                      <div key={i} className="flex items-center gap-3 bg-white rounded-xl p-3 border border-neutral-200">
+                        <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-black flex items-center justify-center flex-shrink-0">{i + 1}</span>
+                        <p className="text-sm font-medium text-secondary">{step}</p>
                       </div>
-                      <Link href="/signup" className="block w-full bg-primary text-white py-2 rounded-lg text-xs font-semibold group-hover:bg-secondary transition text-center" onClick={() => track("CTA Clicked", { button: "Schedule", location: "features", partner: partner.name })}>
-                        Schedule
-                      </Link>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
+                <Link href="/signup" className="mt-6 block w-full bg-primary text-white py-2.5 rounded-xl text-sm font-semibold text-center hover:bg-secondary transition" onClick={() => track("CTA Clicked", { button: "Try it free", location: "features" })}>
+                  Try it free →
+                </Link>
               </div>
 
               {/* Interview Types Cards */}

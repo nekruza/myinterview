@@ -5,10 +5,9 @@ import { Zap, ChevronRight } from "lucide-react";
 
 interface FreeBannerProps {
   practiceLeft: number;
-  peerJoinsLeft: number;
 }
 
-export function FreeBanner({ practiceLeft, peerJoinsLeft }: FreeBannerProps) {
+export function FreeBanner({ practiceLeft }: FreeBannerProps) {
   const [loading, setLoading] = useState(false);
 
   async function handleUpgrade() {
@@ -41,9 +40,7 @@ export function FreeBanner({ practiceLeft, peerJoinsLeft }: FreeBannerProps) {
       <div className="flex-1 min-w-0">
         <p className="text-xs font-bold text-amber-800 leading-tight">Free Plan</p>
         <p className="text-[11px] text-amber-600 mt-0.5">
-          {practiceLeft}/5 AI sessions left
-          &nbsp;·&nbsp;
-          {peerJoinsLeft}/3 peer joins left
+          {practiceLeft}/3 AI sessions left this month
         </p>
       </div>
       <div className="flex items-center gap-1 text-xs font-bold shrink-0" style={{ color: "#d97706" }}>

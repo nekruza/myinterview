@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 // A user message is a real answer only if it is NOT the auto-generated session start message
 const SESSION_START_RE = /^\[SESSION START\]/i;
 
-const FEEDBACK_SYSTEM_PROMPT = (interviewType: string, level: string, role: string) => {
+const FEEDBACK_SYSTEM_PROMPT = (interviewType: string, level: string, role: string, resumeText?: string, jobContext?: { mode: string; value: string }) => {
   const isTechnical = interviewType === "technical";
 
   const scoringFocus = isTechnical
@@ -20,7 +20,15 @@ const FEEDBACK_SYSTEM_PROMPT = (interviewType: string, level: string, role: stri
 - Ownership and accountability language
 - Communication clarity and conciseness`;
 
-  return `You are a strict, honest interview coach evaluating a ${level} ${role} candidate in a ${interviewType} interview.
+  const resumeBlock = resumeText?.trim()
+    ? `\n\nCandidate's resume (use their actual companies, projects, technologies, and experiences when generating example answers):\n---\n${resumeText.trim()}\n---`
+    : "";
+
+  const jobBlock = jobContext?.mode === "paste" && jobContext.value
+    ? `\n\nJob description they are interviewing for:\n---\n${jobContext.value}\n---\nTailor your feedback and example answers to be relevant to this specific role.`
+    : "";
+
+  return `You are a strict, honest interview coach evaluating a ${level} ${role} candidate in a ${interviewType} interview.${resumeBlock}${jobBlock}
 
 You will receive a transcript labeled with "Candidate:" and "Interviewer:" lines.
 You must ONLY score the CANDIDATE's responses — the interviewer lines are context only.
@@ -84,6 +92,8 @@ export async function POST(req: NextRequest) {
       interviewType = "technical",
       level = "mid",
       role = "software engineer",
+      resumeText,
+      jobContext,
     } = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
@@ -113,7 +123,7 @@ export async function POST(req: NextRequest) {
       )
       .join("\n\n");
 
-    const systemPrompt = FEEDBACK_SYSTEM_PROMPT(interviewType, level, role);
+    const systemPrompt = FEEDBACK_SYSTEM_PROMPT(interviewType, level, role, resumeText, jobContext);
     const userMessage = `Transcript:\n\n${transcript}`;
 
     // Collect all chunks — no streaming to client needed

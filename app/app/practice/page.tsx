@@ -1,19 +1,17 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import {
   CheckCircle,
+  CheckCircle2,
   Sparkles,
-  ArrowLeft,
   Brain,
   Users,
   FileText,
   Zap,
-  Upload,
-  Loader2,
-  CheckCircle2,
-  Trash2,
+  MessageSquare,
+  Star,
 } from "lucide-react";
 import Link from "next/link";
 import { VoiceCallView } from "@/components/practice/VoiceCallView";
@@ -21,6 +19,7 @@ import { LEVELS, TECH_ROLES } from "@/lib/practice-data";
 import type { Phase, Message } from "@/lib/practice-data";
 import { createClient } from "@/lib/supabase/client";
 import { UpgradeModal } from "@/components/UpgradeModal";
+import { ResumeUpload } from "@/components/ResumeUpload";
 
 type InterviewType = "technical" | "behavioural";
 type JobContextMode = "paste" | "general";
@@ -30,7 +29,7 @@ type JobContextMode = "paste" | "general";
 export default function PracticePage() {
   const [phase, setPhase] = useState<Phase>("setup");
   const [interviewType, setInterviewType] = useState<InterviewType>("technical");
-  const [jobContextMode, setJobContextMode] = useState<JobContextMode>("general");
+  const [jobContextMode, setJobContextMode] = useState<JobContextMode>("paste");
   const [jobDescription, setJobDescription] = useState("");
   const [role, setRole] = useState("general");
   const [customRole, setCustomRole] = useState("");
@@ -41,6 +40,14 @@ export default function PracticePage() {
   const [feedbackData, setFeedbackData] = useState<{ score: number; improvements: { point: string; example: string }[] } | null>(null);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
 
+  // User feedback dialog
+  const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [feedbackCategory, setFeedbackCategory] = useState<"bug" | "suggestion" | "other">("suggestion");
+  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+
   // Usage / plan
   const [plan, setPlan] = useState<"free" | "pro">("free");
   const [sessionsUsed, setSessionsUsed] = useState(0);
@@ -48,9 +55,7 @@ export default function PracticePage() {
 
   // Resume
   const [hasResume, setHasResume] = useState<boolean | null>(null);
-  const [uploadingResume, setUploadingResume] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
-  const resumeInputRef = useRef<HTMLInputElement>(null);
+  const [resumeText, setResumeText] = useState<string | null>(null);
 
   const supabase = createClient();
 
@@ -58,80 +63,61 @@ export default function PracticePage() {
     async function checkProfile() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      setUserId(user.id);
 
       const [{ data: profile }, { data: subscription }] = await Promise.all([
-        supabase.from("profiles").select("resume_url, practice_sessions_used").eq("id", user.id).single(),
+        supabase.from("profiles").select("resume_url, resume_text, practice_sessions_used, experience_level, interview_style, target_role").eq("id", user.id).single(),
         supabase.from("subscriptions").select("plan").eq("user_id", user.id).single(),
       ]);
 
       setHasResume(!!profile?.resume_url);
+      setResumeText(profile?.resume_text ?? null);
       setSessionsUsed(profile?.practice_sessions_used ?? 0);
       setPlan((subscription?.plan as "free" | "pro") ?? "free");
+
+      // Preset from onboarding preferences
+      if (profile?.experience_level) {
+        // "student" from onboarding has no direct match — treat as junior
+        setLevel(profile.experience_level === "student" ? "junior" : profile.experience_level);
+      }
+      if (profile?.target_role) {
+        const isKnown = TECH_ROLES.some((r) => r.value === profile.target_role);
+        if (isKnown) {
+          setRole(profile.target_role);
+        } else {
+          setRole("other");
+          setCustomRole(profile.target_role);
+        }
+      }
+      if (profile?.interview_style) {
+        // Map onboarding style values to practice page InterviewType
+        if (profile.interview_style === "technical") setInterviewType("technical");
+        else if (profile.interview_style === "behavioral") setInterviewType("behavioural");
+        // "mixed" and "case" leave the default
+      }
     }
     checkProfile();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function handleResumeUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file || !userId) return;
 
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("Resume must be under 10 MB");
-      return;
-    }
-
-    setUploadingResume(true);
+  const submitUserFeedback = async () => {
+    if (!feedbackMessage.trim() && feedbackRating === 0) return;
+    setFeedbackSubmitting(true);
     try {
-      const path = `${userId}/${file.name}`;
-
-      const { data: existing } = await supabase.storage
-        .from("resumes")
-        .list(userId);
-
-      if (existing?.length) {
-        await supabase.storage
-          .from("resumes")
-          .remove(existing.map((f) => `${userId}/${f.name}`));
-      }
-
-      const { error: uploadError } = await supabase.storage
-        .from("resumes")
-        .upload(path, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      await supabase
-        .from("profiles")
-        .update({ resume_url: `resumes/${path}` })
-        .eq("id", userId);
-
-      setHasResume(true);
-      toast.success("Resume saved — your interview will be tailored to your experience!");
+      const { data: { user } } = await supabase.auth.getUser();
+      await supabase.from("user_feedback").insert({
+        user_id: user?.id ?? null,
+        session_id: sessionId ?? null,
+        rating: feedbackRating || null,
+        message: feedbackMessage.trim() || null,
+        category: feedbackCategory,
+      });
+      setFeedbackSubmitted(true);
     } catch {
-      toast.error("Failed to upload resume");
+      toast.error("Could not submit feedback. Please try again.");
     } finally {
-      setUploadingResume(false);
-      if (resumeInputRef.current) resumeInputRef.current.value = "";
+      setFeedbackSubmitting(false);
     }
-  }
-
-  async function handleResumeDelete() {
-    if (!userId) return;
-    try {
-      const { data: existing } = await supabase.storage.from("resumes").list(userId);
-      if (existing?.length) {
-        await supabase.storage
-          .from("resumes")
-          .remove(existing.map((f) => `${userId}/${f.name}`));
-      }
-      await supabase.from("profiles").update({ resume_url: null }).eq("id", userId);
-      setHasResume(false);
-      toast.success("Resume removed.");
-    } catch {
-      toast.error("Failed to delete resume.");
-    }
-  }
+  };
 
   const getJobContext = () => {
     if (jobContextMode === "paste" && jobDescription.trim()) return { mode: "paste" as const, value: jobDescription.trim() };
@@ -139,7 +125,7 @@ export default function PracticePage() {
   };
 
   const startSession = async () => {
-    if (plan === "free" && sessionsUsed >= 5) {
+    if (plan === "free" && sessionsUsed >= 3) {
       setShowUpgrade(true);
       return;
     }
@@ -190,6 +176,8 @@ export default function PracticePage() {
           interviewType,
           level,
           role: role === "other" ? customRole.trim() : role,
+          resumeText: resumeText ?? undefined,
+          jobContext: getJobContext(),
         }),
       });
       const data = await res.json();
@@ -230,15 +218,6 @@ export default function PracticePage() {
   if (phase === "setup") {
     return (
       <div className="max-w-5xl mx-auto w-full">
-        {/* Hidden resume input */}
-        <input
-          ref={resumeInputRef}
-          type="file"
-          accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-          className="hidden"
-          onChange={handleResumeUpload}
-        />
-
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <div>
@@ -429,59 +408,12 @@ export default function PracticePage() {
                   </span>
                 </div>
 
-                {/* File upload (only when no resume on file) */}
-                {hasResume === false && (
-                  <>
-                    <p className="text-xs text-neutral-400 mb-3">
-                      Upload your resume so the AI can tailor questions to your background.
-                    </p>
-                    <button
-                      onClick={() => resumeInputRef.current?.click()}
-                      disabled={uploadingResume}
-                      className="w-full border-2 border-dashed border-neutral-200 rounded-xl py-4 flex items-center justify-center gap-2 hover:border-[#2dec29]/60 hover:bg-neutral-50/50 transition group disabled:opacity-60 mb-4"
-                    >
-                      {uploadingResume ? (
-                        <Loader2 className="w-4 h-4 text-neutral-300 animate-spin" />
-                      ) : (
-                        <Upload className="w-4 h-4" style={{ color: "#2dec29" }} />
-                      )}
-                      <span className="text-sm font-medium text-neutral-600">
-                        {uploadingResume ? "Uploading..." : "Upload Resume"}
-                      </span>
-                      <span className="text-xs text-neutral-400">· PDF, DOC or DOCX · Max 10 MB</span>
-                    </button>
-                  </>
-                )}
-
-                {/* Resume on file indicator + actions */}
-                {hasResume === true && (
-                  <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-neutral-50 border border-neutral-100">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: "#2dec29" }} />
-                      <span className="text-xs font-medium text-neutral-600 truncate">Resume uploaded</span>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        onClick={() => resumeInputRef.current?.click()}
-                        disabled={uploadingResume}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-neutral-600 bg-white border border-neutral-200 hover:border-[#2dec29]/60 hover:text-secondary transition disabled:opacity-50"
-                      >
-                        {uploadingResume ? (
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                        ) : (
-                          <Upload className="w-3 h-3" />
-                        )}
-                        Replace
-                      </button>
-                      <button
-                        onClick={handleResumeDelete}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-red-500 bg-white border border-neutral-200 hover:border-red-300 hover:bg-red-50 transition"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                        Delete
-                      </button>
-                    </div>
-                  </div>
+                {hasResume !== null && (
+                  <ResumeUpload
+                    initialFileName={hasResume ? "resume on file" : null}
+                    onUploadSuccess={() => setHasResume(true)}
+                    onDeleteSuccess={() => setHasResume(false)}
+                  />
                 )}
               </div>
             )}
@@ -595,10 +527,10 @@ export default function PracticePage() {
       <div className="sticky bottom-16 md:bottom-0 -mx-4 sm:-mx-6 md:-mb-8 px-4 sm:px-6 py-4 mt-6 border-t border-neutral-100" style={{ background: "rgba(250,249,246,0.97)", backdropFilter: "blur(8px)" }}>
         {plan === "free" && (
           <p className="text-center text-xs text-neutral-400 mb-2">
-            {sessionsUsed >= 5 ? (
+            {sessionsUsed >= 3 ? (
               <span className="text-amber-600 font-medium">Free limit reached — upgrade for unlimited sessions</span>
             ) : (
-              <span>{5 - sessionsUsed} free session{5 - sessionsUsed !== 1 ? "s" : ""} remaining</span>
+              <span>{3 - sessionsUsed} free session{3 - sessionsUsed !== 1 ? "s" : ""} remaining</span>
             )}
           </p>
         )}
@@ -608,7 +540,7 @@ export default function PracticePage() {
           style={{ background: "#2dec29", color: "#112715" }}
         >
           <Sparkles className="w-4 h-4" />
-          {plan === "free" && sessionsUsed >= 5 ? "Upgrade to Continue" : "Start Voice Practice"}
+          {plan === "free" && sessionsUsed >= 3 ? "Upgrade to Continue" : "Start Voice Practice"}
         </button>
       </div>
 
@@ -633,6 +565,7 @@ export default function PracticePage() {
         sessionId={sessionId}
         interviewType={interviewType}
         jobContext={jobContext}
+        resumeText={resumeText ?? undefined}
         onComplete={(msgs, duration) => completeSession(msgs, duration)}
         onReset={() => {
           setPhase("setup");
@@ -775,7 +708,105 @@ export default function PracticePage() {
         >
           View Progress
         </Link>
+        <button
+          onClick={() => { setShowFeedbackDialog(true); setFeedbackSubmitted(false); }}
+          className="px-6 py-2.5 rounded-xl font-semibold text-sm border border-neutral-200 text-secondary hover:bg-neutral-50 transition flex items-center gap-2"
+        >
+          <MessageSquare className="w-4 h-4" />
+          Feedback
+        </button>
       </div>
+
+      {/* Feedback Dialog */}
+      {showFeedbackDialog && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.4)" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowFeedbackDialog(false); }}
+        >
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+            {feedbackSubmitted ? (
+              <div className="text-center py-6 space-y-3">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto" style={{ background: "#f4fdf3" }}>
+                  <CheckCircle className="w-6 h-6" style={{ color: "#2dec29" }} />
+                </div>
+                <p className="font-bold text-secondary text-lg">Thanks for your feedback!</p>
+                <p className="text-sm text-neutral-500">We read every submission and use it to improve.</p>
+                <button
+                  onClick={() => setShowFeedbackDialog(false)}
+                  className="mt-2 px-5 py-2 rounded-xl text-sm font-semibold border border-neutral-200 text-secondary hover:bg-neutral-50 transition"
+                >
+                  Close
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="text-base font-bold text-secondary">Share your feedback</h2>
+                  <button onClick={() => setShowFeedbackDialog(false)} className="text-neutral-400 hover:text-neutral-600 transition text-xl leading-none">&times;</button>
+                </div>
+
+                {/* Rating */}
+                <div className="mb-4">
+                  <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-2">How was your session?</p>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button key={star} onClick={() => setFeedbackRating(star)}>
+                        <Star
+                          className="w-7 h-7 transition"
+                          style={{ color: star <= feedbackRating ? "#f59e0b" : "#e5e7eb", fill: star <= feedbackRating ? "#f59e0b" : "none" }}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Category */}
+                <div className="mb-4">
+                  <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-2">Type</p>
+                  <div className="flex gap-2">
+                    {(["suggestion", "bug", "other"] as const).map((c) => (
+                      <button
+                        key={c}
+                        onClick={() => setFeedbackCategory(c)}
+                        className="px-3 py-1.5 rounded-lg text-xs font-medium border transition capitalize"
+                        style={{
+                          borderColor: feedbackCategory === c ? "#2dec29" : "transparent",
+                          background: feedbackCategory === c ? "#f4fdf3" : "#f9fafb",
+                          color: feedbackCategory === c ? "#112715" : "#6b7280",
+                        }}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Message */}
+                <div className="mb-5">
+                  <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-2">Message</p>
+                  <textarea
+                    value={feedbackMessage}
+                    onChange={(e) => setFeedbackMessage(e.target.value)}
+                    placeholder="Tell us what you think, what's broken, or what you'd love to see..."
+                    rows={4}
+                    className="w-full px-4 py-3 rounded-xl border border-neutral-200 text-sm text-secondary placeholder:text-neutral-300 focus:outline-none focus:border-[#2dec29] focus:ring-1 focus:ring-[#2dec29] transition resize-none"
+                  />
+                </div>
+
+                <button
+                  onClick={submitUserFeedback}
+                  disabled={feedbackSubmitting || (!feedbackMessage.trim() && feedbackRating === 0)}
+                  className="w-full py-2.5 rounded-xl font-bold text-sm transition disabled:opacity-40"
+                  style={{ background: "#2dec29", color: "#112715" }}
+                >
+                  {feedbackSubmitting ? "Submitting..." : "Submit Feedback"}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

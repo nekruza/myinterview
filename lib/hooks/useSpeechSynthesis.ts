@@ -19,11 +19,11 @@ export function useSpeechSynthesis() {
     const loadVoices = () => {
       const voices = window.speechSynthesis.getVoices();
       const preferred = [
-        "Google UK English Female",
         "Google US English",
-        "Samantha",
-        "Karen",
-        "Microsoft Zira",
+        "Daniel",
+        "Alex",
+        "Microsoft David",
+        "Google UK English Male",
       ];
       for (const name of preferred) {
         const found = voices.find((v) => v.name.includes(name));

@@ -32,7 +32,7 @@ export const HeroSection: FC = () => {
               </span>
             </h1>
             <p className="text-xl text-neutral-800 mb-8 leading-relaxed">
-              Practice behavioral &amp; technical interviews with AI and peers.{" "}
+              Practice behavioral &amp; technical interviews with AI.{" "}
               <strong className="font-semibold text-secondary">
                 Become confident and fluent.
               </strong>
