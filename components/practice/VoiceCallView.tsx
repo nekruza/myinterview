@@ -15,6 +15,8 @@ import { NotesPanel } from "./NotesPanel";
 import { SessionTimer } from "./SessionTimer";
 import type { Message } from "@/lib/practice-data";
 import { LEVELS } from "@/lib/practice-data";
+import { useInworldRealtime } from "@/lib/hooks/useInworldRealtime";
+import { buildInterviewInstructions } from "@/lib/utils/buildInterviewInstructions";
 
 interface JobContext {
   mode: "link" | "paste" | "general";
@@ -71,6 +73,13 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
   const speech = useSpeechRecognition();
   const tts = useSpeechSynthesis();
   const visualizer = useAudioVisualizer();
+
+  // ── Inworld Realtime ──
+  const useRealtime =
+    process.env.NEXT_PUBLIC_INWORLD_REALTIME_ENABLED === "true" &&
+    typeof RTCPeerConnection !== "undefined";
+
+  const realtime = useInworldRealtime();
 
   // Ref so cleanup effects always see the live stream regardless of closure capture
   const webcamStreamRef = useRef<MediaStream | null>(null);
@@ -147,14 +156,33 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
       // Abort session start if mic was never acquired
       if (!micAcquired || !mounted) return;
 
-      // Start timer and kick off AI
+      // Start timer
       timer.start();
-      await sendToAI([
-        {
-          role: "user",
-          content: `[SESSION START] I'm a ${LEVELS.find((l) => l.value === level)?.label} engineer. Please present the practice question and guide me through the session.`,
-        },
-      ]);
+
+      if (useRealtime) {
+        const instructions = buildInterviewInstructions({
+          interviewType: interviewType ?? "technical",
+          level,
+          category: selectedCategory.id,
+          question: selectedQuestion,
+          role,
+          jobContext,
+          resumeText,
+        });
+        await realtime.connect({
+          instructions,
+          voice: "Dennis",
+          model: "google-ai-studio/gemini-2.5-flash",
+          interviewType: interviewType ?? "technical",
+        });
+      } else {
+        await sendToAI([
+          {
+            role: "user",
+            content: `[SESSION START] I'm a ${LEVELS.find((l) => l.value === level)?.label} engineer. Please present the practice question and guide me through the session.`,
+          },
+        ]);
+      }
     };
 
     init();
@@ -352,6 +380,26 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
     }
   }, [convState]);
 
+  // ── Sync Realtime agentState → convState ──
+  useEffect(() => {
+    if (!useRealtime) return;
+    if (realtime.agentState === "speaking") setConvState("ai_speaking");
+    else if (realtime.agentState === "listening") setConvState("listening");
+    else if (realtime.agentState === "processing") setConvState("processing");
+    else if (realtime.agentState === "idle" && convState !== "paused" && convState !== "ending") {
+      setConvState("listening");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [realtime.agentState, useRealtime]);
+
+  // ── Start visualizer with Realtime agent audio ──
+  useEffect(() => {
+    if (!useRealtime || !realtime.agentAudioStream) return;
+    visualizer.startAnalyser(realtime.agentAudioStream);
+    return () => visualizer.stopAnalyser();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [realtime.agentAudioStream, useRealtime]);
+
   // ── Manual send (fallback when silence detection doesn't fire) ──
   const handleManualSend = useCallback(() => {
     const transcript = (speech.finalTranscript + speech.transcript).trim();
@@ -373,7 +421,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
     setHintLoading(true);
     try {
       // Use the last AI message as the current question, not the session label
-      const msgs = messagesRef.current;
+      const msgs = useRealtime ? realtime.messages : messagesRef.current;
       const lastAiMessage = [...msgs].reverse().find((m) => m.role === "assistant")?.content ?? selectedQuestion;
 
       const res = await fetch("/api/ai/voice", {
@@ -406,23 +454,38 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
   const handlePause = useCallback(() => {
     if (convState === "paused") {
       timer.start();
-      startListeningToUser();
+      if (useRealtime) {
+        realtime.muteMic(false);
+        setConvState("listening");
+      } else {
+        startListeningToUser();
+      }
     } else {
       setConvState("paused");
       timer.pause();
-      speech.stopListening();
-      tts.cancel();
+      if (useRealtime) {
+        realtime.cancelResponse();
+        realtime.muteMic(true);
+      } else {
+        speech.stopListening();
+        tts.cancel();
+      }
     }
-  }, [convState, timer, speech, tts, startListeningToUser]);
+  }, [convState, timer, speech, tts, startListeningToUser, useRealtime, realtime]);
 
   // ── Stop / End session ──
   const handleStop = useCallback(() => {
     setConvState("ending");
     timer.pause();
-    speech.stopListening();
-    tts.cancel();
+    if (useRealtime) {
+      realtime.cancelResponse();
+      realtime.muteMic(true);
+    } else {
+      speech.stopListening();
+      tts.cancel();
+    }
     setShowEndModal(true);
-  }, [timer, speech, tts]);
+  }, [timer, speech, tts, useRealtime, realtime]);
 
   // ── Toggle camera ──
   const handleToggleCamera = useCallback(() => {
@@ -437,16 +500,22 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
 
   // ── Skip (ask next question) ──
   const handleSkip = useCallback(() => {
-    speech.stopListening();
-    tts.cancel();
-    const skipMsg: Message = {
-      role: "user",
-      content: "Let's move on to the next aspect of this question. What else should I think about?",
-    };
-    const updated = [...messagesRef.current, skipMsg];
-    setMessages(updated);
-    sendToAI(updated);
-  }, [speech, tts, sendToAI]);
+    if (useRealtime) {
+      realtime.sendTextMessage(
+        "Let's move on to the next aspect of this question. What else should I think about?"
+      );
+    } else {
+      speech.stopListening();
+      tts.cancel();
+      const skipMsg: Message = {
+        role: "user",
+        content: "Let's move on to the next aspect of this question. What else should I think about?",
+      };
+      const updated = [...messagesRef.current, skipMsg];
+      setMessages(updated);
+      sendToAI(updated);
+    }
+  }, [speech, tts, sendToAI, useRealtime, realtime]);
 
   // ── Cleanup on unmount ──
   useEffect(() => {
@@ -454,6 +523,9 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
       // Stop all active processes
       speech.stopListening();
       tts.cancel();
+      if (useRealtime) {
+        realtime.disconnect();
+      }
       visualizer.stopAnalyser();
       timer.pause();
 
@@ -481,7 +553,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
   }, []);
 
   // ── Browser not supported ──
-  if (!speech.isSupported) {
+  if (!useRealtime && !speech.isSupported) {
     return (
       <div className="fixed inset-0 z-50 bg-[#0a1f0e] flex items-center justify-center">
         <div className="text-center max-w-md px-6">
@@ -601,7 +673,11 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
           <VideoArea
             webcamStream={webcamStream}
             isAISpeaking={convState === "ai_speaking"}
-            isUserSpeaking={convState === "listening" && speech.isListening}
+            isUserSpeaking={
+              useRealtime
+                ? realtime.agentState === "listening"
+                : convState === "listening" && speech.isListening
+            }
             analyserData={visualizer.analyserData}
           />
 
@@ -671,9 +747,19 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
 
         {/* Transcript side panel */}
         <TranscriptPanel
-          messages={messages}
-          interimTranscript={convState === "listening" ? (speech.finalTranscript + speech.transcript).trim() : ""}
-          isActivelyListening={convState === "listening" && !!speech.transcript}
+          messages={useRealtime ? realtime.messages : messages}
+          interimTranscript={
+            useRealtime
+              ? ""
+              : convState === "listening"
+              ? (speech.finalTranscript + speech.transcript).trim()
+              : ""
+          }
+          isActivelyListening={
+            useRealtime
+              ? realtime.agentState === "listening"
+              : convState === "listening" && !!speech.transcript
+          }
           isVisible={showCaptions}
         />
       </div>
@@ -709,7 +795,11 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
                   webcamStreamRef.current?.getTracks().forEach((t) => t.stop());
                   webcamStreamRef.current = null;
                   visualizer.stopAnalyser();
-                  onComplete(messagesRef.current, timer.formatted);
+                  if (useRealtime) realtime.disconnect();
+                  onComplete(
+                    useRealtime ? realtime.messages : messagesRef.current,
+                    timer.formatted
+                  );
                 }}
                 className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition"
                 style={{ background: "#2dec29", color: "#112715" }}
