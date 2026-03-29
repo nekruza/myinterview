@@ -386,7 +386,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
     if (realtime.agentState === "speaking") setConvState("ai_speaking");
     else if (realtime.agentState === "listening") setConvState("listening");
     else if (realtime.agentState === "processing") setConvState("processing");
-    else if (realtime.agentState === "idle" && convState !== "paused" && convState !== "ending") {
+    else if (realtime.agentState === "idle" && convState !== "paused" && convState !== "ending" && convState !== "initializing") {
       setConvState("listening");
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -448,7 +448,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
     } finally {
       setHintLoading(false);
     }
-  }, [selectedQuestion, selectedCategory.id, level, role, sessionId, interviewType, jobContext, resumeText]);
+  }, [selectedQuestion, selectedCategory.id, level, role, sessionId, interviewType, jobContext, resumeText, useRealtime, realtime]);
 
   // ── Pause / Resume ──
   const handlePause = useCallback(() => {
