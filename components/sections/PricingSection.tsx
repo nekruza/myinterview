@@ -14,7 +14,6 @@ export const PricingSection: FC = () => {
       description: "Perfect to get started",
       features: [
         { text: "Unlimited AI practice", bold: true },
-        { text: "3 peer sessions /month", bold: true },
         { text: "Behavioral & technical questions", bold: false },
         { text: "Basic anxiety techniques library", bold: false },
         { text: "Community access", bold: false },
@@ -32,8 +31,7 @@ export const PricingSection: FC = () => {
       description: "Serious about landing offers",
       features: [
         { text: "Everything in Free", bold: true },
-        { text: "Unlimited peer sessions", bold: true },
-        { text: "Advanced anxiety techniques", bold: false },
+        { text: "Advanced anxiety techniques", bold: true },
         { text: "Personalized practice plan", bold: false },
         { text: "Priority support", bold: false },
         { text: "Interview prep resources", bold: false },

@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppSidebar } from "./AppSidebar";
 import { Toaster } from "@/components/ui/sonner";
-import { OnboardingWrapper } from "@/components/OnboardingWrapper";
 
 export default async function AppLayout({
   children,
@@ -24,7 +23,9 @@ export default async function AppLayout({
     .eq("id", user.id)
     .single();
 
-  const isOnboarded = !!profile?.onboarding_complete;
+  if (!profile?.onboarding_complete) {
+    redirect("/onboarding");
+  }
 
   return (
     <div className="flex h-screen overflow-hidden relative" style={{
@@ -43,7 +44,6 @@ export default async function AppLayout({
         <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8 pb-24 md:pb-8">{children}</div>
       </main>
       <Toaster position="top-right" />
-      <OnboardingWrapper isOnboarded={isOnboarded} />
     </div>
   );
 }

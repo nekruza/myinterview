@@ -76,6 +76,7 @@ export const TECH_ROLES = [
 ];
 
 export const LEVELS = [
+  { value: "student", label: "Student / Graduate" },
   { value: "junior", label: "Junior (0-2 yrs)" },
   { value: "mid", label: "Mid-level (3-5 yrs)" },
   { value: "senior", label: "Senior (6-9 yrs)" },

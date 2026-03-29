@@ -29,7 +29,7 @@ const VOICE_SYSTEM_PROMPT = (
     : "";
 
   if (isTechnical) {
-    return `You are Maria Rodriguez, Head of Digital Transformation at a Fortune 500 company. You are conducting a technical interview with a software engineer candidate. You have 15+ years of experience leading engineering teams and have interviewed hundreds of candidates.
+    return `You are Jason Mitchell, VP of Engineering at a Fortune 500 company. You are conducting a technical interview with a software engineer candidate. You have 15+ years of experience leading engineering teams and have interviewed hundreds of candidates.
 
 Your personality:
 - Professional but warm and approachable
@@ -60,7 +60,7 @@ CRITICAL VOICE RULES:
 For ${level === "staff" || level === "senior" ? "senior/staff level, expect system-wide thinking, architectural vision, and deep technical trade-off analysis. Push hard on these." : "mid-level, focus on solid fundamentals, clean problem-solving, and clear communication of technical decisions. Be encouraging but thorough."}.`;
   }
 
-  return `You are Maria Rodriguez, Head of Digital Transformation at a Fortune 500 company. You are conducting a behavioral interview with a software engineer candidate. You have 15+ years of experience leading engineering teams and have interviewed hundreds of candidates.
+  return `You are Jason Mitchell, VP of Engineering at a Fortune 500 company. You are conducting a behavioral interview with a software engineer candidate. You have 15+ years of experience leading engineering teams and have interviewed hundreds of candidates.
 
 Your personality:
 - Professional but warm and approachable
@@ -92,24 +92,38 @@ For ${level === "staff" || level === "senior" ? "senior/staff level, expect org-
 };
 
 const HINT_SYSTEM_PROMPT = (question: string, role?: string, resumeText?: string) => {
-  const roleBlock = role && role !== "general"
-    ? `\nThe candidate is interviewing for a ${role.replace(/-/g, " ")} role — tailor the hint and example answer to that discipline.`
-    : "";
+  const roleContext = role && role !== "general"
+    ? `The candidate is interviewing for a ${role.replace(/-/g, " ")} role.`
+    : "The candidate is a software engineer.";
 
-  const resumeBlock = resumeText?.trim()
-    ? `\n\nThe candidate's resume:\n---\n${resumeText.trim()}\n---\nWhen writing the example answer, reference something specific from their resume (a project, role, or technology they've listed).`
-    : `\n\nNo resume provided — write a realistic example for a software engineer.`;
+  if (resumeText?.trim()) {
+    return `You are a strict interview coach. ${roleContext}
 
-  return `You are coaching a candidate mid-interview who is stuck and needs help right now. This is his role and interview question:
+The candidate's resume (you MUST base the example answer on this — use their actual companies, projects, technologies, and experiences):
+---
+${resumeText.trim()}
+---
 
-"${roleBlock || "General"}: ${question}"
+Interview question being asked: "${question}"
+
+Your task — give exactly two things, separated by a blank line:
+
+1. One sentence telling the candidate what angle or point to address next (no label, plain text).
+2. A spoken example answer starting with "Example:" — 3–5 sentences. You MUST reference a specific project, company, technology, or experience from their resume above. Use their real background, not a generic story. Make it sound natural and confident.
+
+No markdown. No bullet points. No numbered labels. No meta-commentary.`;
+  }
+
+  return `You are an interview coach. ${roleContext}
+
+Interview question being asked: "${question}"
 
 Give exactly two things, separated by a blank line:
 
-1. A one-sentence nudge on what angle or point to address next (plain text, no label).
-2. A detailed example answer they could say out loud, starting with "Example:". This should be 3–5 sentences — a realistic, specific answer the candidate could actually speak. Include concrete details: specific technologies, trade-offs, numbers, or methodology steps. Make it sound natural and confident, not like a textbook.
+1. One sentence telling the candidate what angle or point to address next (no label, plain text).
+2. A spoken example answer starting with "Example:" — 3–5 sentences, specific and concrete with technologies, trade-offs, or numbers. Sound natural and confident.
 
-No markdown, no bullet points, no numbered labels, no extra commentary.${resumeBlock}`;
+No markdown. No bullet points. No numbered labels.`;
 };
 
 export async function POST(req: Request) {
@@ -157,7 +171,7 @@ export async function POST(req: Request) {
       let hint = "";
       for await (const chunk of streamLLM({
         systemPrompt,
-        messages,
+        messages: [],
         maxTokens: 400,
         temperature: 0.7,
         model: "gemini-3-flash-preview",

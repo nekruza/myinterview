@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 import { ChevronRight, PlayCircle, Users, Sparkles, Zap } from "lucide-react";
 import { FreeBanner } from "@/components/FreeBanner";
+import { FeedbackCard } from "@/components/FeedbackCard";
 import Image from "next/image";
 import Link from "next/link";
 import { posts } from "@/lib/blog";
@@ -193,14 +194,13 @@ export default async function DashboardPage() {
       .maybeSingle(),
     supabase
       .from("profiles")
-      .select("practice_sessions_used, peer_sessions_joined")
+      .select("practice_sessions_used")
       .eq("id", user!.id)
       .maybeSingle(),
   ]);
 
   const plan = (subRow?.plan ?? "free") as "free" | "pro";
   const practiceUsed = profileRow?.practice_sessions_used ?? 0;
-  const peerJoinsUsed = profileRow?.peer_sessions_joined ?? 0;
 
   const sessionList = sessions ?? [];
   const completed = sessionList.filter((s) => s.status === "completed");
@@ -248,8 +248,7 @@ export default async function DashboardPage() {
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       {plan === "free" && (
         <FreeBanner
-          practiceLeft={Math.max(0, 5 - practiceUsed)}
-          peerJoinsLeft={Math.max(0, 3 - peerJoinsUsed)}
+          practiceLeft={Math.max(0, 3 - practiceUsed)}
         />
       )}
 
@@ -448,63 +447,9 @@ export default async function DashboardPage() {
           </div>
         </Link>
 
-        {/* ── Peer Practice card */}
-        <Link
-          href="/app/peer-practice"
-          className="glass-card group relative rounded-2xl overflow-hidden flex flex-col gap-3 p-5 hover:shadow-md transition-shadow"
-        >
-          {/* Purple glow */}
-          <div className="pointer-events-none absolute -bottom-8 -right-8 w-36 h-36 rounded-full blur-3xl opacity-10 bg-purple-500" />
-          <div className="relative z-10 flex flex-col gap-3">
+        {/* ── Feedback card */}
+        <FeedbackCard />
 
-            {/* Live badge */}
-            <div className="flex items-center gap-1.5">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75 animate-pulse-slow" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
-              </span>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-purple-600">
-                Live Now
-              </span>
-            </div>
-
-            {/* Stacked avatar photos — real engineers online */}
-            <div className="flex items-center gap-2.5">
-              <div className="flex items-center">
-                {[
-                  { src: "https://randomuser.me/api/portraits/women/44.jpg", alt: "Software engineer" },
-                  { src: "https://randomuser.me/api/portraits/men/32.jpg",   alt: "Software engineer" },
-                  { src: "https://randomuser.me/api/portraits/women/68.jpg", alt: "Software engineer" },
-                  { src: "https://randomuser.me/api/portraits/men/75.jpg",   alt: "Software engineer" },
-                  { src: "https://randomuser.me/api/portraits/women/12.jpg", alt: "Software engineer" },
-                ].map(({ src, alt }, i) => (
-                  <div
-                    key={i}
-                    className="relative w-8 h-8 rounded-full border-2 border-white overflow-hidden"
-                    style={{ marginLeft: i === 0 ? 0 : -10 }}
-                  >
-                    <Image src={src} alt={alt} fill className="object-cover" />
-                  </div>
-                ))}
-              </div>
-              <span className="text-xs font-semibold text-neutral-500">+12 online</span>
-            </div>
-
-            <div>
-              <h3 className="text-secondary font-bold text-lg leading-tight">
-                Peer Practice
-              </h3>
-              <p className="text-neutral-400 text-xs mt-1 leading-relaxed">
-                Match with a real engineer for a live mock session
-              </p>
-            </div>
-
-            <div className="flex items-center gap-1 text-sm font-bold text-purple-600">
-              Find a match
-              <ChevronRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-            </div>
-          </div>
-        </Link>
       </div>
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}

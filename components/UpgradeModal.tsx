@@ -11,7 +11,7 @@ type Reason = "practice_limit" | "peer_limit" | "pro_required";
 
 const CONTENT: Record<Reason, { title: string; description: string; features: string[] }> = {
   practice_limit: {
-    title: "You've used all 5 free sessions",
+    title: "You've used all 3 free sessions",
     description: "Upgrade to Pro to keep practicing with unlimited AI interview sessions.",
     features: ["Unlimited AI practice sessions", "Unlimited peer session joins", "Create & host peer meetings"],
   },

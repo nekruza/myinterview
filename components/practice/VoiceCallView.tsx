@@ -63,6 +63,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
   const [hintLoading, setHintLoading] = useState(false);
   const [showEndModal, setShowEndModal] = useState(false);
   const [micPermission, setMicPermission] = useState<boolean | null>(null);
+  const [micError, setMicError] = useState<string | null>(null);
   const [cameraOn, setCameraOn] = useState(true);
   const [autoSend, setAutoSend] = useState(false);
 
@@ -113,7 +114,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
           // Strict Mode cleanup already ran — release the orphaned stream
           stream.getTracks().forEach((t) => t.stop());
         }
-      } catch {
+      } catch (err) {
         // Try audio only (no camera)
         try {
           const stream = await navigator.mediaDevices.getUserMedia({
@@ -127,7 +128,17 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
           } else {
             stream.getTracks().forEach((t) => t.stop());
           }
-        } catch {
+        } catch (err2) {
+          const name = (err2 as DOMException)?.name;
+          const msg =
+            name === "NotFoundError" || name === "DevicesNotFoundError"
+              ? "No microphone detected — plug one in and refresh."
+              : name === "NotAllowedError" || name === "PermissionDeniedError"
+              ? "Microphone access denied — allow it in your browser settings."
+              : name === "NotReadableError"
+              ? "Microphone is in use by another app — close it and refresh."
+              : "Could not access microphone — please refresh and try again.";
+          setMicError(msg);
           // Only mark denied if no prior init already succeeded
           setMicPermission((prev) => (prev === true ? true : false));
         }
@@ -527,7 +538,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
               <>
                 <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
                 <span className="text-xs text-blue-400 font-medium">
-                  Maria is speaking
+                  Jason is speaking
                 </span>
               </>
             )}
@@ -535,7 +546,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
               <>
                 <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
                 <span className="text-xs text-yellow-400 font-medium">
-                  Maria is thinking...
+                  Jason is thinking...
                 </span>
               </>
             )}
@@ -570,7 +581,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
             <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/15 border border-red-500/25 mb-1">
               <MicOff className="w-4 h-4 text-red-400 shrink-0" />
               <p className="text-xs text-red-300 flex-1">
-                Microphone access denied — allow it in your browser settings.
+                {micError ?? "Microphone access denied — allow it in your browser settings."}
               </p>
               <button
                 onClick={() => window.location.reload()}

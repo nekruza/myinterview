@@ -10,7 +10,7 @@ export const TestimonialsSection: FC = () => {
       bgGradient: "from-blue-50 to-purple-50",
       borderColor: "border-blue-100",
       quote:
-        "Started with AI practice to build confidence, then moved to peer sessions. After 8 practices total, I landed Amazon. The combination of behavioral prep and anxiety techniques actually worked—went from freezing up to feeling genuinely calm.",
+        "After 8 AI practice sessions I landed Amazon. The combination of behavioral prep and anxiety techniques actually worked — went from freezing up to feeling genuinely calm.",
       badge: "Anxiety conquered",
       badgeColor: "text-primary",
     },
@@ -22,7 +22,7 @@ export const TestimonialsSection: FC = () => {
       bgGradient: "from-purple-50 to-pink-50",
       borderColor: "border-purple-100",
       quote:
-        "Practiced both behavioral and technical interviews with peers who understood my struggles. The anxiety techniques helped me go from rambling to delivering clear, confident answers. Worth every penny.",
+        "The AI drilled me on behavioral and technical questions until my answers were sharp. The anxiety techniques helped me go from rambling to delivering clear, confident answers. Worth every penny.",
       badge: "Anxiety conquered",
       badgeColor: "text-purple-600",
     },

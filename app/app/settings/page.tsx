@@ -21,6 +21,7 @@ import {
   MapPin,
   Calendar,
 } from "lucide-react";
+import { ResumeUpload } from "@/components/ResumeUpload";
 
 const EXPERIENCE_LEVELS = [
   { value: "junior", label: "Junior (0-2 years)" },
@@ -52,8 +53,6 @@ const DURATION_OPTIONS = [
 
 const PRACTICE_PARTNER_OPTIONS = [
   { value: "ai", label: "With AI" },
-  { value: "people", label: "With other people" },
-  { value: "both", label: "Both" },
 ];
 
 const LANGUAGE_OPTIONS = [
@@ -115,7 +114,7 @@ const SettingsPage: FC<SettingsProps> = () => {
   const searchParams = useSearchParams();
   const supabase = createClient();
   const avatarInputRef = useRef<HTMLInputElement>(null);
-  const resumeInputRef = useRef<HTMLInputElement>(null);
+
 
   const [displayName, setDisplayName] = useState("");
   const [experienceLevel, setExperienceLevel] = useState("mid");
@@ -131,9 +130,8 @@ const SettingsPage: FC<SettingsProps> = () => {
   // Upload states
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [resumeUrl, setResumeUrl] = useState<string | null>(null);
   const [resumeName, setResumeName] = useState<string | null>(null);
-  const [uploadingResume, setUploadingResume] = useState(false);
+  const [resumeLoaded, setResumeLoaded] = useState(false);
 
   // Onboarding preferences
   const [interviewStyle, setInterviewStyle] = useState("");
@@ -244,11 +242,11 @@ const SettingsPage: FC<SettingsProps> = () => {
         if (profile.wants_tips !== null && profile.wants_tips !== undefined)
           setWantsTips(profile.wants_tips);
         setAvatarUrl(profile.avatar_url);
-        setResumeUrl(profile.resume_url);
         if (profile.resume_url) {
           const parts = profile.resume_url.split("/");
           setResumeName(decodeURIComponent(parts[parts.length - 1]));
         }
+        setResumeLoaded(true);
       }
     }
     load();
@@ -323,81 +321,6 @@ const SettingsPage: FC<SettingsProps> = () => {
     }
   }
 
-  async function handleResumeUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file || !userId) return;
-
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("Resume must be under 10 MB");
-      return;
-    }
-
-    setUploadingResume(true);
-    try {
-      const path = `${userId}/${file.name}`;
-
-      const { data: existing } = await supabase.storage
-        .from("resumes")
-        .list(userId);
-
-      if (existing?.length) {
-        await supabase.storage
-          .from("resumes")
-          .remove(existing.map((f) => `${userId}/${f.name}`));
-      }
-
-      const { error: uploadError } = await supabase.storage
-        .from("resumes")
-        .upload(path, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const storedUrl = `resumes/${path}`;
-
-      await supabase
-        .from("profiles")
-        .update({ resume_url: storedUrl })
-        .eq("id", userId);
-
-      setResumeUrl(storedUrl);
-      setResumeName(file.name);
-      toast.success("Resume uploaded");
-    } catch {
-      toast.error("Failed to upload resume");
-    } finally {
-      setUploadingResume(false);
-      if (resumeInputRef.current) resumeInputRef.current.value = "";
-    }
-  }
-
-  async function handleRemoveResume() {
-    if (!userId) return;
-    setUploadingResume(true);
-    try {
-      const { data: files } = await supabase.storage
-        .from("resumes")
-        .list(userId);
-
-      if (files?.length) {
-        await supabase.storage
-          .from("resumes")
-          .remove(files.map((f) => `${userId}/${f.name}`));
-      }
-
-      await supabase
-        .from("profiles")
-        .update({ resume_url: null })
-        .eq("id", userId);
-
-      setResumeUrl(null);
-      setResumeName(null);
-      toast.success("Resume removed");
-    } catch {
-      toast.error("Failed to remove resume");
-    } finally {
-      setUploadingResume(false);
-    }
-  }
 
   function addCompany(company: string) {
     const trimmed = company.trim();
@@ -493,13 +416,6 @@ const SettingsPage: FC<SettingsProps> = () => {
         accept="image/jpeg,image/png,image/webp,image/gif"
         className="hidden"
         onChange={handleAvatarUpload}
-      />
-      <input
-        ref={resumeInputRef}
-        type="file"
-        accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        className="hidden"
-        onChange={handleResumeUpload}
       />
 
       {/* ── Profile Card (full width, LinkedIn-style) ── */}
@@ -748,81 +664,22 @@ const SettingsPage: FC<SettingsProps> = () => {
 
         {/* Left: Resume */}
         <section className="glass-card rounded-2xl overflow-hidden">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100">
-            <div className="flex items-center gap-3">
-              <FileText className="w-4 h-4 text-neutral-400" />
-              <h2 className="font-semibold text-secondary text-sm">Resume</h2>
-            </div>
-            {resumeUrl && (
-              <button
-                onClick={() => resumeInputRef.current?.click()}
-                disabled={uploadingResume}
-                className="text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-neutral-100 transition"
-                style={{ color: "#2dec29" }}
-              >
-                <Upload className="w-3 h-3 inline mr-1" />
-                Replace
-              </button>
-            )}
+          <div className="flex items-center gap-3 px-6 py-4 border-b border-neutral-100">
+            <FileText className="w-4 h-4 text-neutral-400" />
+            <h2 className="font-semibold text-secondary text-sm">Resume</h2>
           </div>
           <div className="p-6">
-            {resumeUrl ? (
-              <div className="flex items-center gap-4">
-                <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ background: "#f4fdf3" }}
-                >
-                  <FileText
-                    className="w-6 h-6"
-                    style={{ color: "#2dec29" }}
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-secondary truncate">
-                    {resumeName}
-                  </p>
-                  <p className="text-xs text-neutral-400 mt-0.5">
-                    PDF &middot; Ready to share
-                  </p>
-                </div>
-                <button
-                  onClick={handleRemoveResume}
-                  disabled={uploadingResume}
-                  className="p-2 rounded-lg text-neutral-300 hover:text-red-500 hover:bg-red-50 transition"
-                  title="Remove resume"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-                {uploadingResume && (
-                  <Loader2 className="w-4 h-4 text-neutral-400 animate-spin shrink-0" />
-                )}
-              </div>
-            ) : (
-              <button
-                onClick={() => resumeInputRef.current?.click()}
-                disabled={uploadingResume}
-                className="w-full border-2 border-dashed border-neutral-200 rounded-xl py-8 flex flex-col items-center gap-2 hover:border-primary/50 hover:bg-neutral-50/50 transition group"
-              >
-                {uploadingResume ? (
-                  <Loader2 className="w-7 h-7 text-neutral-300 animate-spin" />
-                ) : (
-                  <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center mb-1 group-hover:scale-105 transition-transform"
-                    style={{ background: "#f4fdf3" }}
-                  >
-                    <Upload
-                      className="w-5 h-5"
-                      style={{ color: "#2dec29" }}
-                    />
-                  </div>
-                )}
-                <p className="text-sm font-medium text-neutral-600">
-                  {uploadingResume ? "Uploading..." : "Upload your resume"}
-                </p>
-                <p className="text-xs text-neutral-400">
-                  PDF, DOC, or DOCX &middot; Max 10 MB
-                </p>
-              </button>
+            {resumeLoaded && (
+              <ResumeUpload
+                initialFileName={resumeName}
+                onUploadSuccess={(text) => {
+                  toast.success(text ? "Resume uploaded — AI will personalise your sessions!" : "Resume saved (text extraction limited).");
+                }}
+                onDeleteSuccess={() => {
+                  setResumeName(null);
+                  toast.success("Resume removed.");
+                }}
+              />
             )}
           </div>
         </section>
