@@ -7,7 +7,6 @@ export async function GET() {
   const iceRes = await fetch("https://api.inworld.ai/v1/realtime/ice-servers", {
     headers: {
       Authorization: `Basic ${apiKey}`,
-      "Content-Type": "application/json",
     },
   });
 
@@ -20,9 +19,5 @@ export async function GET() {
 
   const { iceServers } = await iceRes.json();
 
-  return Response.json({
-    apiKey,
-    iceServers,
-    realtimeUrl: "https://api.inworld.ai/v1/realtime/webrtc",
-  });
+  return Response.json({ iceServers });
 }

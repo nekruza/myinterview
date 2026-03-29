@@ -1,4 +1,3 @@
-// app/api/realtime/config/__tests__/route.test.ts
 import { GET } from "../route";
 
 global.fetch = jest.fn();
@@ -16,15 +15,16 @@ describe("GET /api/realtime/config", () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    delete process.env.INWORLD_API_KEY;
   });
 
-  it("returns apiKey, iceServers, and realtimeUrl", async () => {
+  it("returns iceServers but NOT the apiKey", async () => {
     const response = await GET();
     const data = await response.json();
 
-    expect(data.apiKey).toBe("test-key-123");
     expect(data.iceServers).toEqual([{ urls: "stun:stun.example.com" }]);
-    expect(data.realtimeUrl).toBe("https://api.inworld.ai/v1/realtime/webrtc");
+    expect(data.apiKey).toBeUndefined();
+    expect(data.realtimeUrl).toBeUndefined();
   });
 
   it("calls Inworld ICE servers endpoint with auth header", async () => {
@@ -42,6 +42,16 @@ describe("GET /api/realtime/config", () => {
 
   it("returns 500 when Inworld ICE endpoint fails", async () => {
     (global.fetch as jest.Mock).mockResolvedValue({ ok: false, status: 503 });
+
+    const response = await GET();
+    expect(response.status).toBe(500);
+
+    const data = await response.json();
+    expect(data.error).toBeDefined();
+  });
+
+  it("returns 500 when INWORLD_API_KEY is not set", async () => {
+    delete process.env.INWORLD_API_KEY;
 
     const response = await GET();
     expect(response.status).toBe(500);
