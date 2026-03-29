@@ -45,4 +45,5 @@ _bmad
 _bmad-output
 .claude
 
-.superpowers
+.superpowers.
+.worktrees/
