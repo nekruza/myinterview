@@ -17,7 +17,8 @@ export async function GET() {
     );
   }
 
-  const { iceServers } = await iceRes.json();
+  const data = await iceRes.json() as { ice_servers?: RTCIceServer[]; iceServers?: RTCIceServer[] };
+  const iceServers = data.ice_servers ?? data.iceServers ?? [];
 
   return Response.json({ iceServers });
 }

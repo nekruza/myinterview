@@ -172,7 +172,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
         await realtime.connect({
           instructions,
           voice: "Dennis",
-          model: "google-ai-studio/gemini-2.5-flash",
+          model: "google-ai-studio/gemini-3.1-flash-lite-preview",
           interviewType: interviewType ?? "technical",
         });
       } else {
@@ -691,8 +691,8 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
             </div>
           </div>
 
-          {/* Auto-send toggle + manual send button */}
-          {convState === "listening" && (
+          {/* Auto-send toggle + manual send button (legacy STT path only) */}
+          {convState === "listening" && !useRealtime && (
             <div className="shrink-0 flex items-center justify-center gap-3">
               {/* Auto-send toggle */}
               <button
