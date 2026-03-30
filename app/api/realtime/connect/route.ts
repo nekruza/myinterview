@@ -9,7 +9,7 @@ export async function POST(req: Request) {
     return Response.json({ error: "Missing SDP offer" }, { status: 400 });
   }
 
-  const sdpRes = await fetch("https://api.inworld.ai/v1/realtime/webrtc", {
+  const sdpRes = await fetch("https://api.inworld.ai/v1/realtime/calls", {
     method: "POST",
     headers: {
       Authorization: `Basic ${apiKey}`,
@@ -19,8 +19,10 @@ export async function POST(req: Request) {
   });
 
   if (!sdpRes.ok) {
+    const body = await sdpRes.text().catch(() => "");
+    console.error("[realtime/connect] Inworld error:", sdpRes.status, body);
     return Response.json(
-      { error: `SDP exchange failed: ${sdpRes.status}` },
+      { error: `SDP exchange failed: ${sdpRes.status}`, detail: body },
       { status: 500 }
     );
   }
