@@ -22,6 +22,10 @@ import {
   Calendar,
 } from "lucide-react";
 import { ResumeUpload } from "@/components/ResumeUpload";
+import { useSettingsProfile } from "@/lib/queries/profile";
+import { useSubscription } from "@/lib/queries/subscription";
+import { useQueryClient } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/lib/queries/keys";
 
 const EXPERIENCE_LEVELS = [
   { value: "junior", label: "Junior (0-2 years)" },
@@ -152,21 +156,16 @@ const SettingsPage: FC<SettingsProps> = () => {
   const [editingProfile, setEditingProfile] = useState(false);
   const [editingPrefs, setEditingPrefs] = useState(false);
 
+  // React Query hooks
+  const { data: settingsProfile } = useSettingsProfile();
+  const { data: subscriptionData, refetch: refetchSubscription } = useSubscription();
+  const queryClient = useQueryClient();
+
   // Returns the fetched plan so callers can act on it directly
   const loadPlan = useCallback(async (): Promise<"free" | "pro"> => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return "free";
-    const { data: subscription } = await supabase
-      .from("subscriptions")
-      .select("plan, cancel_at_period_end, current_period_end")
-      .eq("user_id", user.id)
-      .single();
-    const fetched = (subscription?.plan as "free" | "pro") ?? "free";
-    setPlan(fetched);
-    setCancelAtPeriodEnd(subscription?.cancel_at_period_end ?? false);
-    setCurrentPeriodEnd(subscription?.current_period_end ?? null);
-    return fetched;
-  }, [supabase]); // eslint-disable-line react-hooks/exhaustive-deps
+    const result = await refetchSubscription();
+    return (result.data?.plan as "free" | "pro") ?? "free";
+  }, [refetchSubscription]);
 
   useEffect(() => {
     if (searchParams?.get("upgraded") !== "true") return;
@@ -199,58 +198,50 @@ const SettingsPage: FC<SettingsProps> = () => {
     };
   }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Effect 1: Sync auth user (email + userId)
   useEffect(() => {
-    async function load() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-
-      setEmail(user.email ?? "");
-      setUserId(user.id);
-
-      const [{ data: profile }, { data: subscription }] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select(
-            "full_name, avatar_url, resume_url, experience_level, interview_timeline, target_companies, email_notifications, match_alerts, interview_style, interview_duration, practice_partner, interview_language, interview_platform, feedback_preference, wants_tips"
-          )
-          .eq("id", user.id)
-          .single(),
-        supabase.from("subscriptions").select("plan, cancel_at_period_end, current_period_end").eq("user_id", user.id).single(),
-      ]);
-
-      setPlan((subscription?.plan as "free" | "pro") ?? "free");
-      setCancelAtPeriodEnd(subscription?.cancel_at_period_end ?? false);
-      setCurrentPeriodEnd(subscription?.current_period_end ?? null);
-
-      if (profile) {
-        if (profile.full_name) setDisplayName(profile.full_name);
-        if (profile.experience_level) setExperienceLevel(profile.experience_level);
-        if (profile.interview_timeline) setTimeline(profile.interview_timeline);
-        if (profile.target_companies?.length) setTargetCompanies(profile.target_companies);
-        if (profile.email_notifications !== null && profile.email_notifications !== undefined)
-          setEmailNotifs(profile.email_notifications);
-        if (profile.match_alerts !== null && profile.match_alerts !== undefined)
-          setMatchAlerts(profile.match_alerts);
-        if (profile.interview_style) setInterviewStyle(profile.interview_style);
-        if (profile.interview_duration) setInterviewDuration(profile.interview_duration);
-        if (profile.practice_partner) setPracticePartner(profile.practice_partner);
-        if (profile.interview_language) setInterviewLanguage(profile.interview_language);
-        if (profile.interview_platform) setInterviewPlatform(profile.interview_platform);
-        if (profile.feedback_preference) setFeedbackPreference(profile.feedback_preference);
-        if (profile.wants_tips !== null && profile.wants_tips !== undefined)
-          setWantsTips(profile.wants_tips);
-        setAvatarUrl(profile.avatar_url);
-        if (profile.resume_url) {
-          const parts = profile.resume_url.split("/");
-          setResumeName(decodeURIComponent(parts[parts.length - 1]));
-        }
-        setResumeLoaded(true);
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setEmail(user.email ?? "");
+        setUserId(user.id);
       }
-    }
-    load();
+    });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Effect 2: Sync profile data into form state
+  useEffect(() => {
+    if (!settingsProfile) return;
+    if (settingsProfile.full_name) setDisplayName(settingsProfile.full_name);
+    if (settingsProfile.experience_level) setExperienceLevel(settingsProfile.experience_level);
+    if (settingsProfile.interview_timeline) setTimeline(settingsProfile.interview_timeline);
+    if (settingsProfile.target_companies?.length) setTargetCompanies(settingsProfile.target_companies);
+    if (settingsProfile.email_notifications !== null && settingsProfile.email_notifications !== undefined)
+      setEmailNotifs(settingsProfile.email_notifications);
+    if (settingsProfile.match_alerts !== null && settingsProfile.match_alerts !== undefined)
+      setMatchAlerts(settingsProfile.match_alerts);
+    if (settingsProfile.interview_style) setInterviewStyle(settingsProfile.interview_style);
+    if (settingsProfile.interview_duration) setInterviewDuration(settingsProfile.interview_duration);
+    if (settingsProfile.practice_partner) setPracticePartner(settingsProfile.practice_partner);
+    if (settingsProfile.interview_language) setInterviewLanguage(settingsProfile.interview_language);
+    if (settingsProfile.interview_platform) setInterviewPlatform(settingsProfile.interview_platform);
+    if (settingsProfile.feedback_preference) setFeedbackPreference(settingsProfile.feedback_preference);
+    if (settingsProfile.wants_tips !== null && settingsProfile.wants_tips !== undefined)
+      setWantsTips(settingsProfile.wants_tips);
+    setAvatarUrl(settingsProfile.avatar_url ?? null);
+    if (settingsProfile.resume_url) {
+      const parts = settingsProfile.resume_url.split("/");
+      setResumeName(decodeURIComponent(parts[parts.length - 1]));
+    }
+    setResumeLoaded(true);
+  }, [settingsProfile]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Effect 3: Sync subscription into plan state
+  useEffect(() => {
+    if (!subscriptionData) return;
+    setPlan((subscriptionData.plan as "free" | "pro") ?? "free");
+    setCancelAtPeriodEnd(subscriptionData.cancel_at_period_end ?? false);
+    setCurrentPeriodEnd(subscriptionData.current_period_end ?? null);
+  }, [subscriptionData]);
 
   async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -284,6 +275,8 @@ const SettingsPage: FC<SettingsProps> = () => {
         .eq("id", userId);
 
       setAvatarUrl(freshUrl);
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.settingsProfile });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.profile });
       toast.success("Photo updated");
     } catch {
       toast.error("Failed to upload photo");
@@ -313,6 +306,8 @@ const SettingsPage: FC<SettingsProps> = () => {
         .eq("id", userId);
 
       setAvatarUrl(null);
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.settingsProfile });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.profile });
       toast.success("Photo removed");
     } catch {
       toast.error("Failed to remove photo");
@@ -386,6 +381,8 @@ const SettingsPage: FC<SettingsProps> = () => {
       // Keep auth display name in sync
       await supabase.auth.updateUser({ data: { full_name: displayName } });
 
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.settingsProfile });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.profile });
       toast.success("Settings saved");
       setEditingProfile(false);
       setEditingPrefs(false);
@@ -636,8 +633,8 @@ const SettingsPage: FC<SettingsProps> = () => {
                 {cancelAtPeriodEnd
                   ? `Your Pro access continues until ${currentPeriodEnd ? new Date(currentPeriodEnd).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "the end of your billing period"}, then reverts to Free.`
                   : plan === "pro"
-                  ? "Unlimited AI practice, unlimited peer sessions, and the ability to create meetings."
-                  : "5 free AI practice sessions · 3 peer session joins · Upgrade for unlimited access."}
+                  ? "30 interviews per month, unlimited peer sessions, and the ability to create meetings."
+                  : "3 free interviews to get started · 3 peer session joins · Upgrade for 30 interviews/month."}
               </p>
             </div>
             {plan === "pro" ? (

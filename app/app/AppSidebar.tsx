@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useState, useEffect, useCallback } from "react";
+import { FC, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -33,6 +33,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useNotifications, useMarkNotificationsRead, useMarkAllNotificationsRead } from "@/lib/queries/notifications";
+import type { Notification } from "@/lib/queries/notifications";
+import { useProfile } from "@/lib/queries/profile";
 
 const navItems = [
   { href: "/app/dashboard", label: "Home", icon: LayoutDashboard },
@@ -41,21 +44,6 @@ const navItems = [
   { href: "/app/resources", label: "Resources", icon: BookOpen },
   { href: "/app/settings", label: "Profile", icon: Settings },
 ];
-
-interface Notification {
-  id: string;
-  type: "join_request" | "join_accepted" | "join_rejected";
-  title: string;
-  body: string | null;
-  data: {
-    session_id?: string;
-    session_title?: string;
-    requester_id?: string;
-    requester_name?: string;
-  };
-  read: boolean;
-  created_at: string;
-}
 
 const notificationIcon = {
   join_request: UserPlus,
@@ -104,52 +92,25 @@ interface AppSidebarProps {
 export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
   const pathname = usePathname();
   const router = useRouter();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [popoverOpen, setPopoverOpen] = useState(false);
-  const [plan, setPlan] = useState<"free" | "pro" | null>(null);
-  const [practiceUsed, setPracticeUsed] = useState(0);
 
+  const { data: notificationsData } = useNotifications();
+  const { data: profileData } = useProfile();
+  const markRead = useMarkNotificationsRead();
+  const markAllRead = useMarkAllNotificationsRead();
+
+  const notifications = notificationsData ?? [];
+  const plan = profileData?.plan ?? null;
+  const practiceUsed = profileData?.practice_sessions_used ?? 0;
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const fetchNotifications = useCallback(async () => {
-    const res = await fetch("/api/notifications");
-    if (res.ok) {
-      const data = await res.json();
-      setNotifications(data.notifications || []);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchNotifications();
-    fetch("/api/profile").then((r) => r.ok ? r.json() : null).then((data) => {
-      if (data?.profile) {
-        setPlan(data.profile.plan ?? "free");
-        setPracticeUsed(data.profile.practice_sessions_used ?? 0);
-      }
-    });
-  }, [fetchNotifications]);
-
-  async function markAllRead() {
-    await fetch("/api/notifications", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ all: true }),
-    });
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  function handleMarkAllRead() {
+    markAllRead.mutate();
   }
 
   function handleNotificationClick(n: Notification) {
     if (!n.read) {
-      fetch("/api/notifications", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids: [n.id] }),
-      });
-      setNotifications((prev) =>
-        prev.map((notif) =>
-          notif.id === n.id ? { ...notif, read: true } : notif
-        )
-      );
+      markRead.mutate([n.id]);
     }
     if (n.data.session_id) {
       setPopoverOpen(false);
@@ -417,7 +378,7 @@ export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
                       {unreadCount} new
                     </Badge>
                     <button
-                      onClick={markAllRead}
+                      onClick={handleMarkAllRead}
                       className="text-xs font-medium px-2 py-1 rounded-lg hover:bg-neutral-100 transition"
                       style={{ color: "#2dec29" }}
                     >
