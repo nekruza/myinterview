@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles, X, Zap, Users, Infinity } from "lucide-react";
+import { Sparkles, X, Zap, Infinity } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,12 +12,12 @@ type Reason = "practice_limit" | "peer_limit" | "pro_required";
 const CONTENT: Record<Reason, { title: string; description: string; features: string[] }> = {
   practice_limit: {
     title: "You've used all 3 free sessions",
-    description: "Upgrade to Pro to keep practicing with unlimited AI interview sessions.",
+    description: "Upgrade to keep practicing with AI interview sessions.",
     features: ["Unlimited AI practice sessions", "Unlimited peer session joins", "Create & host peer meetings"],
   },
   peer_limit: {
     title: "You've used all 3 free peer joins",
-    description: "Upgrade to Pro to join unlimited peer practice sessions.",
+    description: "Upgrade to join unlimited peer practice sessions.",
     features: ["Unlimited AI practice sessions", "Unlimited peer session joins", "Create & host peer meetings"],
   },
   pro_required: {
@@ -26,6 +26,25 @@ const CONTENT: Record<Reason, { title: string; description: string; features: st
     features: ["Host unlimited peer meetings", "Unlimited AI practice sessions", "Unlimited peer session joins"],
   },
 };
+
+const PLANS = [
+  {
+    key: "pro" as const,
+    label: "Pro",
+    monthlyPrice: "$19",
+    yearlyPrice: "$9.50",
+    yearlyTotal: "$114",
+    sessions: "30 sessions/mo",
+  },
+  {
+    key: "max" as const,
+    label: "Max",
+    monthlyPrice: "$49",
+    yearlyPrice: "$24.50",
+    yearlyTotal: "$294",
+    sessions: "100 sessions/mo",
+  },
+];
 
 export function UpgradeModal({
   open,
@@ -37,12 +56,23 @@ export function UpgradeModal({
   reason: Reason;
 }) {
   const [loading, setLoading] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<"pro" | "max">("pro");
+  const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
   const content = CONTENT[reason];
+  const plan = PLANS.find((p) => p.key === selectedPlan)!;
+  const displayPrice = billing === "yearly" ? plan.yearlyPrice : plan.monthlyPrice;
 
   async function handleUpgrade() {
     setLoading(true);
     try {
-      const res = await fetch("/api/stripe/checkout", { method: "POST" });
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          plan: selectedPlan,
+          interval: billing === "yearly" ? "year" : "month",
+        }),
+      });
       const data = await res.json();
       if (data.url) {
         window.location.href = data.url;
@@ -80,7 +110,7 @@ export function UpgradeModal({
         </div>
 
         {/* Body */}
-        <div className="px-6 py-5 space-y-5">
+        <div className="px-6 py-5 space-y-4">
           {/* Features */}
           <ul className="space-y-2.5">
             {content.features.map((f) => (
@@ -105,13 +135,56 @@ export function UpgradeModal({
             </li>
           </ul>
 
-          {/* Price */}
-          <div className="rounded-xl px-4 py-3 flex items-center justify-between" style={{ background: "#f9fafb", border: "1px solid #e5e7eb" }}>
-            <div>
-              <p className="text-xs text-neutral-400 font-medium">Pro Plan</p>
-              <p className="text-secondary font-bold text-sm">$19 / month</p>
+          {/* Plan selector */}
+          <div className="grid grid-cols-2 gap-2">
+            {PLANS.map((p) => (
+              <button
+                key={p.key}
+                onClick={() => setSelectedPlan(p.key)}
+                className={`rounded-xl px-3 py-3 text-left border transition-all ${
+                  selectedPlan === p.key
+                    ? "border-[#2dec29] bg-[#f4fdf3]"
+                    : "border-neutral-200 bg-neutral-50 hover:border-neutral-300"
+                }`}
+              >
+                <p className="text-xs text-neutral-500 font-medium">{p.label}</p>
+                <p className="text-secondary font-bold text-sm">
+                  {billing === "yearly" ? p.yearlyPrice : p.monthlyPrice}/mo
+                </p>
+                <p className="text-xs text-neutral-400">{p.sessions}</p>
+              </button>
+            ))}
+          </div>
+
+          {/* Billing toggle */}
+          <div className="flex items-center gap-2">
+            <div className="inline-flex items-center bg-neutral-100 rounded-full p-0.5 gap-0.5 text-xs">
+              <button
+                onClick={() => setBilling("monthly")}
+                className={`px-3 py-1.5 rounded-full font-semibold transition-all ${
+                  billing === "monthly"
+                    ? "bg-white text-secondary shadow-sm"
+                    : "text-neutral-500"
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setBilling("yearly")}
+                className={`px-3 py-1.5 rounded-full font-semibold transition-all ${
+                  billing === "yearly"
+                    ? "bg-white text-secondary shadow-sm"
+                    : "text-neutral-500"
+                }`}
+              >
+                Yearly
+              </button>
             </div>
-            <Users className="w-5 h-5 text-neutral-300" />
+            {billing === "yearly" && (
+              <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                Save 50% — Billed {plan.yearlyTotal}/yr
+              </span>
+            )}
           </div>
 
           {/* CTA */}
@@ -122,7 +195,9 @@ export function UpgradeModal({
             style={{ background: "#2dec29", color: "#112715" }}
           >
             <Sparkles className="w-4 h-4" />
-            {loading ? "Redirecting…" : "Upgrade to Pro — $19/mo"}
+            {loading
+              ? "Redirecting…"
+              : `Upgrade to ${plan.label} — ${displayPrice}/mo`}
           </button>
 
           <button
