@@ -13,10 +13,9 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-const MAX_PRICE_IDS = new Set([
-  process.env.STRIPE_MAX_MONTHLY_PRICE_ID,
-  process.env.STRIPE_MAX_YEARLY_PRICE_ID,
-]);
+const MAX_PRICE_IDS = new Set(
+  [process.env.STRIPE_MAX_MONTHLY_PRICE_ID, process.env.STRIPE_MAX_YEARLY_PRICE_ID].filter(Boolean)
+);
 
 function planFromPriceId(priceId: string): "pro" | "max" {
   return MAX_PRICE_IDS.has(priceId) ? "max" : "pro";
