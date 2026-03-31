@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { QUERY_KEYS } from "./keys";
+import type { Plan } from "@/lib/session-limits";
 
 export interface Subscription {
-  plan: "free" | "pro";
+  plan: Plan;
   cancel_at_period_end: boolean;
   current_period_end: string | null;
 }

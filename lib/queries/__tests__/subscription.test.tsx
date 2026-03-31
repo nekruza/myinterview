@@ -72,4 +72,34 @@ describe("useSubscription", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toBeNull();
   });
+
+  it("returns max plan when subscription is max", async () => {
+    const { createClient } = jest.requireMock("@/lib/supabase/client") as {
+      createClient: jest.Mock;
+    };
+    createClient.mockReturnValueOnce({
+      auth: {
+        getUser: jest.fn().mockResolvedValue({ data: { user: { id: "u1" } } }),
+      },
+      from: jest.fn(() => ({
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        single: jest.fn().mockResolvedValue({
+          data: {
+            plan: "max",
+            cancel_at_period_end: false,
+            current_period_end: "2026-12-31T00:00:00Z",
+          },
+          error: null,
+        }),
+      })),
+    });
+
+    const { result } = renderHook(() => useSubscription(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data?.plan).toBe("max");
+  });
 });

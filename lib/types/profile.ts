@@ -1,3 +1,5 @@
+import type { Plan } from "@/lib/session-limits";
+
 export interface UserProfile {
   // Identity
   id: string;
@@ -54,7 +56,7 @@ export interface UserProfile {
   };
 
   // Subscription
-  plan: "free" | "pro";
+  plan: Plan;
 
   // Usage tracking (lifetime)
   practice_sessions_used: number;
