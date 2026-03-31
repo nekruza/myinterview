@@ -348,9 +348,10 @@ const SettingsPage: FC<SettingsProps> = () => {
     try {
       const res = await fetch("/api/stripe/portal", { method: "POST" });
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Could not open billing portal");
       if (data.url) window.location.href = data.url;
-    } catch {
-      toast.error("Could not open billing portal. Please try again.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not open billing portal. Please try again.");
     } finally {
       setUpgradingPlan(false);
     }
@@ -611,9 +612,9 @@ const SettingsPage: FC<SettingsProps> = () => {
             <div>
               <div className="flex items-center gap-2">
                 <p className="text-sm font-semibold text-secondary">
-                  {plan === "pro" ? "Pro Plan" : "Free Plan"}
+                  {plan === "max" ? "Max Plan" : plan === "pro" ? "Pro Plan" : "Free Plan"}
                 </p>
-                {plan === "pro" && !cancelAtPeriodEnd && (
+                {(plan === "pro" || plan === "max") && !cancelAtPeriodEnd && (
                   <span
                     className="text-[10px] font-bold px-2 py-0.5 rounded-full"
                     style={{ background: "#f4fdf3", color: "#112715" }}
@@ -638,7 +639,7 @@ const SettingsPage: FC<SettingsProps> = () => {
                   : "3 free interviews to get started · 3 peer session joins · Upgrade for 30 interviews/month."}
               </p>
             </div>
-            {plan === "pro" ? (
+            {(plan === "pro" || plan === "max") ? (
               <button
                 onClick={handleManageSubscription}
                 disabled={upgradingPlan}
