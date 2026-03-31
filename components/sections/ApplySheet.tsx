@@ -58,6 +58,7 @@ export const ApplySheet: FC<ApplySheetProps> = ({ role, open, onClose }) => {
       role: role?.title ?? "",
       linkedinUrl: (form.elements.namedItem("apply-linkedin") as HTMLInputElement).value,
       coverLetter: (form.elements.namedItem("apply-cover") as HTMLTextAreaElement).value,
+      appFeedback: (form.elements.namedItem("apply-feedback") as HTMLTextAreaElement).value,
     };
     try {
       const res = await fetch("/api/apply", {
@@ -138,9 +139,10 @@ export const ApplySheet: FC<ApplySheetProps> = ({ role, open, onClose }) => {
               {/* About the role */}
               <div>
                 <h4 className="text-base font-bold text-secondary mb-2">About the Role</h4>
-                <p className="text-neutral-600 text-sm leading-relaxed">
-                  {role.fullDescription.about}
-                </p>
+                <p
+                  className="text-neutral-600 text-sm leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: role.fullDescription.about }}
+                />
               </div>
 
               <Separator />
@@ -255,6 +257,17 @@ export const ApplySheet: FC<ApplySheetProps> = ({ role, open, onClose }) => {
                     id="apply-cover"
                     name="apply-cover"
                     placeholder="Tell us what excites you about this role and MyInterview..."
+                    className="resize-none"
+                    rows={4}
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="apply-feedback">What do you like and dislike about the app? <span className="text-neutral-400 font-normal">(optional)</span></Label>
+                  <Textarea
+                    id="apply-feedback"
+                    name="apply-feedback"
+                    placeholder="Be honest — your feedback helps us improve..."
                     className="resize-none"
                     rows={4}
                   />
