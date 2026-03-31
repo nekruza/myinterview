@@ -26,6 +26,7 @@ import { useSettingsProfile } from "@/lib/queries/profile";
 import { useSubscription } from "@/lib/queries/subscription";
 import { useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/lib/queries/keys";
+import type { Plan } from "@/lib/session-limits";
 
 const EXPERIENCE_LEVELS = [
   { value: "junior", label: "Junior (0-2 years)" },
@@ -147,7 +148,7 @@ const SettingsPage: FC<SettingsProps> = () => {
   const [wantsTips, setWantsTips] = useState<boolean | null>(null);
 
   // Subscription
-  const [plan, setPlan] = useState<"free" | "pro">("free");
+  const [plan, setPlan] = useState<Plan>("free");
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
   const [currentPeriodEnd, setCurrentPeriodEnd] = useState<string | null>(null);
   const [upgradingPlan, setUpgradingPlan] = useState(false);
@@ -162,9 +163,9 @@ const SettingsPage: FC<SettingsProps> = () => {
   const queryClient = useQueryClient();
 
   // Returns the fetched plan so callers can act on it directly
-  const loadPlan = useCallback(async (): Promise<"free" | "pro"> => {
+  const loadPlan = useCallback(async (): Promise<Plan> => {
     const result = await refetchSubscription();
-    return (result.data?.plan as "free" | "pro") ?? "free";
+    return (result.data?.plan as Plan) ?? "free";
   }, [refetchSubscription]);
 
   useEffect(() => {
@@ -238,7 +239,7 @@ const SettingsPage: FC<SettingsProps> = () => {
   // Effect 3: Sync subscription into plan state
   useEffect(() => {
     if (!subscriptionData) return;
-    setPlan((subscriptionData.plan as "free" | "pro") ?? "free");
+    setPlan((subscriptionData.plan as Plan) ?? "free");
     setCancelAtPeriodEnd(subscriptionData.cancel_at_period_end ?? false);
     setCurrentPeriodEnd(subscriptionData.current_period_end ?? null);
   }, [subscriptionData]);
