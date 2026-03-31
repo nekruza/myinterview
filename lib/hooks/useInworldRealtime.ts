@@ -8,6 +8,7 @@ export interface RealtimeConfig {
   voice: string;
   model: string;
   interviewType: "technical" | "behavioural";
+  hybridMode?: boolean;
 }
 
 export interface UseInworldRealtimeReturn {
@@ -20,6 +21,8 @@ export interface UseInworldRealtimeReturn {
   sendTextMessage: (text: string) => void;
   cancelResponse: () => void;
   muteMic: (muted: boolean) => void;
+  sendText: (text: string) => void;
+  interrupt: () => void;
 }
 
 export function useInworldRealtime(): UseInworldRealtimeReturn {
@@ -41,6 +44,7 @@ export function useInworldRealtime(): UseInworldRealtimeReturn {
   }, []);
 
   const greetingDoneRef = useRef(false);
+  const hybridModeRef = useRef(false);
 
   const handleDataChannelMessage = useCallback((event: MessageEvent) => {
     let parsed: Record<string, unknown>;
@@ -67,22 +71,25 @@ export function useInworldRealtime(): UseInworldRealtimeReturn {
       }
     } else if (type === "response.done" && !greetingDoneRef.current) {
       greetingDoneRef.current = true;
-      // Re-enable interrupt_response now that greeting is complete
-      sendEvent({
-        type: "session.update",
-        session: {
-          audio: {
-            input: {
-              turn_detection: {
-                type: "semantic_vad",
-                eagerness: "low",
-                create_response: true,
-                interrupt_response: true,
+      setAgentState("idle");
+      if (!hybridModeRef.current) {
+        // Re-enable interrupt_response now that greeting is complete
+        sendEvent({
+          type: "session.update",
+          session: {
+            audio: {
+              input: {
+                turn_detection: {
+                  type: "semantic_vad",
+                  eagerness: "low",
+                  create_response: true,
+                  interrupt_response: true,
+                },
               },
             },
           },
-        },
-      });
+        });
+      }
     } else if (type === "response.created") {
       setAgentState("processing");
     } else if (type === "response.output_audio.started") {
@@ -107,6 +114,7 @@ export function useInworldRealtime(): UseInworldRealtimeReturn {
         }
       }
     } else if (type === "conversation.item.input_audio_transcription.completed") {
+      if (hybridModeRef.current) return; // text items are added directly by sendText()
       const transcript = (parsed.transcript as string)?.trim();
       if (transcript) {
         setMessages((prev) => [...prev, { role: "user", content: transcript }]);
@@ -117,26 +125,29 @@ export function useInworldRealtime(): UseInworldRealtimeReturn {
   const connect = useCallback(async (config: RealtimeConfig) => {
     if (pcRef.current) return;
 
-    // Fetch ICE servers from our server (no API key returned)
+    hybridModeRef.current = config.hybridMode ?? false;
+
     const configRes = await fetch("/api/realtime/config");
     if (!configRes.ok) throw new Error("Failed to fetch realtime config");
     const { iceServers } = await configRes.json() as { iceServers: RTCIceServer[] };
 
-    // Get microphone and establish connection
     let micStream: MediaStream | null = null;
     try {
       micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
       micStreamRef.current = micStream;
 
-      // Create peer connection
       const pc = new RTCPeerConnection({ iceServers });
       pcRef.current = pc;
 
-      // Add mic track
       const audioTrack = micStream.getAudioTracks()[0];
+      if (config.hybridMode) {
+        // Mute immediately — sends silence so Inworld's VAD never fires,
+        // but the sendrecv SDP connection is identical to normal mode so
+        // AI audio is received and played back correctly.
+        audioTrack.enabled = false;
+      }
       pc.addTrack(audioTrack, micStream);
 
-      // Capture remote audio track for playback
       pc.ontrack = (event: RTCTrackEvent) => {
         if (event.track.kind === "audio") {
           const remoteStream = new MediaStream([event.track]);
@@ -149,43 +160,42 @@ export function useInworldRealtime(): UseInworldRealtimeReturn {
         }
       };
 
-      // Create data channel
       const dc = pc.createDataChannel("oai-events");
       dcRef.current = dc;
 
       dc.onopen = () => {
-        sendEvent({
-          type: "session.update",
-          session: {
-            type: "realtime",
-            model: config.model,
-            instructions: config.instructions,
-            output_modalities: ["audio", "text"],
-            audio: {
-              input: {
-                transcription: { model: "assemblyai/universal-streaming-multilingual" },
-                turn_detection: {
-                  type: "semantic_vad",
-                  eagerness: "low",
-                  create_response: true,
-                  interrupt_response: false,
-                },
-              },
-              output: {
-                model: "inworld-tts-1.5-mini",
-                voice: config.voice,
-              },
+        const sessionUpdate: Record<string, unknown> = {
+          type: "realtime",
+          model: config.model,
+          instructions: config.instructions,
+          output_modalities: ["audio", "text"],
+          audio: {
+            output: {
+              model: "inworld-tts-1.5-mini",
+              voice: config.voice,
             },
           },
-        });
+        };
 
+        // Only include audio input config (VAD/transcription) when NOT in hybrid mode
+        if (!config.hybridMode) {
+          (sessionUpdate.audio as Record<string, unknown>).input = {
+            transcription: { model: "assemblyai/universal-streaming-multilingual" },
+            turn_detection: {
+              type: "semantic_vad",
+              eagerness: "low",
+              create_response: true,
+              interrupt_response: false,
+            },
+          };
+        }
+
+        sendEvent({ type: "session.update", session: sessionUpdate });
         setIsConnected(true);
-        // response.create sent after session.updated confirms config is applied
       };
 
       dc.onmessage = handleDataChannelMessage;
 
-      // Exchange SDP via our server proxy (API key stays server-side)
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
 
@@ -220,6 +230,7 @@ export function useInworldRealtime(): UseInworldRealtimeReturn {
     pcRef.current = null;
     micStreamRef.current = null;
     greetingDoneRef.current = false;
+    hybridModeRef.current = false;
 
     setIsConnected(false);
     setAgentState("idle");
@@ -251,6 +262,25 @@ export function useInworldRealtime(): UseInworldRealtimeReturn {
     });
   }, []);
 
+  const sendText = useCallback((text: string) => {
+    if (!dcRef.current || dcRef.current.readyState !== "open") return;
+    sendEvent({
+      type: "conversation.item.create",
+      item: {
+        type: "message",
+        role: "user",
+        content: [{ type: "input_text", text }],
+      },
+    });
+    sendEvent({ type: "response.create" });
+    setMessages((prev) => [...prev, { role: "user", content: text }]);
+  }, [sendEvent]);
+
+  const interrupt = useCallback(() => {
+    sendEvent({ type: "response.cancel" });
+    setAgentState("idle");
+  }, [sendEvent]);
+
   useEffect(() => {
     return () => {
       dcRef.current?.close();
@@ -269,5 +299,7 @@ export function useInworldRealtime(): UseInworldRealtimeReturn {
     sendTextMessage,
     cancelResponse,
     muteMic,
+    sendText,
+    interrupt,
   };
 }

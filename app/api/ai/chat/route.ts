@@ -51,18 +51,6 @@ export async function POST(req: Request) {
     });
   }
 
-  // Save user message to DB if sessionId provided
-  if (sessionId) {
-    const lastMsg = messages[messages.length - 1];
-    if (lastMsg?.role === "user") {
-      await supabase.from("interview_messages").insert({
-        session_id: sessionId,
-        role: "user",
-        content: lastMsg.content,
-      });
-    }
-  }
-
   let fullResponse = "";
   const encoder = new TextEncoder();
 
@@ -79,15 +67,6 @@ export async function POST(req: Request) {
           controller.enqueue(
             encoder.encode(`data: ${JSON.stringify({ text: chunk })}\n\n`)
           );
-        }
-
-        // Save AI response to DB
-        if (sessionId && fullResponse) {
-          await supabase.from("interview_messages").insert({
-            session_id: sessionId,
-            role: "assistant",
-            content: fullResponse,
-          });
         }
 
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
