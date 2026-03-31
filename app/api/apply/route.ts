@@ -2,14 +2,34 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
 export async function POST(req: NextRequest) {
-  const formData = await req.formData();
+  const contentType = req.headers.get("content-type") ?? "";
 
-  const name = formData.get("name") as string | null;
-  const email = formData.get("email") as string | null;
-  const role = formData.get("role") as string | null;
-  const linkedinUrl = formData.get("linkedinUrl") as string | null;
-  const coverLetter = formData.get("coverLetter") as string | null;
-  const resumeFile = formData.get("resume") as File | null;
+  let name: string | null = null;
+  let email: string | null = null;
+  let role: string | null = null;
+  let linkedinUrl: string | null = null;
+  let coverLetter: string | null = null;
+  let appFeedback: string | null = null;
+  let resumeFile: File | null = null;
+
+  if (contentType.includes("application/json")) {
+    const body = await req.json();
+    name = body.name ?? null;
+    email = body.email ?? null;
+    role = body.role ?? null;
+    linkedinUrl = body.linkedinUrl ?? null;
+    coverLetter = body.coverLetter ?? null;
+    appFeedback = body.appFeedback ?? null;
+  } else {
+    const formData = await req.formData();
+    name = formData.get("name") as string | null;
+    email = formData.get("email") as string | null;
+    role = formData.get("role") as string | null;
+    linkedinUrl = formData.get("linkedinUrl") as string | null;
+    coverLetter = formData.get("coverLetter") as string | null;
+    appFeedback = formData.get("appFeedback") as string | null;
+    resumeFile = formData.get("resume") as File | null;
+  }
 
   if (!name || !email || !role) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -49,6 +69,7 @@ export async function POST(req: NextRequest) {
     role: role.trim(),
     linkedin_url: linkedinUrl?.trim() || null,
     cover_letter: coverLetter?.trim() || null,
+    app_feedback: appFeedback?.trim() || null,
     resume_url: resumeUrl,
   });
 
