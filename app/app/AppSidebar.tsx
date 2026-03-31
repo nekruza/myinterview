@@ -42,7 +42,7 @@ const navItems = [
   { href: "/app/practice", label: "AI Practice", icon: Sparkles },
   { href: "/app/progress", label: "Progress", icon: TrendingUp },
   { href: "/app/resources", label: "Resources", icon: BookOpen },
-  { href: "/app/settings", label: "Profile", icon: Settings },
+  // { href: "/app/settings", label: "Profile", icon: Settings },
 ];
 
 const notificationIcon = {
@@ -307,7 +307,7 @@ export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
         )}
 
         {/* ── Notification bell ────────────────────────────────── */}
-        <div className="relative z-10 w-full px-2 shrink-0">
+        {/* <div className="relative z-10 w-full px-2 shrink-0">
           <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -448,7 +448,7 @@ export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
               </ScrollArea>
             </PopoverContent>
           </Popover>
-        </div>
+        </div> */}
 
         {/* Glass divider */}
         <div
@@ -487,7 +487,7 @@ export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
               )}
             </Link>
           </TooltipTrigger>
-          <TooltipContent side="right">{userEmail}</TooltipContent>
+          <TooltipContent side="right">Settings</TooltipContent>
         </Tooltip>
 
         {/* ── Sign out ─────────────────────────────────────────── */}

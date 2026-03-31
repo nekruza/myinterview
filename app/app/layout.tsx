@@ -1,8 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { AppSidebar } from "./AppSidebar";
-import { Toaster } from "@/components/ui/sonner";
-import { QueryProvider } from "@/components/QueryProvider";
+import { AppLayoutClient } from "./AppLayoutClient";
 
 export default async function AppLayout({
   children,
@@ -40,15 +38,9 @@ export default async function AppLayout({
           background: "radial-gradient(ellipse 50% 60% at 0% 50%, rgba(180,200,220,0.08) 0%, transparent 70%)",
         }}
       />
-      <QueryProvider>
-        <AppSidebar userEmail={user.email ?? ""} avatarUrl={profile?.avatar_url ?? null} />
-        <main className="relative z-10 flex-1 overflow-y-auto">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8 pb-24 md:pb-8">{children}</div>
-        </main>
-        <Toaster position="top-right" />
-        {/* Hidden audio element for Inworld Realtime agent voice playback */}
-        <audio id="inworld-agent-audio" autoPlay playsInline style={{ display: "none" }} />
-      </QueryProvider>
+      <AppLayoutClient userEmail={user.email ?? ""} avatarUrl={profile?.avatar_url ?? null}>
+        {children}
+      </AppLayoutClient>
     </div>
   );
 }
