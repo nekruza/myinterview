@@ -73,9 +73,12 @@ export function UpgradeModal({
           interval: billing === "yearly" ? "year" : "month",
         }),
       });
+      if (!res.ok) throw new Error("Checkout failed");
       const data = await res.json();
       if (data.url) {
         window.location.href = data.url;
+      } else {
+        setLoading(false);
       }
     } catch {
       setLoading(false);
