@@ -17,6 +17,7 @@ import Link from "next/link";
 import { VoiceCallView } from "@/components/practice/VoiceCallView";
 import { LEVELS, TECH_ROLES } from "@/lib/practice-data";
 import type { Phase, Message } from "@/lib/practice-data";
+import type { Plan } from "@/lib/session-limits";
 import { createClient } from "@/lib/supabase/client";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { ResumeUpload } from "@/components/ResumeUpload";
@@ -49,7 +50,7 @@ export default function PracticePage() {
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
 
   // Usage / plan
-  const [plan, setPlan] = useState<"free" | "pro">("free");
+  const [plan, setPlan] = useState<Plan>("free");
   const [sessionsUsed, setSessionsUsed] = useState(0);
   const [showUpgrade, setShowUpgrade] = useState(false);
 
@@ -72,7 +73,7 @@ export default function PracticePage() {
       setHasResume(!!profile?.resume_url);
       setResumeText(profile?.resume_text ?? null);
       setSessionsUsed(profile?.practice_sessions_used ?? 0);
-      setPlan((subscription?.plan as "free" | "pro") ?? "free");
+      setPlan((subscription?.plan as Plan) ?? "free");
 
       // Preset from onboarding preferences
       if (profile?.experience_level) {
