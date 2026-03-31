@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
+import type { Plan } from "@/lib/session-limits";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2026-02-25.clover",
@@ -12,7 +13,16 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-async function setPlan(userId: string, plan: "free" | "pro") {
+const MAX_PRICE_IDS = new Set([
+  process.env.STRIPE_MAX_MONTHLY_PRICE_ID,
+  process.env.STRIPE_MAX_YEARLY_PRICE_ID,
+]);
+
+function planFromPriceId(priceId: string): "pro" | "max" {
+  return MAX_PRICE_IDS.has(priceId) ? "max" : "pro";
+}
+
+async function setPlan(userId: string, plan: Plan) {
   const { error } = await supabaseAdmin
     .from("subscriptions")
     .update({ plan })
@@ -47,7 +57,9 @@ export async function POST(req: NextRequest) {
       console.log("[webhook] checkout.session.completed userId:", userId);
       if (!userId) { console.error("[webhook] No client_reference_id"); break; }
 
-      await setPlan(userId, "pro");
+      const plan: "pro" | "max" =
+        session.metadata?.plan === "max" ? "max" : "pro";
+      await setPlan(userId, plan);
 
       // Store stripe_customer_id on profile
       if (session.customer) {
@@ -73,7 +85,11 @@ export async function POST(req: NextRequest) {
       if (!profileRow) { console.error("[webhook] no profile for customer", customerId); break; }
 
       const isActive = sub.status === "active" || sub.status === "trialing";
-      await setPlan(profileRow.id, isActive ? "pro" : "free");
+      const priceId = (sub as any).items?.data?.[0]?.price?.id as string | undefined;
+      const activePlan: Plan = isActive
+        ? (priceId ? planFromPriceId(priceId) : "pro")
+        : "free";
+      await setPlan(profileRow.id, activePlan);
 
       // Store cancellation details — newer Stripe API uses `cancel_at` (Unix ts)
       // instead of cancel_at_period_end boolean for portal cancellations.
