@@ -13,7 +13,7 @@ export const PricingSection: FC = () => {
       price: "$0",
       description: "Perfect to get started",
       features: [
-        { text: "Unlimited AI practice", bold: true },
+        { text: "3 interviews to get started", bold: true },
         { text: "Behavioral & technical questions", bold: false },
         { text: "Basic anxiety techniques library", bold: false },
         { text: "Community access", bold: false },
@@ -30,7 +30,7 @@ export const PricingSection: FC = () => {
       period: "/mo",
       description: "Serious about landing offers",
       features: [
-        { text: "Everything in Free", bold: true },
+        { text: "30 interviews per month", bold: true },
         { text: "Advanced anxiety techniques", bold: true },
         { text: "Personalized practice plan", bold: false },
         { text: "Priority support", bold: false },
@@ -81,8 +81,7 @@ export const PricingSection: FC = () => {
             Start Free, Upgrade When Ready
           </h2>
           <p className="text-xl text-neutral-600">
-            Join our beta community. Practice for free. Upgrade for unlimited
-            sessions.
+            Start with 3 free interviews. Upgrade for 30 per month.
           </p>
         </div>
 

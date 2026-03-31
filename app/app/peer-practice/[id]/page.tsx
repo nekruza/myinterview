@@ -1,7 +1,9 @@
 "use client";
 
-import { FC, useEffect, useState, use } from "react";
+import { FC, useState, use } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { usePeerSession, useJoinPeerSession, useLeavePeerSession, useRespondToJoin } from "@/lib/queries/peer-sessions";
 import { TECH_ROLES } from "@/lib/practice-data";
 import { toast } from "sonner";
 import {
@@ -379,10 +381,14 @@ export default function PeerSessionDetailPage({
 }) {
   const { id } = use(params);
 
-  const [session, setSession] = useState<PeerSession | null>(null);
-  const [userId, setUserId] = useState<string>("");
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
+  const router = useRouter();
+  const { data: sessionData, isLoading: loading, isError, error } = usePeerSession(id);
+  const session = sessionData?.session ?? null;
+  const userId = sessionData?.userId ?? "";
+  const notFound = isError && (error as Error & { status?: number })?.status === 404;
+  const joinMutation = useJoinPeerSession();
+  const leaveMutation = useLeavePeerSession();
+  const respondMutation = useRespondToJoin();
   const [joining, setJoining] = useState(false);
   const [responding, setResponding] = useState<string | null>(null); // user_id being responded to
   const [copied, setCopied] = useState(false);
@@ -402,93 +408,32 @@ export default function PeerSessionDetailPage({
     }
   }
 
-  async function fetchSession() {
-    try {
-      const res = await fetch(`/api/peer-sessions/${id}`);
-      if (res.status === 404) {
-        setNotFound(true);
-        return;
-      }
-      const data = await res.json();
-      setSession(data.session);
-      setUserId(data.userId ?? "");
-    } catch {
-      toast.error("Failed to load session");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchSession();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
-
-  async function handleJoin() {
+  function handleJoin() {
     if (!session) return;
     setJoining(true);
-    try {
-      const res = await fetch("/api/peer-sessions/join", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: session.id }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to send request");
-      }
-      toast.success("Join request sent! The host will review it.");
-      fetchSession();
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Failed to send request");
-    } finally {
-      setJoining(false);
-    }
+    joinMutation.mutate(session.id, {
+      onSuccess: () => toast.success("Join request sent! The host will review it."),
+      onError: (err: unknown) => toast.error(err instanceof Error ? err.message : "Failed to send request"),
+      onSettled: () => setJoining(false),
+    });
   }
 
-  async function handleRespond(targetUserId: string, action: "accept" | "reject") {
+  function handleRespond(targetUserId: string, action: "accept" | "reject") {
     if (!session) return;
     setResponding(targetUserId);
-    try {
-      const res = await fetch("/api/peer-sessions/join/respond", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_id: session.id,
-          user_id: targetUserId,
-          action,
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || `Failed to ${action}`);
-      }
-      toast.success(action === "accept" ? "Request accepted!" : "Request declined.");
-      fetchSession();
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : `Failed to ${action}`);
-    } finally {
-      setResponding(null);
-    }
+    respondMutation.mutate({ sessionId: session.id, userId: targetUserId, action }, {
+      onSuccess: () => toast.success(action === "accept" ? "Request accepted!" : "Request declined."),
+      onError: (err: unknown) => toast.error(err instanceof Error ? err.message : `Failed to ${action}`),
+      onSettled: () => setResponding(null),
+    });
   }
 
-  async function handleLeave() {
+  function handleLeave() {
     if (!session) return;
-    try {
-      const res = await fetch("/api/peer-sessions/join", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: session.id }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to leave");
-      }
-      toast.success("You've left the session.");
-      fetchSession();
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Failed to leave session");
-    }
+    leaveMutation.mutate(session.id, {
+      onSuccess: () => router.push("/app/peer-practice"),
+      onError: (err: unknown) => toast.error(err instanceof Error ? err.message : "Failed to leave"),
+    });
   }
 
   if (loading) return <DetailSkeleton />;

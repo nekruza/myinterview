@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useEffect, useState } from "react";
+import { FC, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
@@ -26,6 +26,10 @@ import {
 } from "@/components/ui/dialog";
 import { TECH_ROLES } from "@/lib/practice-data";
 import { UpgradeModal } from "@/components/UpgradeModal";
+import { usePeerSessions, useJoinPeerSession, useLeavePeerSession, useCreatePeerSession } from "@/lib/queries/peer-sessions";
+import { useProfile } from "@/lib/queries/profile";
+import { useQueryClient } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/lib/queries/keys";
 
 /* ─── types ─── */
 
@@ -392,8 +396,8 @@ const SessionCard: FC<{
 const CreateSessionDialog: FC<{
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreated: () => void;
-}> = ({ open, onOpenChange, onCreated }) => {
+  createMutation: ReturnType<typeof useCreatePeerSession>;
+}> = ({ open, onOpenChange, createMutation }) => {
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
@@ -404,7 +408,6 @@ const CreateSessionDialog: FC<{
   const [developerType, setDeveloperType] = useState("");
   const [customRole, setCustomRole] = useState("");
   const [interviewType, setInterviewType] = useState("");
-  const [creating, setCreating] = useState(false);
   const [linkError, setLinkError] = useState("");
 
   function validateMeetingLink(url: string): string {
@@ -430,7 +433,7 @@ const CreateSessionDialog: FC<{
     }
   }
 
-  async function handleCreate() {
+  function handleCreate() {
     const linkErr = validateMeetingLink(meetingLink);
     if (linkErr) { setLinkError(linkErr); return; }
     if (!title.trim() || !date || !time || !meetingLink.trim()) {
@@ -438,48 +441,38 @@ const CreateSessionDialog: FC<{
       return;
     }
 
-    setCreating(true);
-    try {
-      const scheduled_at = new Date(`${date}T${time}`).toISOString();
-      const res = await fetch("/api/peer-sessions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: title.trim(),
-          scheduled_at,
-          duration_minutes: parseInt(duration),
-          meeting_link: meetingLink.trim(),
-          type: "peer",
-          notes: notes.trim() || null,
-          max_participants: parseInt(maxParticipants),
-          developer_type: developerType === "other" ? (customRole.trim() || null) : (developerType || null),
-          interview_type: interviewType || null,
-        }),
-      });
+    const scheduled_at = new Date(`${date}T${time}`).toISOString();
+    const body = {
+      title: title.trim(),
+      scheduled_at,
+      duration_minutes: parseInt(duration),
+      meeting_link: meetingLink.trim(),
+      type: "peer",
+      notes: notes.trim() || null,
+      max_participants: parseInt(maxParticipants),
+      developer_type: developerType === "other" ? (customRole.trim() || null) : (developerType || null),
+      interview_type: interviewType || null,
+    };
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to create session");
-      }
-
-      toast.success("Session created! Others can now join.");
-      onOpenChange(false);
-      setTitle("");
-      setDate("");
-      setTime("");
-      setMeetingLink("");
-      setNotes("");
-      setDuration("45");
-      setMaxParticipants("2");
-      setDeveloperType("");
-      setCustomRole("");
-      setInterviewType("");
-      onCreated();
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Failed to create session");
-    } finally {
-      setCreating(false);
-    }
+    createMutation.mutate(body, {
+      onSuccess: () => {
+        toast.success("Session created!");
+        onOpenChange(false);
+        setTitle("");
+        setDate("");
+        setTime("");
+        setMeetingLink("");
+        setNotes("");
+        setDuration("45");
+        setMaxParticipants("2");
+        setDeveloperType("");
+        setCustomRole("");
+        setInterviewType("");
+      },
+      onError: (err: unknown) => {
+        toast.error(err instanceof Error ? err.message : "Failed to create session");
+      },
+    });
   }
 
   return (
@@ -655,16 +648,16 @@ const CreateSessionDialog: FC<{
 
           <button
             onClick={handleCreate}
-            disabled={creating}
+            disabled={createMutation.isPending}
             className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-2xl font-bold text-sm transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A] disabled:opacity-60 disabled:shadow-none disabled:translate-y-0"
             style={{ background: "#2dec29", color: "#112715" }}
           >
-            {creating ? (
+            {createMutation.isPending ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <Plus className="w-4 h-4" />
             )}
-            {creating ? "Creating…" : "Create Session"}
+            {createMutation.isPending ? "Creating…" : "Create Session"}
           </button>
         </div>
       </DialogContent>
@@ -705,100 +698,59 @@ const EmptyState: FC<{ onCreateClick: () => void }> = ({ onCreateClick }) => (
 const PeerPracticePage: FC = () => <PeerPracticeContent />;
 
 const PeerPracticeContent: FC = () => {
-  const [sessions, setSessions] = useState<PeerSession[]>([]);
-  const [userId, setUserId] = useState<string>("");
-  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [comingSoonOpen, setComingSoonOpen] = useState(false);
   const [joiningId, setJoiningId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"all" | "weekly">("all");
-  const [plan, setPlan] = useState<"free" | "pro">("free");
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [joinsUsed, setJoinsUsed] = useState(0);
   const upgradeReason = "peer_limit" as const;
   const [showUpgrade, setShowUpgrade] = useState(false);
 
-  async function fetchSessions() {
-    try {
-      const [sessionsRes, profileRes] = await Promise.all([
-        fetch("/api/peer-sessions"),
-        fetch("/api/profile"),
-      ]);
-      const sessionsData = await sessionsRes.json();
-      const profileData = await profileRes.json();
-      setSessions(sessionsData.sessions ?? []);
-      setUserId(sessionsData.userId ?? "");
-      setPlan(profileData.plan ?? "free");
-      setIsAdmin(profileData.isAdmin ?? false);
-      setJoinsUsed(profileData.peer_sessions_joined ?? 0);
-    } catch {
-      toast.error("Failed to load sessions");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const { data: sessionsData, isLoading: sessionsLoading } = usePeerSessions();
+  const { data: profileData, isLoading: profileLoading } = useProfile();
+  const joinMutation = useJoinPeerSession();
+  const leaveMutation = useLeavePeerSession();
+  const createMutation = useCreatePeerSession();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    fetchSessions();
-  }, []);
+  const loading = sessionsLoading || profileLoading;
+  const sessions = sessionsData?.sessions ?? [];
+  const userId = sessionsData?.userId ?? "";
+  const plan = profileData?.plan ?? "free";
+  const isAdmin = profileData?.isAdmin ?? false;
+  const joinsUsed = profileData?.peer_sessions_joined ?? 0;
 
   async function handleJoin(sessionId: string) {
-    // Check limit client-side first
     if (plan === "free" && joinsUsed >= 3) {
       setShowUpgrade(true);
       return;
     }
-
     setJoiningId(sessionId);
-    try {
-      const res = await fetch("/api/peer-sessions/join", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: sessionId }),
-      });
-
-      if (res.status === 403) {
-        const data = await res.json();
-        if (data.error === "limit_reached") {
+    joinMutation.mutate(sessionId, {
+      onSuccess: () => {
+        toast.success("Join request sent! The host will review it.");
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.profile });
+      },
+      onError: (err: unknown) => {
+        const error = err as Error & { status?: number; data?: { error?: string } };
+        if (error.status === 403 && error.data?.error === "limit_reached") {
           setShowUpgrade(true);
           return;
         }
-        throw new Error(data.error || "Failed to join");
-      }
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to join");
-      }
-
-      setJoinsUsed((prev) => prev + 1);
-      toast.success("Join request sent! The host will review it.");
-      fetchSessions();
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Failed to join session");
-    } finally {
-      setJoiningId(null);
-    }
+        toast.error(error.message || "Failed to join session");
+      },
+      onSettled: () => setJoiningId(null),
+    });
   }
 
   async function handleLeave(sessionId: string) {
-    try {
-      const res = await fetch("/api/peer-sessions/join", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: sessionId }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to leave");
-      }
-
-      toast.success("You've left the session.");
-      fetchSessions();
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Failed to leave session");
-    }
+    leaveMutation.mutate(sessionId, {
+      onSuccess: () => {
+        toast.success("You have left the session.");
+      },
+      onError: (err: unknown) => {
+        toast.error(err instanceof Error ? err.message : "Failed to leave session");
+      },
+    });
   }
 
   const weeklySessions = sessions.filter((s) => s.is_featured);
@@ -1033,7 +985,7 @@ const PeerPracticeContent: FC = () => {
       <CreateSessionDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        onCreated={fetchSessions}
+        createMutation={createMutation}
       />
 
       {/* Coming soon dialog for non-admin users */}
