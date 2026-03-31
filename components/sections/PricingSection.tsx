@@ -82,7 +82,7 @@ export const PricingSection: FC = () => {
             Start Free, Upgrade When Ready
           </h2>
           <p className="text-xl text-neutral-600 mb-8">
-            Start with 3 free interviews. Upgrade for 30 per month.
+            Start with 3 free interviews. Upgrade for up to 100 per month.
           </p>
 
           {/* Billing toggle */}
