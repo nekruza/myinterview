@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import type { UserProfile } from "@/lib/types/profile";
+import type { Plan } from "@/lib/session-limits";
 
 // Estimated minutes per completed session (avg voice call length)
 const AVG_SESSION_MINUTES = 12;
@@ -208,7 +209,7 @@ export async function GET() {
       match_alerts: profile?.match_alerts ?? meta.match_alerts ?? true,
     },
 
-    plan: (subscription?.plan as "free" | "pro") ?? "free",
+    plan: (subscription?.plan as Plan) ?? "free",
 
     practice_sessions_used: profile?.practice_sessions_used ?? 0,
     peer_sessions_joined: profile?.peer_sessions_joined ?? 0,

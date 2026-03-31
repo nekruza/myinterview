@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
+import type { Plan } from "@/lib/session-limits";
 import { ChevronRight, PlayCircle, Users, Sparkles, Zap } from "lucide-react";
 import { FreeBanner } from "@/components/FreeBanner";
 import { FeedbackCard } from "@/components/FeedbackCard";
@@ -199,7 +200,7 @@ export default async function DashboardPage() {
       .maybeSingle(),
   ]);
 
-  const plan = (subRow?.plan ?? "free") as "free" | "pro";
+  const plan = (subRow?.plan ?? "free") as Plan;
   const practiceUsed = profileRow?.practice_sessions_used ?? 0;
 
   const sessionList = sessions ?? [];

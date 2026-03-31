@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import type { Plan } from "@/lib/session-limits";
+import { SESSION_LIMITS } from "@/lib/session-limits";
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -60,10 +62,10 @@ export async function POST(req: NextRequest) {
     supabase.from("profiles").select("full_name, peer_sessions_joined").eq("id", user.id).single(),
   ]);
 
-  const plan = (subscription?.plan as "free" | "pro") ?? "free";
+  const plan = (subscription?.plan as Plan) ?? "free";
   const joinsUsed = profile?.peer_sessions_joined ?? 0;
 
-  if (plan === "free" && joinsUsed >= 3) {
+  if (joinsUsed >= SESSION_LIMITS[plan]) {
     return NextResponse.json(
       { error: "limit_reached", type: "peer_join" },
       { status: 403 }
