@@ -174,6 +174,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
           voice: "Dennis",
           model: "google-ai-studio/gemini-3.1-flash-lite-preview",
           interviewType: interviewType ?? "technical",
+          hybridMode: true,
         });
       } else {
         await sendToAI([
@@ -392,6 +393,18 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [realtime.agentState, useRealtime]);
 
+  // ── Hybrid mode: auto-start/stop local STT based on convState ──
+  useEffect(() => {
+    if (!useRealtime) return;
+    if (convState === "listening") {
+      speech.resetTranscript();
+      speech.startListening();
+    } else {
+      speech.stopListening();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [convState, useRealtime]);
+
   // ── Start visualizer with Realtime agent audio ──
   useEffect(() => {
     if (!useRealtime || !realtime.agentAudioStream) return;
@@ -415,6 +428,24 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
     setMessages(updatedMsgs);
     sendToAI(updatedMsgs);
   }, [speech, sendToAI]);
+
+  // ── Realtime hybrid send: inject local transcript as text message ──
+  const handleRealtimeSend = useCallback(() => {
+    const text = (speech.finalTranscript + speech.transcript).trim();
+    if (!text) return;
+    speech.stopListening();
+    speech.resetTranscript();
+    realtime.sendText(text);
+  }, [speech, realtime]);
+
+  // ── Interrupt AI mid-response ──
+  const handleInterrupt = useCallback(() => {
+    realtime.interrupt();
+    const audio = document.getElementById("inworld-agent-audio") as HTMLAudioElement | null;
+    if (audio) {
+      audio.pause();
+    }
+  }, [realtime]);
 
   // ── Hint handler ──
   const handleHint = useCallback(async () => {
@@ -455,7 +486,9 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
     if (convState === "paused") {
       timer.start();
       if (useRealtime) {
-        realtime.muteMic(false);
+        // Set convState directly; STT auto-starts via the convState effect.
+        // Note: if a response is still in-flight when pause was pressed, the
+        // agentState sync effect will overwrite this back to "ai_speaking".
         setConvState("listening");
       } else {
         startListeningToUser();
@@ -465,7 +498,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
       timer.pause();
       if (useRealtime) {
         realtime.cancelResponse();
-        realtime.muteMic(true);
+        // STT auto-stops via convState effect
       } else {
         speech.stopListening();
         tts.cancel();
@@ -673,11 +706,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
           <VideoArea
             webcamStream={webcamStream}
             isAISpeaking={convState === "ai_speaking"}
-            isUserSpeaking={
-              useRealtime
-                ? realtime.agentState === "listening"
-                : convState === "listening" && speech.isListening
-            }
+            isUserSpeaking={convState === "listening" && speech.isListening}
             analyserData={visualizer.analyserData}
           />
 
@@ -690,6 +719,20 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
               />
             </div>
           </div>
+
+          {/* Send button — realtime hybrid mode */}
+          {useRealtime && convState === "listening" && (speech.finalTranscript || speech.transcript) && (
+            <div className="shrink-0 flex items-center justify-center">
+              <button
+                onClick={handleRealtimeSend}
+                className="flex items-center gap-2 px-5 py-2 rounded-full font-semibold text-sm transition hover:opacity-90 active:scale-95"
+                style={{ background: "#2dec29", color: "#112715" }}
+              >
+                <Mic className="w-4 h-4" />
+                Send
+              </button>
+            </div>
+          )}
 
           {/* Auto-send toggle + manual send button (legacy STT path only) */}
           {convState === "listening" && !useRealtime && (
@@ -741,6 +784,8 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
               onStop={handleStop}
               onToggleNotes={() => setShowNotes((v) => !v)}
               notesOpen={showNotes}
+              onInterrupt={useRealtime ? handleInterrupt : undefined}
+              isAISpeaking={convState === "ai_speaking"}
             />
           </div>
         </div>
@@ -749,17 +794,11 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
         <TranscriptPanel
           messages={useRealtime ? realtime.messages : messages}
           interimTranscript={
-            useRealtime
-              ? ""
-              : convState === "listening"
+            convState === "listening"
               ? (speech.finalTranscript + speech.transcript).trim()
               : ""
           }
-          isActivelyListening={
-            useRealtime
-              ? realtime.agentState === "listening"
-              : convState === "listening" && !!speech.transcript
-          }
+          isActivelyListening={convState === "listening" && !!speech.transcript}
           isVisible={showCaptions}
         />
       </div>

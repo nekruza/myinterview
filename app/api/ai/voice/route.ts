@@ -149,18 +149,6 @@ export async function POST(req: Request) {
     });
   }
 
-  // Save user message to DB
-  if (sessionId && !isHint) {
-    const lastMsg = messages[messages.length - 1];
-    if (lastMsg?.role === "user") {
-      await supabase.from("interview_messages").insert({
-        session_id: sessionId,
-        role: "user",
-        content: lastMsg.content,
-      });
-    }
-  }
-
   const systemPrompt = isHint
     ? HINT_SYSTEM_PROMPT(question, role, resumeText)
     : VOICE_SYSTEM_PROMPT(category, level, question, interviewType, jobContext, resumeText, role);
@@ -204,15 +192,6 @@ export async function POST(req: Request) {
           controller.enqueue(
             encoder.encode(`data: ${JSON.stringify({ text: chunk })}\n\n`)
           );
-        }
-
-        // Save AI response to DB
-        if (sessionId && fullResponse) {
-          await supabase.from("interview_messages").insert({
-            session_id: sessionId,
-            role: "assistant",
-            content: fullResponse,
-          });
         }
 
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));

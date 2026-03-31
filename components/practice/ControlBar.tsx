@@ -11,6 +11,7 @@ import {
   FileText,
   Video,
   VideoOff,
+  StopCircle,
 } from "lucide-react";
 
 interface ControlBarProps {
@@ -26,6 +27,8 @@ interface ControlBarProps {
   onStop: () => void;
   onToggleNotes: () => void;
   notesOpen: boolean;
+  onInterrupt?: () => void;
+  isAISpeaking?: boolean;
 }
 
 interface ControlButtonProps {
@@ -78,6 +81,8 @@ export const ControlBar: FC<ControlBarProps> = ({
   onStop,
   onToggleNotes,
   notesOpen,
+  onInterrupt,
+  isAISpeaking,
 }) => (
   <div className="flex items-center justify-center gap-3 px-6 py-3 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10">
     <ControlButton
@@ -120,6 +125,14 @@ export const ControlBar: FC<ControlBarProps> = ({
       label="Skip"
       onClick={onSkip}
     />
+    {isAISpeaking && onInterrupt && (
+      <ControlButton
+        icon={<StopCircle className="w-5 h-5 text-white" />}
+        label="Interrupt"
+        onClick={onInterrupt}
+        danger
+      />
+    )}
     <ControlButton
       icon={
         isPaused ? (
