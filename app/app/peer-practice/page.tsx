@@ -30,6 +30,7 @@ import { usePeerSessions, useJoinPeerSession, useLeavePeerSession, useCreatePeer
 import { useProfile } from "@/lib/queries/profile";
 import { useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/lib/queries/keys";
+import type { Plan } from "@/lib/session-limits";
 
 /* ─── types ─── */
 
@@ -715,7 +716,7 @@ const PeerPracticeContent: FC = () => {
   const loading = sessionsLoading || profileLoading;
   const sessions = sessionsData?.sessions ?? [];
   const userId = sessionsData?.userId ?? "";
-  const plan = profileData?.plan ?? "free";
+  const plan: Plan = (profileData?.plan as Plan) ?? "free";
   const isAdmin = profileData?.isAdmin ?? false;
   const joinsUsed = profileData?.peer_sessions_joined ?? 0;
 
