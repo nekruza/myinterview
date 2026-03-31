@@ -171,7 +171,7 @@ const SettingsPage: FC<SettingsProps> = () => {
   useEffect(() => {
     if (searchParams?.get("upgraded") !== "true") return;
 
-    toast.success("Welcome to Pro! Setting up your account…");
+    toast.success("Upgrade successful! Setting up your account…");
     router.replace("/app/settings");
 
     let cancelled = false;
@@ -182,8 +182,8 @@ const SettingsPage: FC<SettingsProps> = () => {
       if (cancelled) return;
       const fetched = await loadPlan();
       if (cancelled) return;
-      if (fetched === "pro") {
-        toast.success("You're now on Pro! Enjoy unlimited access.");
+      if (fetched === "pro" || fetched === "max") {
+        toast.success(`You're now on ${fetched === "max" ? "Max" : "Pro"}! Enjoy unlimited access.`);
         return;
       }
       if (attemptIndex + 1 < delays.length) {

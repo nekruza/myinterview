@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import type { Plan } from "@/lib/session-limits";
+import { SESSION_LIMITS } from "@/lib/session-limits";
 
 // Create a new AI practice session
 export async function POST(req: NextRequest) {
@@ -27,10 +29,10 @@ export async function POST(req: NextRequest) {
     supabase.from("profiles").select("practice_sessions_used").eq("id", user.id).single(),
   ]);
 
-  const plan = (subscription?.plan as "free" | "pro") ?? "free";
+  const plan = (subscription?.plan as Plan) ?? "free";
   const sessionsUsed = profileUsage?.practice_sessions_used ?? 0;
 
-  if (plan === "free" && sessionsUsed >= 3) {
+  if (sessionsUsed >= SESSION_LIMITS[plan]) {
     return NextResponse.json(
       { error: "limit_reached", type: "practice" },
       { status: 403 }
