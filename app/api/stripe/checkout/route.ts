@@ -24,8 +24,15 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json().catch(() => ({}));
-  const plan: "pro" | "max" = body.plan === "max" ? "max" : "pro";
-  const interval: "month" | "year" = body.interval === "year" ? "year" : "month";
+  const plan = body.plan;
+  const interval = body.interval;
+
+  if (plan !== "pro" && plan !== "max") {
+    return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
+  }
+  if (interval !== "month" && interval !== "year") {
+    return NextResponse.json({ error: "Invalid interval" }, { status: 400 });
+  }
   const key = `${plan}:${interval}`;
   const priceId = PRICE_IDS[key];
 
@@ -51,6 +58,7 @@ export async function POST(req: NextRequest) {
       user_id: user.id,
       full_name: profile?.full_name ?? "",
       plan,
+      interval,
     },
     success_url: `${origin}/app/settings?upgraded=true`,
     cancel_url: `${origin}/app/settings`,
