@@ -12,8 +12,8 @@ export const PricingSection: FC = () => {
   const tiers = [
     {
       name: "Free",
-      monthlyPrice: "$0",
-      yearlyPrice: "$0",
+      monthlyPrice: "£0",
+      yearlyPrice: "£0",
       yearlyTotal: null,
       description: "Perfect to get started",
       features: [
@@ -28,9 +28,9 @@ export const PricingSection: FC = () => {
     },
     {
       name: "Pro",
-      monthlyPrice: "$19",
-      yearlyPrice: "$9.50",
-      yearlyTotal: "$114",
+      monthlyPrice: "£19",
+      yearlyPrice: "£9.50",
+      yearlyTotal: "£114",
       description: "Serious about landing offers",
       features: [
         { text: "30 interviews per month", bold: true },
@@ -46,9 +46,9 @@ export const PricingSection: FC = () => {
     },
     {
       name: "Max",
-      monthlyPrice: "$49",
-      yearlyPrice: "$24.50",
-      yearlyTotal: "$294",
+      monthlyPrice: "£49",
+      yearlyPrice: "£24.50",
+      yearlyTotal: "£294",
       description: "For the most serious candidates",
       features: [
         { text: "100 interviews per month", bold: true },
@@ -158,7 +158,7 @@ export const PricingSection: FC = () => {
                       >
                         {displayPrice}
                       </span>
-                      {displayPrice !== "$0" && (
+                      {displayPrice !== "£0" && (
                         <span
                           className={`text-xl ${
                             tier.popular ? "text-white/80" : "text-neutral-600"

@@ -5,8 +5,7 @@ import { SmoothScroll } from "@/components/SmoothScroll";
 import { LandingPageWrapper } from "@/components/LandingPageWrapper";
 import {
   HeroSection,
-  ProblemStatement,
-  HowItWorks,
+  VideoSection,
   FeaturesSection,
   TestimonialsSection,
   PricingSection,
@@ -45,7 +44,7 @@ export default function Home() {
         <Navigation />
         <main id="main-content" className="bg-white text-neutral-900 font-sans antialiased mx-auto">
           <HeroSection />
-          <ProblemStatement />
+          <VideoSection />
           <FeaturesSection />
           <PricingSection />
           <JoinTeamSection />
