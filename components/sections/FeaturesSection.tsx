@@ -76,18 +76,26 @@ export const FeaturesSection: FC = () => {
                 </div>
               </div>
 
-              {/* Quick Start Card */}
+              {/* Tailored Questions Card */}
               <div className="bg-cream rounded-3xl p-6 border-2 border-neutral-200 flex flex-col justify-between">
                 <div>
-                  <div className="flex items-center justify-between mb-6">
-                    <h4 className="font-bold text-lg text-secondary">Start in seconds</h4>
-                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">24/7</span>
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-bold text-lg text-secondary">Tailored to you</h4>
+                    <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-bold">Personalised</span>
                   </div>
+                  <p className="text-sm text-neutral-600 mb-4">Questions tailored to your resume and the exact job you&apos;re applying for.</p>
                   <div className="space-y-3">
-                    {["Pick a question type", "Answer out loud or in text", "Get instant R-STAR feedback"].map((step, i) => (
+                    {[
+                      { label: "Resume", desc: "Upload your CV" },
+                      { label: "Job Description", desc: "Paste or link the role" },
+                      { label: "AI Questions", desc: "Get role-specific practice" },
+                    ].map((item, i) => (
                       <div key={i} className="flex items-center gap-3 bg-white rounded-xl p-3 border border-neutral-200">
                         <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-black flex items-center justify-center flex-shrink-0">{i + 1}</span>
-                        <p className="text-sm font-medium text-secondary">{step}</p>
+                        <div>
+                          <p className="text-xs font-bold text-secondary">{item.label}</p>
+                          <p className="text-xs text-neutral-500">{item.desc}</p>
+                        </div>
                       </div>
                     ))}
                   </div>
