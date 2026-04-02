@@ -4,7 +4,9 @@ let initialized = false;
 
 export function initMixpanel() {
   if (initialized) return;
-  mixpanel.init("0af25a0053a5f67d486359ad9020aeba", {
+  const token = process.env.NEXT_PUBLIC_MIXPANEL_TOKEN;
+  if (!token) return;
+  mixpanel.init(token, {
     autocapture: true,
     record_sessions_percent: 100,
     api_host: "https://api-eu.mixpanel.com",
