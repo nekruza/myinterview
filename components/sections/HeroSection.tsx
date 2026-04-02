@@ -10,12 +10,13 @@ export const HeroSection: FC = () => {
 
   return (
     <section
+      id="hero-section"
       aria-label="Hero — Conquer Interview Anxiety"
       className="min-h-screen flex items-start pt-28 md:pt-32 px-4 sm:px-6 lg:px-8 animated-gradient overflow-hidden"
     >
       <div className="max-w-6xl mx-auto w-full">
         <div className="flex justify-center items-start text-center">
-          <div className="animate-fade-in">
+          <div id="hero-content" className="animate-fade-in">
             <div className="inline-flex items-center bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-semibold mb-6 border border-neutral-200">
               <span className="relative flex h-3 w-3 mr-2" aria-hidden="true">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
