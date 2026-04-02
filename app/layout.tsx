@@ -4,6 +4,7 @@ import "./globals.css";
 import { ComingSoonProvider } from "@/components/ComingSoonProvider";
 import { MixpanelInit } from "@/components/MixpanelInit";
 import { Analytics } from "@vercel/analytics/next"
+import Script from "next/script"
 
 const sora = Sora({
   subsets: ["latin"],
@@ -103,6 +104,19 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://randomuser.me" />
+        {/* Google Ads (gtag.js) */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=AW-18056669142"
+          strategy="afterInteractive"
+        />
+        <Script id="google-ads" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'AW-18056669142');
+          `}
+        </Script>
       </head>
       <body className={`${sora.variable} font-sans antialiased`} suppressHydrationWarning>
         {/* Skip-to-content for accessibility and SEO */}
