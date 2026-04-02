@@ -9,16 +9,16 @@ export const ProblemStatement: FC = () => {
       stat: "→ 93% experience this",
     },
     {
-      emoji: "😰",
-      title: "You Overthink Everything",
-      quote: "Every question feels like a trap. I second-guess every word. Did I say too much? Too little?",
-      stat: "→ Anxiety feedback loop",
+      emoji: "🎯",
+      title: "Generic Practice Doesn't Work",
+      quote: "I've done ChatGPT mock interviews and watched YouTube prep videos — but none of it is tailored to my actual resume or the specific job I'm applying for.",
+      stat: "→ Relevance is everything",
     },
     {
       emoji: "😔",
-      title: "You Feel Alone",
-      quote: "Everyone else seems confident. I feel like I'm the only one struggling. I don't know who to talk to.",
-      stat: "→ You're not alone",
+      title: "You've Failed a Final Round Before",
+      quote: "I made it to the last stage and froze. I knew I could do the job — I just couldn't prove it under pressure when it counted.",
+      stat: "→ Practice beats potential",
     },
   ];
 
@@ -37,11 +37,10 @@ export const ProblemStatement: FC = () => {
             id="problem-heading"
             className="text-4xl md:text-5xl font-black mb-4 text-secondary"
           >
-            Interview Anxiety Affects Everyone
+            You&apos;re Qualified. Generic Prep Is Letting You Down.
           </h2>
           <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-            You&apos;re qualified. You&apos;re prepared. But anxiety makes you
-            doubt everything.
+            The problem isn&apos;t your skills — it&apos;s that you&apos;re practicing the wrong interview for the wrong role.
           </p>
         </div>
 

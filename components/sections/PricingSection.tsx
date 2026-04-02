@@ -15,10 +15,12 @@ export const PricingSection: FC = () => {
       monthlyPrice: "£0",
       yearlyPrice: "£0",
       yearlyTotal: null,
-      description: "Perfect to get started",
+      description: "Try it before you commit",
       features: [
-        { text: "3 interviews to get started", bold: true },
-        { text: "Behavioral & technical questions", bold: false },
+        { text: "3 full mock interviews", bold: true },
+        { text: "Resume-tailored questions", bold: false },
+        { text: "Instant feedback reports", bold: false },
+        { text: "Behavioral & technical question bank", bold: false },
         { text: "Progress dashboard", bold: false },
       ],
       cta: "Start Free",
@@ -31,13 +33,14 @@ export const PricingSection: FC = () => {
       monthlyPrice: "£19",
       yearlyPrice: "£9.50",
       yearlyTotal: "£114",
-      description: "Serious about landing offers",
+      description: "For engineers actively job hunting",
       features: [
-        { text: "30 interviews per month", bold: true },
-        { text: "Behavioral & technical questions", bold: false },
+        { text: "30 full mock interviews per month", bold: true },
+        { text: "Resume-tailored questions", bold: false },
+        { text: "Instant feedback reports", bold: false },
+        { text: "Behavioral & technical question bank", bold: false },
         { text: "Progress dashboard", bold: false },
         { text: "Priority support", bold: false },
-        { text: "Interview prep resources", bold: false },
       ],
       cta: "Start Pro Trial",
       href: "/signup",
@@ -51,11 +54,12 @@ export const PricingSection: FC = () => {
       yearlyTotal: "£294",
       description: "For the most serious candidates",
       features: [
-        { text: "100 interviews per month", bold: true },
-        { text: "Behavioral & technical questions", bold: false },
+        { text: "100 full mock interviews per month", bold: true },
+        { text: "Resume-tailored questions", bold: false },
+        { text: "Instant feedback reports", bold: false },
+        { text: "Behavioral & technical question bank", bold: false },
         { text: "Progress dashboard", bold: false },
         { text: "Priority support", bold: false },
-        { text: "Interview prep resources", bold: false },
       ],
       cta: "Get Max",
       href: "/signup",
@@ -79,10 +83,10 @@ export const PricingSection: FC = () => {
             id="pricing-heading"
             className="text-5xl font-black mb-6 text-secondary"
           >
-            Start Free, Upgrade When Ready
+            Start Free. Interview Smarter.
           </h2>
           <p className="text-xl text-neutral-600 mb-8">
-            Start with 3 free interviews. Upgrade for up to 100 per month.
+            Start with 3 free full mock interviews — resume-tailored, voice-powered, with instant feedback.
           </p>
 
           {/* Billing toggle */}

@@ -10,12 +10,12 @@ export const HowItWorks: FC = () => {
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth="2"
-            d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
           />
         </svg>
       ),
-      title: "Tell us your interview goals",
-      description: "Share your target companies, role level, and what makes you anxious",
+      title: "Upload your resume & job description",
+      description: "Paste the role you're targeting. The AI reads both and builds your interview around your actual experience.",
     },
     {
       number: "2",
@@ -29,8 +29,8 @@ export const HowItWorks: FC = () => {
           />
         </svg>
       ),
-      title: "Practice with AI instantly",
-      description: "Get real-time feedback on behavioral & technical questions 24/7",
+      title: "Do a full AI voice mock interview",
+      description: "Answer out loud. The AI asks the exact questions your interviewer will — behavioral, technical, role-specific. Available 24/7.",
     },
     {
       number: "3",
@@ -44,8 +44,8 @@ export const HowItWorks: FC = () => {
           />
         </svg>
       ),
-      title: "Track your progress",
-      description: "Watch your confidence scores climb as you practice more",
+      title: "Get your feedback report & improve",
+      description: "See exactly what landed, what didn't, and what to fix. Repeat until you walk in ready.",
     },
   ];
 

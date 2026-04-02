@@ -11,7 +11,7 @@ export const HeroSection: FC = () => {
   return (
     <section
       id="hero-section"
-      aria-label="Hero — Conquer Interview Anxiety"
+      aria-label="Hero — Practice the Interview You're Actually About to Take"
       className="min-h-screen flex items-start pt-28 md:pt-32 px-4 sm:px-6 lg:px-8 animated-gradient overflow-hidden"
     >
       <div className="max-w-6xl mx-auto w-full">
@@ -23,19 +23,17 @@ export const HeroSection: FC = () => {
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
               </span>
               <span className="text-secondary">
-                The interview prep tool that actually works
+                AI that reads your resume &amp; job description
               </span>
             </div>
             <h1 className="text-5xl md:text-6xl font-black leading-tight mb-6 text-secondary">
-              Conquer Your
-              <span className="block">Interview
-              Anxiety
-              </span>
+              Practice the Interview
+              <span className="block">You&apos;re Actually About to Take</span>
             </h1>
             <p className="text-xl text-neutral-800 mb-8 leading-relaxed">
-              Practice behavioral &amp; technical interviews with AI.{" "}
+              Get AI mock interviews tailored to your exact role —{" "}
               <strong className="font-semibold text-secondary">
-                Become confident and fluent.
+                real voice, real feedback, zero judgment.
               </strong>
             </p>
             <div className="flex items-center justify-center space-x-6 text-sm text-neutral-600">
@@ -47,12 +45,12 @@ export const HeroSection: FC = () => {
                 >
                   <path
                     fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 001.414 0l4-4z"
                     clipRule="evenodd"
                   />
                 </svg>
                 <span className="font-medium text-secondary">
-                  Start Free
+                  Resume-tailored questions
                 </span>
               </div>
               <div className="flex items-center">
@@ -63,12 +61,12 @@ export const HeroSection: FC = () => {
                 >
                   <path
                     fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 001.414 0l4-4z"
                     clipRule="evenodd"
                   />
                 </svg>
                 <span className="font-medium text-secondary">
-                  Cancel Anytime
+                  Instant feedback reports
                 </span>
               </div>
             </div>
