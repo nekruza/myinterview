@@ -21,11 +21,10 @@ export const FeaturesSection: FC = () => {
             id="features-heading"
             className="text-5xl font-black mb-6 text-secondary"
           >
-            Everything You Need to Succeed
+            Everything You Need to Land the Offer
           </h2>
           <p className="text-xl text-neutral-700 max-w-3xl mx-auto">
-            AI practice + anxiety techniques + behavioral &amp; technical
-            prep + progress tracking
+            Resume-tailored questions + real voice AI + instant feedback reports + progress tracking
           </p>
         </div>
 
