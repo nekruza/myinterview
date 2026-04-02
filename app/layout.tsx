@@ -104,7 +104,15 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://randomuser.me" />
-        {/* Google Ads (gtag.js) */}
+      </head>
+      <body className={`${sora.variable} font-sans antialiased`} suppressHydrationWarning>
+        {/* Skip-to-content for accessibility and SEO */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-white focus:text-secondary focus:font-bold focus:rounded-lg focus:shadow-lg"
+        >
+          Skip to main content
+        </a>
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=AW-18056669142"
           strategy="afterInteractive"
@@ -117,15 +125,6 @@ export default function RootLayout({
             gtag('config', 'AW-18056669142');
           `}
         </Script>
-      </head>
-      <body className={`${sora.variable} font-sans antialiased`} suppressHydrationWarning>
-        {/* Skip-to-content for accessibility and SEO */}
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-white focus:text-secondary focus:font-bold focus:rounded-lg focus:shadow-lg"
-        >
-          Skip to main content
-        </a>
         <MixpanelInit />
         <Analytics />
         <ComingSoonProvider>{children}</ComingSoonProvider>
