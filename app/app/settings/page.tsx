@@ -183,7 +183,7 @@ const SettingsPage: FC<SettingsProps> = () => {
       const fetched = await loadPlan();
       if (cancelled) return;
       if (fetched === "pro") {
-        toast.success("You're now on Pro! Enjoy unlimited access.");
+        toast.success("You're now on Pro! Enjoy 30 sessions per month.");
         return;
       }
       if (attemptIndex + 1 < delays.length) {
@@ -639,7 +639,7 @@ const SettingsPage: FC<SettingsProps> = () => {
                 {cancelAtPeriodEnd
                   ? `Your Pro access continues until ${currentPeriodEnd ? new Date(currentPeriodEnd).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "the end of your billing period"}, then reverts to Free.`
                   : plan === "pro"
-                  ? "30 interviews per month, unlimited peer sessions, and the ability to create meetings."
+                  ? "30 interviews per month, 30 peer session joins, and the ability to create meetings."
                   : "3 free interviews to get started · 3 peer session joins · Upgrade for 30 interviews/month."}
               </p>
             </div>

@@ -140,13 +140,22 @@ export default function ContactPage() {
       return;
     }
     setSending(true);
-    // Simulate send — wire to a real email service when ready
-    await new Promise((r) => setTimeout(r, 1000));
-    toast.success("Message sent! We'll get back to you within 24 hours.");
-    setName("");
-    setEmail("");
-    setMessage("");
-    setSending(false);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, message }),
+      });
+      if (!res.ok) throw new Error("Failed to send");
+      toast.success("Message sent! We'll get back to you within 24 hours.");
+      setName("");
+      setEmail("");
+      setMessage("");
+    } catch {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setSending(false);
+    }
   }
 
   return (

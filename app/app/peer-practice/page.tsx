@@ -975,7 +975,7 @@ const PeerPracticeContent: FC = () => {
       {plan === "free" && (
         <p className="text-xs text-neutral-400 text-center">
           {joinsUsed >= 3 ? (
-            <span className="text-amber-600 font-medium">Free join limit reached — upgrade for unlimited peer sessions</span>
+            <span className="text-amber-600 font-medium">Free join limit reached — upgrade for 30 peer sessions per month</span>
           ) : (
             <span>{3 - joinsUsed} free peer join{3 - joinsUsed !== 1 ? "s" : ""} remaining</span>
           )}

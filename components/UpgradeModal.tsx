@@ -13,17 +13,17 @@ const CONTENT: Record<Reason, { title: string; description: string; features: st
   practice_limit: {
     title: "You've used all 3 free sessions",
     description: "Upgrade to keep practicing with AI interview sessions.",
-    features: ["Unlimited AI practice sessions", "Unlimited peer session joins", "Create & host peer meetings"],
+    features: ["30 AI practice sessions per month", "30 peer session joins per month", "Create & host peer meetings"],
   },
   peer_limit: {
     title: "You've used all 3 free peer joins",
-    description: "Upgrade to join unlimited peer practice sessions.",
-    features: ["Unlimited AI practice sessions", "Unlimited peer session joins", "Create & host peer meetings"],
+    description: "Upgrade to join more peer practice sessions.",
+    features: ["30 AI practice sessions per month", "30 peer session joins per month", "Create & host peer meetings"],
   },
   pro_required: {
     title: "Pro plan required",
     description: "Creating and hosting peer practice sessions is a Pro feature.",
-    features: ["Host unlimited peer meetings", "Unlimited AI practice sessions", "Unlimited peer session joins"],
+    features: ["Host peer meetings", "30 AI practice sessions per month", "30 peer session joins per month"],
   },
 };
 

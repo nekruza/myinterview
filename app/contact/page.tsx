@@ -30,7 +30,7 @@ const faqs = [
   },
   {
     q: "Is there a free plan?",
-    a: "Yes! The free plan includes unlimited AI practice sessions and up to 3 peer sessions per month. No credit card required to get started.",
+    a: "Yes! The free plan includes 3 AI practice sessions and up to 3 peer session joins per month. No credit card required to get started. Pro is £13/month billed quarterly for 30 sessions.",
   },
   {
     q: "How quickly will you respond to my message?",
@@ -74,11 +74,31 @@ const contactCards = [
 
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
   const [topic, setTopic] = useState(topics[0]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    const form = e.target as HTMLFormElement;
+    const name = (form.elements.namedItem("contact-name") as HTMLInputElement).value;
+    const email = (form.elements.namedItem("contact-email") as HTMLInputElement).value;
+    const subject = (form.elements.namedItem("contact-subject") as HTMLInputElement).value;
+    const message = (form.elements.namedItem("contact-message") as HTMLTextAreaElement).value;
+
+    setSending(true);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, topic, subject, message }),
+      });
+      if (!res.ok) throw new Error("Failed to send");
+      setSubmitted(true);
+    } catch {
+      alert("Something went wrong. Please try again.");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -220,8 +240,8 @@ export default function ContactPage() {
                     />
                   </div>
 
-                  <Button type="submit" size="lg" className="w-full">
-                    Send Message
+                  <Button type="submit" size="lg" className="w-full" disabled={sending}>
+                    {sending ? "Sending…" : "Send Message"}
                   </Button>
 
                   <p className="text-xs text-neutral-400 text-center">
