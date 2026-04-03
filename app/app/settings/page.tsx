@@ -182,8 +182,8 @@ const SettingsPage: FC<SettingsProps> = () => {
       if (cancelled) return;
       const fetched = await loadPlan();
       if (cancelled) return;
-      if (fetched === "pro" || fetched === "max") {
-        toast.success(`You're now on ${fetched === "max" ? "Max" : "Pro"}! Enjoy unlimited access.`);
+      if (fetched === "pro") {
+        toast.success("You're now on Pro! Enjoy unlimited access.");
         return;
       }
       if (attemptIndex + 1 < delays.length) {
@@ -612,9 +612,9 @@ const SettingsPage: FC<SettingsProps> = () => {
             <div>
               <div className="flex items-center gap-2">
                 <p className="text-sm font-semibold text-secondary">
-                  {plan === "max" ? "Max Plan" : plan === "pro" ? "Pro Plan" : "Free Plan"}
+                  {plan === "pro" ? "Pro Plan" : "Free Plan"}
                 </p>
-                {(plan === "pro" || plan === "max") && !cancelAtPeriodEnd && (
+                {plan === "pro" && !cancelAtPeriodEnd && (
                   <span
                     className="text-[10px] font-bold px-2 py-0.5 rounded-full"
                     style={{ background: "#f4fdf3", color: "#112715" }}
@@ -639,7 +639,7 @@ const SettingsPage: FC<SettingsProps> = () => {
                   : "3 free interviews to get started · 3 peer session joins · Upgrade for 30 interviews/month."}
               </p>
             </div>
-            {(plan === "pro" || plan === "max") ? (
+            {plan === "pro" ? (
               <button
                 onClick={handleManageSubscription}
                 disabled={upgradingPlan}

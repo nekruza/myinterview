@@ -7,10 +7,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 const PRICE_IDS: Record<string, string | undefined> = {
-  "pro:month": process.env.STRIPE_PRO_MONTHLY_PRICE_ID,
-  "pro:year": process.env.STRIPE_PRO_YEARLY_PRICE_ID,
-  "max:month": process.env.STRIPE_MAX_MONTHLY_PRICE_ID,
-  "max:year": process.env.STRIPE_MAX_YEARLY_PRICE_ID,
+  "pro:quarter": process.env.STRIPE_PRO_QUARTERLY_PRICE_ID,
 };
 
 export async function POST(req: NextRequest) {
@@ -27,10 +24,10 @@ export async function POST(req: NextRequest) {
   const plan = body.plan;
   const interval = body.interval;
 
-  if (plan !== "pro" && plan !== "max") {
+  if (plan !== "pro") {
     return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
   }
-  if (interval !== "month" && interval !== "year") {
+  if (interval !== "quarter") {
     return NextResponse.json({ error: "Invalid interval" }, { status: 400 });
   }
   const key = `${plan}:${interval}`;
