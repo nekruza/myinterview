@@ -13,12 +13,8 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-const MAX_PRICE_IDS = new Set(
-  [process.env.STRIPE_MAX_MONTHLY_PRICE_ID, process.env.STRIPE_MAX_YEARLY_PRICE_ID].filter(Boolean)
-);
-
-function planFromPriceId(priceId: string): "pro" | "max" {
-  return MAX_PRICE_IDS.has(priceId) ? "max" : "pro";
+function planFromPriceId(_priceId: string): "pro" {
+  return "pro";
 }
 
 async function setPlan(userId: string, plan: Plan) {
@@ -56,8 +52,7 @@ export async function POST(req: NextRequest) {
       console.log("[webhook] checkout.session.completed userId:", userId);
       if (!userId) { console.error("[webhook] No client_reference_id"); break; }
 
-      const plan: "pro" | "max" =
-        session.metadata?.plan === "max" ? "max" : "pro";
+      const plan: "pro" = "pro";
       await setPlan(userId, plan);
 
       // Store stripe_customer_id on profile

@@ -27,24 +27,13 @@ const CONTENT: Record<Reason, { title: string; description: string; features: st
   },
 };
 
-const PLANS = [
-  {
-    key: "pro" as const,
-    label: "Pro",
-    monthlyPrice: "$19",
-    yearlyPrice: "$9.50",
-    yearlyTotal: "$114",
-    sessions: "30 sessions/mo",
-  },
-  {
-    key: "max" as const,
-    label: "Max",
-    monthlyPrice: "$49",
-    yearlyPrice: "$24.50",
-    yearlyTotal: "$294",
-    sessions: "100 sessions/mo",
-  },
-];
+const PLAN = {
+  key: "pro" as const,
+  label: "Pro",
+  price: "£13",
+  billingNote: "Billed £39 every 3 months",
+  sessions: "30 sessions/mo",
+};
 
 export function UpgradeModal({
   open,
@@ -56,11 +45,7 @@ export function UpgradeModal({
   reason: Reason;
 }) {
   const [loading, setLoading] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<"pro" | "max">("pro");
-  const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
   const content = CONTENT[reason];
-  const plan = PLANS.find((p) => p.key === selectedPlan)!;
-  const displayPrice = billing === "yearly" ? plan.yearlyPrice : plan.monthlyPrice;
 
   async function handleUpgrade() {
     setLoading(true);
@@ -69,8 +54,8 @@ export function UpgradeModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          plan: selectedPlan,
-          interval: billing === "yearly" ? "year" : "month",
+          plan: "pro",
+          interval: "quarter",
         }),
       });
       if (!res.ok) throw new Error("Checkout failed");
@@ -138,56 +123,13 @@ export function UpgradeModal({
             </li>
           </ul>
 
-          {/* Plan selector */}
-          <div className="grid grid-cols-2 gap-2">
-            {PLANS.map((p) => (
-              <button
-                key={p.key}
-                onClick={() => setSelectedPlan(p.key)}
-                className={`rounded-xl px-3 py-3 text-left border transition-all ${
-                  selectedPlan === p.key
-                    ? "border-[#2dec29] bg-[#f4fdf3]"
-                    : "border-neutral-200 bg-neutral-50 hover:border-neutral-300"
-                }`}
-              >
-                <p className="text-xs text-neutral-500 font-medium">{p.label}</p>
-                <p className="text-secondary font-bold text-sm">
-                  {billing === "yearly" ? p.yearlyPrice : p.monthlyPrice}/mo
-                </p>
-                <p className="text-xs text-neutral-400">{p.sessions}</p>
-              </button>
-            ))}
-          </div>
-
-          {/* Billing toggle */}
-          <div className="flex items-center gap-2">
-            <div className="inline-flex items-center bg-neutral-100 rounded-full p-0.5 gap-0.5 text-xs">
-              <button
-                onClick={() => setBilling("monthly")}
-                className={`px-3 py-1.5 rounded-full font-semibold transition-all ${
-                  billing === "monthly"
-                    ? "bg-white text-secondary shadow-sm"
-                    : "text-neutral-500"
-                }`}
-              >
-                Monthly
-              </button>
-              <button
-                onClick={() => setBilling("yearly")}
-                className={`px-3 py-1.5 rounded-full font-semibold transition-all ${
-                  billing === "yearly"
-                    ? "bg-white text-secondary shadow-sm"
-                    : "text-neutral-500"
-                }`}
-              >
-                Yearly
-              </button>
-            </div>
-            {billing === "yearly" && (
-              <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
-                Save 50% — Billed {plan.yearlyTotal}/yr
-              </span>
-            )}
+          {/* Plan info */}
+          <div className="rounded-xl px-4 py-3 border border-[#2dec29] bg-[#f4fdf3]">
+            <p className="text-xs text-neutral-500 font-medium">{PLAN.label}</p>
+            <p className="text-secondary font-bold text-sm">
+              {PLAN.price}/mo
+            </p>
+            <p className="text-xs text-neutral-400">{PLAN.billingNote} · {PLAN.sessions}</p>
           </div>
 
           {/* CTA */}
@@ -200,7 +142,7 @@ export function UpgradeModal({
             <Sparkles className="w-4 h-4" />
             {loading
               ? "Redirecting…"
-              : `Upgrade to ${plan.label} — ${displayPrice}/mo`}
+              : `Upgrade to Pro — ${PLAN.price}/mo`}
           </button>
 
           <button
