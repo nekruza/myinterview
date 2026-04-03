@@ -136,7 +136,7 @@ export function HomepageFAQSchema() {
         name: "Is MyInterview free?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes. MyInterview offers a free plan with unlimited AI practice sessions and up to 3 peer sessions per month. No credit card is required to get started. Pro plans start at $19/month.",
+          text: "Yes. MyInterview offers a free plan with 3 AI practice sessions and up to 3 peer sessions per month. No credit card is required to get started. Pro plan is £13/month billed quarterly.",
         },
       },
       {

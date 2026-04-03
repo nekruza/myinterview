@@ -13,7 +13,11 @@ export function FreeBanner({ practiceLeft }: FreeBannerProps) {
   async function handleUpgrade() {
     setLoading(true);
     try {
-      const res = await fetch("/api/stripe/checkout", { method: "POST" });
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: "pro", interval: "quarter" }),
+      });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
     } finally {
