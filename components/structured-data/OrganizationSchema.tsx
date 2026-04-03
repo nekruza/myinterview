@@ -19,27 +19,18 @@ export function OrganizationSchema() {
         "@type": "Offer",
         name: "Free Plan",
         price: "0",
-        priceCurrency: "USD",
+        priceCurrency: "GBP",
         description:
-          "Unlimited AI practice sessions and up to 3 peer sessions per month. No credit card required.",
+          "3 AI practice sessions and up to 3 peer session joins per month. No credit card required.",
         availability: "https://schema.org/InStock",
       },
       {
         "@type": "Offer",
         name: "Pro Plan",
-        price: "19",
-        priceCurrency: "USD",
+        price: "13",
+        priceCurrency: "GBP",
         description:
-          "Unlimited AI and peer practice sessions, advanced anxiety techniques, and personalized interview prep plan.",
-        availability: "https://schema.org/InStock",
-      },
-      {
-        "@type": "Offer",
-        name: "Team Plan",
-        price: "49",
-        priceCurrency: "USD",
-        description:
-          "Everything in Pro plus team dashboard, private team sessions, and company-specific interview preparation.",
+          "30 AI practice sessions and 30 peer session joins per month, billed £39 every 3 months.",
         availability: "https://schema.org/InStock",
       },
     ],
@@ -112,7 +103,7 @@ export function HomepageFAQSchema() {
         name: "What is MyInterview?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "MyInterview is an AI-powered interview practice platform that helps software engineers overcome interview anxiety through unlimited AI mock interviews and peer practice sessions. It covers behavioral interviews, technical questions, and system design.",
+          text: "MyInterview is an AI-powered interview practice platform that helps software engineers overcome interview anxiety through AI mock interviews and peer practice sessions. It covers behavioral interviews, technical questions, and system design.",
         },
       },
       {

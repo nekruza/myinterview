@@ -25,6 +25,20 @@ import { ResumeUpload } from "@/components/ResumeUpload";
 type InterviewType = "technical" | "behavioural";
 type JobContextMode = "paste" | "general";
 
+interface DetailedFeedback {
+  company: string;
+  role: string;
+  interviewType: string;
+  verdict: string;
+  score: number;
+  summary: string;
+  categories: Array<{ name: string; score: number; comment: string }>;
+  strengths: string[];
+  improvements: string[];
+  tips: string[];
+  questions: Array<{ question: string; score: number; answer: string; feedback: string }>;
+}
+
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 export default function PracticePage() {
@@ -38,7 +52,7 @@ export default function PracticePage() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sessionDuration, setSessionDuration] = useState<string>("00:00");
   const [sessionQuestionCount, setSessionQuestionCount] = useState(0);
-  const [feedbackData, setFeedbackData] = useState<{ score: number; improvements: { point: string; example: string }[] } | null>(null);
+  const [feedbackData, setFeedbackData] = useState<DetailedFeedback | null>(null);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
 
   // User feedback dialog
@@ -181,17 +195,21 @@ export default function PracticePage() {
           jobContext: getJobContext(),
         }),
       });
-      const data = await res.json();
+      const data: DetailedFeedback = await res.json();
       setFeedbackData(data);
 
+      // Store: score as 0-100, feedback as JSON, per-category progress scores
       await fetch("/api/sessions", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           sessionId,
-          score: data.score,
-          feedback: data.improvements.map((imp: { point: string; example: string }) => `${imp.point}\n${imp.example}`).join("\n\n"),
-          competencyScores: [{ competency: interviewType, score: data.score }],
+          score: Math.round(data.score * 10),
+          feedback: JSON.stringify(data),
+          competencyScores: data.categories.map((c) => ({
+            competency: c.name.toLowerCase().replace(/\s+/g, "_"),
+            score: Math.round(c.score * 10),
+          })),
         }),
       });
       toast.success("Session saved!");
@@ -529,7 +547,7 @@ export default function PracticePage() {
         {plan === "free" && (
           <p className="text-center text-xs text-neutral-400 mb-2">
             {sessionsUsed >= 3 ? (
-              <span className="text-amber-600 font-medium">Free limit reached — upgrade for unlimited sessions</span>
+              <span className="text-amber-600 font-medium">Free limit reached — upgrade for 30 sessions per month</span>
             ) : (
               <span>{3 - sessionsUsed} free session{3 - sessionsUsed !== 1 ? "s" : ""} remaining</span>
             )}
