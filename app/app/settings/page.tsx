@@ -333,7 +333,11 @@ const SettingsPage: FC<SettingsProps> = () => {
   async function handleUpgrade() {
     setUpgradingPlan(true);
     try {
-      const res = await fetch("/api/stripe/checkout", { method: "POST" });
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: "pro", interval: "quarter" }),
+      });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
     } catch {
@@ -655,7 +659,7 @@ const SettingsPage: FC<SettingsProps> = () => {
                 className="self-start sm:self-auto px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A] disabled:opacity-60 disabled:shadow-none disabled:translate-y-0"
                 style={{ background: "#2dec29", color: "#112715" }}
               >
-                {upgradingPlan ? "Loading…" : "Upgrade to Pro — $19/mo"}
+                {upgradingPlan ? "Loading…" : "Upgrade to Pro — £13/mo"}
               </button>
             )}
           </div>
