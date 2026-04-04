@@ -2,7 +2,7 @@
 
 import { FC } from "react";
 import Link from "next/link";
-import { Badge } from "../ui";
+
 import { track } from "@/lib/mixpanel";
 import { Sparkles, ChevronRight } from "lucide-react";
 
@@ -30,321 +30,193 @@ export const FeaturesSection: FC = () => {
         </div>
 
         <div className="space-y-12">
-          {/* Feature 1: AI & Peer Practice */}
-          <div className="relative">
-            {/* Bento Grid Layout */}
-            <div className="grid lg:grid-cols-3 gap-6">
-              {/* Large Card: AI Practice */}
-              <div
-                className="lg:col-span-2 group relative rounded-3xl overflow-hidden flex flex-col justify-between p-7"
+          {/* Full-width Practice Card */}
+          <div
+            className="relative rounded-3xl"
+            style={{
+              background: "#071a09",
+              minHeight: "560px",
+            }}
+          >
+            {/* Subtle right-side glow */}
+            <div className="pointer-events-none absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-[0.06]" style={{ background: "#2dec29" }} />
+            <div className="pointer-events-none absolute bottom-0 right-1/3 w-64 h-64 rounded-full blur-3xl opacity-[0.04]" style={{ background: "#2dec29" }} />
+
+            {/* Video — left side */}
+            <div className="relative h-90 md:h-72 select-none lg:absolute lg:inset-y-0 lg:left-0 lg:right-[56%] lg:h-auto overflow-hidden rounded-l-3xl rounded-r-3xl lg:rounded-none">
+              <video
+                src="/avatar_video.mp4"
+                autoPlay
+                loop
+                playsInline
+                controls
+                className="absolute inset-0 w-full h-full object-cover object-top"
+              />
+              {/* Desktop right fade — wide and smooth */}
+              <div className="absolute inset-y-0 right-0 w-48 pointer-events-none hidden lg:block" style={{ background: "linear-gradient(to left, #071a09 0%, rgba(7,26,9,0.8) 40%, transparent 100%)" }} />
+            </div>
+
+            {/* Annotation — sits inside video area, above the face */}
+            <div
+              className="absolute z-20 pointer-events-none flex-col items-end gap-1 hidden lg:flex"
+              style={{ top: "10%", left: "28%" }}
+            >
+              <span
                 style={{
-                  background: "linear-gradient(to left, #000 0%, #102815 100%)",
-                  minHeight: "288px",
+                  fontFamily: "Georgia, 'Times New Roman', serif",
+                  fontSize: "0.85rem",
+                  fontStyle: "italic",
+                  fontWeight: 400,
+                  transform: "rotate(-2deg)",
+                  display: "inline-block",
+                  color: "rgba(255,255,255,0.75)",
+                  background: "rgba(255,255,255,0.06)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  padding: "6px 12px",
+                  borderRadius: "8px",
+                  whiteSpace: "nowrap",
                 }}
               >
-                {/* Glows */}
-                <div className="pointer-events-none absolute -top-20 right-10 w-72 h-72 rounded-full blur-3xl opacity-[0.08]" style={{ background: "#2dec29" }} />
-                <div className="pointer-events-none absolute bottom-0 left-0 w-56 h-56 rounded-full blur-3xl opacity-[0.07]" style={{ background: "#2dec29" }} />
+                you&apos;ll be practicing with him
+              </span>
+              {/* Arrow pointing down-left toward the face */}
+              <svg width="70" height="32" viewBox="0 0 70 32" fill="none" className="opacity-50 mr-8">
+                <path d="M60 4 C40 8, 20 16, 6 26" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M2 22 L6 28 L12 24" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
 
-                {/* Avatar — top on mobile, right side on desktop */}
-                <div className="relative -mt-7 -mx-7 h-80 mb-4 select-none lg:absolute lg:inset-y-0 lg:right-0 lg:h-auto lg:w-[48%] lg:mt-0 lg:mx-0 lg:mb-0">
-                  <video
-                    src="/avatar_video.mp4"
-                    autoPlay
-                    loop
-                    playsInline
-                    controls
-                    className="absolute inset-0 w-full h-full object-cover object-top"
-                  />
-                  {/* Blend — bottom on mobile, left edge on desktop */}
-                  <div className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none lg:hidden" style={{ background: "linear-gradient(to top, #102815, transparent)" }} />
-                  <div className="absolute inset-y-0 left-0 w-24 pointer-events-none hidden lg:block" style={{ background: "linear-gradient(to right, #102815, transparent)" }} />
-                </div>
-
-                {/* Top: badge + headline */}
-                <div className="relative z-10 flex flex-col gap-3 max-w-full lg:max-w-[56%]">
-                  <div
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit"
-                    style={{ background: "#2dec2914", border: "1px solid #2dec2935" }}
-                  >
-                    <Sparkles className="w-3 h-3" style={{ color: "#2dec29" }} />
-                    <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "#2dec29" }}>
-                      AI Coach · 24/7
-                    </span>
+            {/* Floating Behavioral/Technical card — bottom right, 3D lift */}
+            <div
+              className="absolute z-30 hidden lg:block"
+              style={{ bottom: "-24px", right: "-24px" }}
+            >
+              <div
+                className="rounded-2xl px-4 py-3"
+                style={{
+                  background: "rgba(10,30,12,0.85)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  backdropFilter: "blur(16px)",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.06)",
+                  transform: "perspective(600px) rotateX(-2deg) rotateY(-2deg)",
+                }}
+              >
+                <p className="text-[8px] uppercase tracking-[0.2em] mb-3" style={{ color: "rgba(255,255,255,0.2)" }}>Question Types</p>
+                <div className="flex gap-3">
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0" style={{ background: "#2dec29" }}>
+                        <svg className="w-2.5 h-2.5" fill="none" stroke="#071a09" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
+                      </div>
+                      <span className="text-[10px] font-semibold text-white">Behavioral</span>
+                    </div>
+                    <div className="flex gap-1">
+                      {["Leadership", "Conflict"].map(tag => <span key={tag} className="text-[8px] px-1.5 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.08)" }}>{tag}</span>)}
+                    </div>
                   </div>
-                  <h3 className="text-white font-extrabold leading-[1.1]" style={{ fontSize: "2rem" }}>
-                    Practice<br />Now
-                  </h3>
-                  <p className="text-white/45 text-sm leading-relaxed">
-                    No scheduling needed
-                  </p>
-                </div>
-
-                {/* Desktop only: original absolute-centered annotation */}
-                <div
-                  className="absolute z-20 pointer-events-none flex-col items-start gap-1.5 hidden lg:flex"
-                  style={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}
-                >
-                  <svg width="90" height="36" viewBox="0 0 90 36" fill="none" className="opacity-70 ml-14">
-                    <path d="M4 30 C18 24, 44 14, 74 6" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M68 2 L76 6 L70 13" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  <span
-                    className="text-white/85 whitespace-nowrap px-3 py-1.5 rounded-lg ml-1"
-                    style={{
-                      fontFamily: "Georgia, 'Times New Roman', serif",
-                      fontSize: "0.95rem",
-                      fontStyle: "italic",
-                      fontWeight: 400,
-                      letterSpacing: "0.01em",
-                      transform: "rotate(-2deg)",
-                      display: "inline-block",
-                      background: "rgba(255,255,255,0.07)",
-                      border: "1px solid rgba(255,255,255,0.15)",
-                    }}
-                  >
-                    you&apos;ll be practicing with him
-                  </span>
-                </div>
-
-                {/* Bottom: features + CTA */}
-                <div className="relative z-10 flex flex-col gap-4 max-w-full lg:max-w-[40%]">
-                  <ul className="flex flex-col gap-1.5">
-                    {["Instant AI feedback", "R-STAR framework"].map((feat) => (
-                      <li key={feat} className="flex items-center gap-2">
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="flex-shrink-0">
-                          <circle cx="6" cy="6" r="5.5" stroke="#2dec29" strokeOpacity="0.4"/>
-                          <path d="M3.5 6l1.8 1.8L8.5 4.5" stroke="#2dec29" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                        <span className="text-white/55 text-xs">{feat}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="flex items-end gap-2.5">
-                    <Link
-                      href="/app/practice"
-                      onClick={() => track("landing_practice_now_clicked")}
-                      className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold w-fit transition-all duration-200 hover:brightness-110 hover:gap-3 shrink-0"
-                      style={{ background: "#2dec29", color: "#071a09" }}
-                    >
-                      Start session
-                      <ChevronRight className="w-4 h-4" />
-                    </Link>
+                  <div className="w-px" style={{ background: "rgba(255,255,255,0.08)" }} />
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0" style={{ background: "rgba(255,255,255,0.12)" }}>
+                        <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                      </div>
+                      <span className="text-[10px] font-semibold text-white">Technical</span>
+                    </div>
+                    <div className="flex gap-1">
+                      {["Data", "Algo", "System"].map(tag => <span key={tag} className="text-[8px] px-1.5 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.08)" }}>{tag}</span>)}
+                    </div>
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Tailored Questions Card */}
-              <div className="bg-cream rounded-3xl p-6 border-2 border-neutral-200 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="font-bold text-lg text-secondary">Tailored to you</h4>
-                    <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-bold">Personalised</span>
+            {/* Floating stats card — top right, 3D lift */}
+            <div
+              className="absolute z-30 hidden lg:block"
+              style={{ top: "-28px", right: "-28px" }}
+            >
+              <div
+                className="rounded-2xl px-5 py-4"
+                style={{
+                  background: "rgba(10,30,12,0.85)",
+                  border: "1px solid rgba(45,236,41,0.15)",
+                  backdropFilter: "blur(16px)",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.06)",
+                  transform: "perspective(600px) rotateX(2deg) rotateY(-2deg)",
+                }}
+              >
+                <p className="text-[8px] uppercase tracking-[0.2em] mb-3" style={{ color: "rgba(255,255,255,0.2)" }}>See Your Confidence Grow</p>
+                <div className="flex items-center gap-5">
+                  <div>
+                    <p className="text-2xl font-black leading-none" style={{ color: "#2dec29" }}>55–60%</p>
+                    <p className="text-[10px] mt-1" style={{ color: "rgba(255,255,255,0.35)" }}>Performance gain</p>
                   </div>
-                  <p className="text-sm text-neutral-600 mb-4">Questions tailored to your resume and the exact job you&apos;re applying for.</p>
-                  <div className="space-y-3">
+                  <div className="w-px h-7" style={{ background: "rgba(255,255,255,0.1)" }} />
+                  <div>
+                    <p className="text-2xl font-black leading-none" style={{ color: "#2dec29" }}>40%</p>
+                    <p className="text-[10px] mt-1" style={{ color: "rgba(255,255,255,0.35)" }}>Confidence impact</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: all content */}
+            <div className="relative z-10 lg:absolute lg:right-0 lg:top-0 lg:bottom-0 lg:left-[46%] flex flex-col justify-center px-12 py-10">
+              <div className="flex flex-col gap-8 h-full justify-center">
+
+                {/* Top: AI Coach badge + Practice Now heading */}
+                <div className="flex flex-col gap-5">
+                  <div
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full w-fit"
+                    style={{ background: "rgba(45,236,41,0.08)", border: "1px solid rgba(45,236,41,0.2)" }}
+                  >
+                    <Sparkles className="w-3 h-3" style={{ color: "#2dec29" }} />
+                    <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "#2dec29" }}>AI Coach · 24/7</span>
+                  </div>
+                  <div>
+                    <h3 className="text-white font-extrabold leading-none mb-2" style={{ fontSize: "2.5rem" }}>Practice Now</h3>
+                    <p className="text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>No scheduling. Start instantly.</p>
+                  </div>
+                </div>
+
+                {/* Middle: Tailored to you */}
+                <div className="flex flex-col gap-4">
+                  <div>
+                    <div className="flex items-center gap-2.5 mb-1.5">
+                      <p className="text-white font-bold text-sm">Tailored to you</p>
+                      <span className="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide" style={{ background: "rgba(45,236,41,0.1)", color: "#2dec29", border: "1px solid rgba(45,236,41,0.2)" }}>Personalised</span>
+                    </div>
+                    <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.3)" }}>Questions matched to your resume and exact role.</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
                     {[
                       { label: "Resume", desc: "Upload your CV" },
                       { label: "Job Description", desc: "Paste or link the role" },
                       { label: "AI Questions", desc: "Get role-specific practice" },
+                      { label: "Detailed Feedback", desc: "Instant report after each session" },
                     ].map((item, i) => (
-                      <div key={i} className="flex items-center gap-3 bg-white rounded-xl p-3 border border-neutral-200">
-                        <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-black flex items-center justify-center flex-shrink-0">{i + 1}</span>
+                      <div key={i} className="flex items-center gap-3 rounded-xl px-3 py-2.5" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                        <span className="w-5 h-5 rounded-full text-[9px] font-black flex items-center justify-center flex-shrink-0" style={{ background: "rgba(45,236,41,0.12)", color: "#2dec29" }}>{i + 1}</span>
                         <div>
-                          <p className="text-xs font-bold text-secondary">{item.label}</p>
-                          <p className="text-xs text-neutral-500">{item.desc}</p>
+                          <p className="text-xs font-semibold" style={{ color: "rgba(255,255,255,0.85)" }}>{item.label}</p>
+                          <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.32)" }}>{item.desc}</p>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
-                <Link href="/signup" className="mt-6 block w-full bg-primary text-white py-2.5 rounded-xl text-sm font-semibold text-center hover:bg-secondary transition" onClick={() => track("CTA Clicked", { button: "Try it free", location: "features" })}>
-                  Try it free →
-                </Link>
-              </div>
 
-              {/* Interview Types Cards */}
-              <div className="bg-primary/5 rounded-3xl p-6 border-2 border-primary/20">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
-                    <svg
-                      className="w-7 h-7 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-                      />
-                    </svg>
-                  </div>
-                  <h4 className="font-bold text-lg text-secondary">
-                    Behavioral
-                  </h4>
-                </div>
-                <p className="text-sm text-neutral-700 mb-4">
-                  Master storytelling with the STAR method for behavioral
-                  questions
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {["Leadership", "Conflict", "Impact"].map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-3 py-1 bg-white rounded-full text-xs font-semibold text-secondary border border-neutral-200"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Technical Card */}
-              <div className="lg:col-span-2 bg-cream rounded-3xl p-6 border-2 border-neutral-200">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-12 h-12 bg-secondary rounded-xl flex items-center justify-center">
-                    <svg
-                      className="w-7 h-7 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
-                      />
-                    </svg>
-                  </div>
-                  <h4 className="font-bold text-lg text-secondary">
-                    Technical Problem-Solving
-                  </h4>
-                </div>
-                <p className="text-sm text-neutral-700 mb-4">
-                  Practice coding, system design, and problem-solving with
-                  real-time feedback
-                </p>
-                <div className="grid grid-cols-3 gap-3">
-                  {[
-                    { title: "Data", subtitle: "Structures" },
-                    { title: "Algo", subtitle: "rithms" },
-                    { title: "System", subtitle: "Design" },
-                  ].map((item, i) => (
-                    <div
-                      key={i}
-                      className="bg-white rounded-lg p-3 border border-neutral-200 text-center"
-                    >
-                      <p className="font-bold text-secondary text-lg mb-1">
-                        {item.title}
-                      </p>
-                      <p className="text-xs text-neutral-600">
-                        {item.subtitle}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-
-          {/* Feature 3: Progress Tracking */}
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="order-2 lg:order-1">
-              <Badge variant="success" className="mb-6">
-                PROGRESS TRACKING
-              </Badge>
-              <h3 className="text-4xl font-black mb-6 text-secondary">
-                See Your Confidence Grow
-              </h3>
-              <p className="text-xl text-neutral-600 mb-8 leading-relaxed">
-                Engineers are measurement-oriented. Track your improvement with
-                confidence scores, competency radar charts, and milestone
-                celebrations.
-              </p>
-              <div className="bg-green-50 rounded-2xl p-6 border border-green-200">
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="text-center">
-                    <p className="text-4xl font-black text-green-600 mb-1">
-                      55-60%
-                    </p>
-                    <p className="text-sm text-neutral-600">
-                      Performance Improvement
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-4xl font-black text-green-600 mb-1">
-                      40%
-                    </p>
-                    <p className="text-sm text-neutral-600">
-                      Confidence Affects Hiring
-                    </p>
-                  </div>
-                </div>
-                <p className="text-sm text-neutral-600 text-center">
-                  Research shows 55-60% improvement with consistent mock
-                  interview practice
-                </p>
-              </div>
-            </div>
-            <div className="order-1 lg:order-2">
-              <div className="bg-green-50 rounded-3xl p-8 shadow-2xl">
-                <div className="bg-white rounded-2xl p-6">
-                  <h4 className="font-bold text-xl mb-6 text-secondary">
-                    Your Progress Dashboard
-                  </h4>
-                  <div className="space-y-6">
-                    {[
-                      { label: "Leadership", percent: 85, color: "bg-green-500" },
-                      { label: "Conflict Resolution", percent: 72, color: "bg-blue-500" },
-                      { label: "Ownership", percent: 91, color: "bg-purple-500" },
-                      { label: "Failure Stories", percent: 68, color: "bg-orange-500" },
-                    ].map((skill, i) => (
-                      <div key={i}>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-semibold text-neutral-700">
-                            {skill.label}
-                          </span>
-                          <span className="text-sm font-bold text-green-600">
-                            {skill.percent}%
-                          </span>
-                        </div>
-                        <div className="w-full bg-neutral-200 rounded-full h-3">
-                          <div
-                            className={`${skill.color} h-3 rounded-full`}
-                            style={{ width: `${skill.percent}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-6 pt-6 border-t border-neutral-200">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-2xl font-black text-secondary">18</p>
-                        <p className="text-sm text-neutral-600">
-                          Sessions Completed
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-2xl font-black text-green-600">
-                          +57%
-                        </p>
-                        <p className="text-sm text-neutral-600">
-                          Performance Gain
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-2xl font-black text-purple-600">
-                          93%
-                        </p>
-                        <p className="text-sm text-neutral-600">Had Anxiety</p>
-                      </div>
-                    </div>
-                  </div>
+                {/* Bottom: CTA */}
+                <div>
+                  <Link
+                    href="/app/practice"
+                    onClick={() => track("landing_practice_now_clicked")}
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold w-fit transition-all duration-200 hover:brightness-110 hover:gap-3"
+                    style={{ background: "#2dec29", color: "#071a09" }}
+                  >
+                    Start session
+                    <ChevronRight className="w-4 h-4" />
+                  </Link>
                 </div>
               </div>
             </div>
