@@ -185,6 +185,14 @@ const SettingsPage: FC<SettingsProps> = () => {
       if (cancelled) return;
       if (fetched === "pro") {
         toast.success("You're now on Pro! Enjoy 30 sessions per month.");
+        // Fire Google Ads conversion
+        if (typeof window !== "undefined" && typeof (window as any).gtag === "function") {
+          (window as any).gtag("event", "conversion", {
+            send_to: "AW-18056669142/vf0cCKDS25McENbPi6JD",
+            value: 39.0,
+            currency: "GBP",
+          });
+        }
         return;
       }
       if (attemptIndex + 1 < delays.length) {
