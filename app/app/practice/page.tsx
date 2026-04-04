@@ -596,114 +596,266 @@ export default function PracticePage() {
 
   // ── Render: Complete ──
 
-  function getGrade(score: number) {
-    if (score >= 90) return { label: "A", color: "#2dec29" };
-    if (score >= 80) return { label: "B+", color: "#2dec29" };
-    if (score >= 70) return { label: "B", color: "#84cc16" };
-    if (score >= 60) return { label: "C+", color: "#f59e0b" };
-    if (score >= 50) return { label: "C", color: "#f59e0b" };
-    return { label: "D", color: "#ef4444" };
+  function getVerdict(score: number): { label: string; color: string } {
+    if (score >= 8) return { label: "Strong Pass", color: "#2dec29" };
+    if (score >= 6) return { label: "Lean Pass", color: "#f59e0b" };
+    if (score >= 4) return { label: "Needs Work", color: "#ef4444" };
+    return { label: "Unlikely to Pass", color: "#ef4444" };
+  }
+
+  function getCategoryBarColor(score: number): string {
+    if (score >= 8) return "#2dec29";
+    if (score >= 6) return "#f59e0b";
+    return "#ef4444";
   }
 
   return (
-    <div className="max-w-2xl mx-auto py-12 space-y-6">
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <div
-          className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto"
-          style={{ background: "#f4fdf3" }}
-        >
-          <CheckCircle className="w-8 h-8" style={{ color: "#2dec29" }} />
-        </div>
-        <h1 className="text-2xl font-bold text-secondary">Session Complete!</h1>
-        <p className="text-sm text-neutral-500">
-          {interviewType === "technical" ? "Technical" : "Behavioural"} Interview
-          {sessionDuration !== "00:00" && ` · ${sessionDuration}`}
-          {sessionQuestionCount > 0 && ` · ${sessionQuestionCount} question${sessionQuestionCount !== 1 ? "s" : ""}`}
-        </p>
-      </div>
-
-      {/* Performance Score card */}
-      <div className="glass-card rounded-2xl p-6">
-        <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-4">
-          Performance Score
-        </p>
-        {feedbackLoading ? (
-          <div className="space-y-3 animate-pulse">
-            <div className="flex items-end justify-between">
-              <div className="h-10 w-20 bg-neutral-100 rounded-xl" />
-              <div className="h-7 w-14 bg-neutral-100 rounded-lg" />
+    <div className="max-w-3xl mx-auto py-12 space-y-6">
+      {/* ── Score Hero ── */}
+      {feedbackLoading ? (
+        <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm animate-pulse">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <div className="h-5 w-48 bg-neutral-100 rounded mb-2" />
+              <div className="h-3 w-64 bg-neutral-100 rounded" />
             </div>
-            <div className="h-2.5 bg-neutral-100 rounded-full" />
+            <div className="h-6 w-24 bg-neutral-100 rounded-lg" />
           </div>
-        ) : feedbackData ? (
-          <>
-            <div className="flex items-end justify-between mb-3">
-              <p className="text-4xl font-bold text-secondary">{feedbackData.score}%</p>
-              <span
-                className="text-sm font-bold px-3 py-1 rounded-lg"
-                style={{
-                  background: `${getGrade(feedbackData.score).color}22`,
-                  color: getGrade(feedbackData.score).color,
-                }}
-              >
-                {getGrade(feedbackData.score).label}
-              </span>
+          <div className="flex items-center gap-6">
+            <div className="h-14 w-32 bg-neutral-100 rounded-xl" />
+            <div className="flex-1 h-2 bg-neutral-100 rounded" />
+          </div>
+        </div>
+      ) : feedbackData ? (
+        <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h1 className="text-xl font-bold text-neutral-900 tracking-tight">{feedbackData.company}</h1>
+              <p className="text-sm text-neutral-400 mt-1">
+                {feedbackData.role}
+                {` · ${feedbackData.interviewType} interview`}
+                {sessionDuration !== "00:00" && ` · ${sessionDuration}`}
+                {sessionQuestionCount > 0 && ` · ${sessionQuestionCount} question${sessionQuestionCount !== 1 ? "s" : ""}`}
+                {` · ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`}
+              </p>
             </div>
-            <div className="h-2.5 bg-neutral-100 rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-700"
-                style={{ width: `${feedbackData.score}%`, background: "#2dec29" }}
-              />
+            <span
+              className="shrink-0 text-xs font-bold px-3 py-1 rounded-lg"
+              style={{
+                background: `${getVerdict(feedbackData.score).color}20`,
+                color: getVerdict(feedbackData.score).color,
+              }}
+            >
+              {feedbackData.verdict}
+            </span>
+          </div>
+          <div className="flex items-center gap-6">
+            <div className="flex items-baseline gap-1 shrink-0">
+              <p className="text-5xl font-black text-neutral-900 tracking-tight">{feedbackData.score.toFixed(1)}</p>
+              <p className="text-xl text-neutral-300 font-medium">/10</p>
             </div>
-          </>
-        ) : (
-          <p className="text-sm text-neutral-400">Score unavailable</p>
-        )}
-      </div>
+            <div className="flex-1">
+              <div className="h-2 bg-neutral-100 rounded-full overflow-hidden mb-2">
+                <div
+                  className="h-full rounded-full transition-all duration-700"
+                  style={{
+                    width: `${feedbackData.score * 10}%`,
+                    background: "linear-gradient(90deg, #2dec29, #16a34a)",
+                  }}
+                />
+              </div>
+              <p className="text-xs text-neutral-400">
+                8–10 Strong pass · 6–8 Lean pass · 4–6 Needs work · &lt;4 Unlikely to pass
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
-      {/* Improvements section */}
-      {(feedbackLoading || (feedbackData && feedbackData.improvements.length > 0)) && (
-        <div className="glass-card rounded-2xl p-6">
-          <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-4">
-            What to improve
-          </p>
-          {feedbackLoading ? (
-            <div className="space-y-5 animate-pulse">
-              {[0, 1, 2].map((i) => (
-                <div key={i} className="space-y-2">
-                  <div className="h-4 bg-neutral-100 rounded" style={{ width: `${[85, 70, 78][i]}%` }} />
-                  <div className="h-3 bg-neutral-50 rounded" style={{ width: `${[95, 88, 92][i]}%` }} />
-                  <div className="h-3 bg-neutral-50 rounded" style={{ width: `${[60, 75, 55][i]}%` }} />
+      {/* Summary */}
+      {feedbackLoading ? (
+        <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm animate-pulse">
+          <div className="h-3 w-24 bg-neutral-100 rounded mb-4" />
+          <div className="space-y-2">
+            <div className="h-4 w-full bg-neutral-100 rounded" />
+            <div className="h-4 w-5/6 bg-neutral-100 rounded" />
+            <div className="h-4 w-4/6 bg-neutral-100 rounded" />
+          </div>
+        </div>
+      ) : feedbackData?.summary ? (
+        <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm">
+          <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wide mb-3">Summary</p>
+          <p className="text-sm leading-relaxed text-neutral-700">{feedbackData.summary}</p>
+        </div>
+      ) : null}
+
+      {/* Category Breakdown */}
+      {feedbackLoading ? (
+        <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm animate-pulse">
+          <div className="h-3 w-36 bg-neutral-100 rounded mb-5" />
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="mb-5 last:mb-0">
+              <div className="flex justify-between mb-1">
+                <div className="h-4 bg-neutral-100 rounded" style={{ width: `${[120, 100, 90, 130][i]}px` }} />
+                <div className="h-4 w-10 bg-neutral-100 rounded" />
+              </div>
+              <div className="h-2 bg-neutral-100 rounded-full mt-2" />
+              <div className="h-3 w-4/5 bg-neutral-50 rounded mt-2" />
+            </div>
+          ))}
+        </div>
+      ) : feedbackData && feedbackData.categories.length > 0 ? (
+        <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm">
+          <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wide mb-5">Category Breakdown</p>
+          <div className="space-y-5">
+            {feedbackData.categories.map((cat, i) => (
+              <div key={i}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-sm font-semibold text-neutral-800">{cat.name}</span>
+                  <span className="text-sm font-bold text-neutral-800">{cat.score.toFixed(0)}/10</span>
                 </div>
+                <div className="h-[5px] bg-neutral-100 rounded-full overflow-hidden mb-1.5">
+                  <div
+                    className="h-full rounded-full transition-all duration-700"
+                    style={{ width: `${cat.score * 10}%`, background: getCategoryBarColor(cat.score) }}
+                  />
+                </div>
+                <p className="text-xs text-neutral-500 leading-relaxed">{cat.comment}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {/* ── Strengths + Improvements ── */}
+      {feedbackLoading ? (
+        <div className="grid grid-cols-2 gap-3">
+          {[0, 1].map((i) => (
+            <div key={i} className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm animate-pulse">
+              <div className="h-3 w-20 bg-neutral-100 rounded mb-4" />
+              {[0, 1, 2].map((j) => (
+                <div key={j} className="h-4 bg-neutral-100 rounded mb-3" style={{ width: `${[90, 75, 85][j]}%` }} />
               ))}
             </div>
-          ) : (
-            <ul className="space-y-5">
-              {feedbackData!.improvements.map((item, i) => (
-                <li key={i} className="space-y-1.5">
-                  <div className="flex items-start gap-2 text-sm font-medium text-neutral-800">
-                    <span className="shrink-0 mt-0.5" style={{ color: "#2dec29" }}>›</span>
-                    {item.point}
-                  </div>
-                  {item.example && (
-                    <p
-                      className="text-xs leading-relaxed pl-4 py-2 px-3 rounded-lg border-l-2"
-                      style={{
-                        borderColor: "#2dec29",
-                        background: "#f4fdf3",
-                        color: "#1a3d20",
-                      }}
+          ))}
+        </div>
+      ) : (feedbackData && (feedbackData.strengths.length > 0 || feedbackData.improvements.length > 0)) ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {feedbackData.strengths.length > 0 && (
+            <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm">
+              <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wide mb-4">Strengths</p>
+              <ul className="space-y-2.5">
+                {feedbackData.strengths.map((s, i) => (
+                  <li key={i} className="flex items-start gap-2.5 text-sm text-neutral-700">
+                    <span
+                      className="shrink-0 w-4 h-4 mt-0.5 rounded-full border flex items-center justify-center text-[9px] font-black"
+                      style={{ borderColor: "#bbf7d0", background: "#f0fdf4", color: "#16a34a" }}
                     >
-                      {item.example}
-                    </p>
-                  )}
-                </li>
-              ))}
-            </ul>
+                      +
+                    </span>
+                    {s}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {feedbackData.improvements.length > 0 && (
+            <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm">
+              <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wide mb-4">Improve</p>
+              <ul className="space-y-2.5">
+                {feedbackData.improvements.map((s, i) => (
+                  <li key={i} className="flex items-start gap-2.5 text-sm text-neutral-700">
+                    <span
+                      className="shrink-0 w-4 h-4 mt-0.5 rounded-full border flex items-center justify-center text-[9px] font-black"
+                      style={{ borderColor: "#fecaca", background: "#fff5f5", color: "#ef4444" }}
+                    >
+                      −
+                    </span>
+                    {s}
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </div>
-      )}
+      ) : null}
+
+      {/* Tips & Tricks */}
+      {feedbackLoading ? (
+        <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm animate-pulse">
+          <div className="h-3 w-24 bg-neutral-100 rounded mb-4" />
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-4 bg-neutral-100 rounded mb-3" style={{ width: `${[88, 80, 70][i]}%` }} />
+          ))}
+        </div>
+      ) : feedbackData && feedbackData.tips.length > 0 ? (
+        <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm">
+          <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wide mb-4">Tips & Tricks</p>
+          <ul className="space-y-2.5">
+            {feedbackData.tips.map((t, i) => (
+              <li key={i} className="flex items-start gap-2.5 text-sm text-neutral-700">
+                <span
+                  className="shrink-0 w-4 h-4 mt-0.5 rounded-md flex items-center justify-center text-[9px] font-black"
+                  style={{ background: "#f0fdf4", color: "#16a34a" }}
+                >
+                  ✓
+                </span>
+                {t}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {/* Reconstructed Q&A */}
+      {feedbackLoading ? (
+        <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm animate-pulse">
+          <div className="h-3 w-36 bg-neutral-100 rounded mb-5" />
+          {[0, 1].map((i) => (
+            <div key={i} className="mb-6 last:mb-0">
+              <div className="h-4 w-4/5 bg-neutral-100 rounded mb-2" />
+              <div className="h-3 w-12 bg-neutral-100 rounded mb-3" />
+              <div className="h-16 w-full bg-neutral-50 rounded mb-2" />
+              <div className="h-3 w-full bg-neutral-50 rounded" />
+              <div className="h-3 w-3/4 bg-neutral-50 rounded mt-1" />
+            </div>
+          ))}
+        </div>
+      ) : feedbackData && feedbackData.questions.length > 0 ? (
+        <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm">
+          <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wide mb-2">Reconstructed Q&A</p>
+          <p className="text-xs text-neutral-400 mb-5">AI reconstructed the interviewer&apos;s questions from your answers.</p>
+          <div className="space-y-5">
+            {feedbackData.questions.map((q, i) => (
+              <div
+                key={i}
+                className="pl-3 py-1"
+                style={{ borderLeft: `3px solid ${getCategoryBarColor(q.score)}` }}
+              >
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <p className="text-sm font-semibold text-neutral-800">Q: {q.question}</p>
+                  <span
+                    className="shrink-0 text-xs font-bold px-2 py-0.5 rounded-md"
+                    style={{
+                      background: `${getCategoryBarColor(q.score)}20`,
+                      color: getCategoryBarColor(q.score),
+                    }}
+                  >
+                    {q.score.toFixed(0)}/10
+                  </span>
+                </div>
+                <div
+                  className="text-xs leading-relaxed p-3 rounded-lg mb-2"
+                  style={{ background: "#f9fafb", color: "#374151" }}
+                >
+                  A: {q.answer}
+                </div>
+                <p className="text-xs leading-relaxed text-neutral-500">{q.feedback}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       {/* CTA buttons */}
       <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -716,20 +868,20 @@ export default function PracticePage() {
             setFeedbackData(null);
             setFeedbackLoading(false);
           }}
-          className="px-6 py-2.5 rounded-2xl font-bold text-sm transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A]"
+          className="px-6 py-2.5 rounded-2xl font-bold text-sm transition-all duration-150 shadow-[0_4px_14px_rgba(45,236,41,0.35)] hover:brightness-95 active:scale-[0.99]"
           style={{ background: "#2dec29", color: "#112715" }}
         >
           Practice Again
         </button>
         <Link
           href="/app/progress"
-          className="px-6 py-2.5 rounded-xl font-semibold text-sm border border-neutral-200 text-secondary hover:bg-neutral-50 transition"
+          className="px-6 py-2.5 rounded-2xl font-semibold text-sm border border-neutral-200 text-secondary hover:bg-neutral-50 transition"
         >
           View Progress
         </Link>
         <button
           onClick={() => { setShowFeedbackDialog(true); setFeedbackSubmitted(false); }}
-          className="px-6 py-2.5 rounded-xl font-semibold text-sm border border-neutral-200 text-secondary hover:bg-neutral-50 transition flex items-center gap-2"
+          className="px-6 py-2.5 rounded-2xl font-semibold text-sm border border-neutral-200 text-secondary hover:bg-neutral-50 transition flex items-center gap-2"
         >
           <MessageSquare className="w-4 h-4" />
           Feedback
