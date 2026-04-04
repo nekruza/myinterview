@@ -173,7 +173,6 @@ const SettingsPage: FC<SettingsProps> = () => {
     if (searchParams?.get("upgraded") !== "true") return;
 
     toast.success("Upgrade successful! Setting up your account…");
-    router.replace("/app/settings");
 
     let cancelled = false;
     const delays = [2000, 4000, 6000, 8000, 10000, 12000, 15000, 20000];
@@ -188,11 +187,12 @@ const SettingsPage: FC<SettingsProps> = () => {
         // Fire Google Ads conversion
         if (typeof window !== "undefined" && typeof (window as any).gtag === "function") {
           (window as any).gtag("event", "conversion", {
-            send_to: "AW-18056669142/AbCdEfG12345678",
+            send_to: "AW-18056669142/vf0cCKDS25McENbPi6JD",
             value: 39.0,
             currency: "GBP",
           });
         }
+        router.replace("/app/settings");
         return;
       }
       if (attemptIndex + 1 < delays.length) {
