@@ -399,52 +399,78 @@ export default async function DashboardPage() {
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
 
 
-      <div className="grid sm:grid-cols-2 gap-3">
+      <div className="grid gap-3" style={{ gridTemplateColumns: "3fr 2fr" }}>
         {/* ── AI Practice card */}
         <Link
           href="/app/practice"
-          className="group relative rounded-2xl overflow-hidden flex flex-col gap-4 p-5 hover:opacity-95 transition-opacity"
+          className="group relative rounded-2xl overflow-hidden flex flex-col justify-between p-7 transition-all duration-300 hover:scale-[1.005] hover:shadow-2xl"
           style={{
-            background: "linear-gradient(145deg, #112715 0%, #1c4220 60%, #0f2312 100%)",
+            background: "linear-gradient(160deg, #071a09 0%, #112914 50%, #0a2010 100%)",
+            minHeight: "288px",
           }}
         >
-          {/* Decorative glow */}
-          <div
-            className="pointer-events-none absolute -bottom-6 -right-6 w-32 h-32 rounded-full blur-2xl opacity-30"
-            style={{ background: "#2dec29" }}
-          />
-          <div className="relative z-10 flex flex-col gap-4">
-            {/* Icon */}
+          {/* ── Glows */}
+          <div className="pointer-events-none absolute -top-20 right-10 w-72 h-72 rounded-full blur-3xl opacity-[0.08]" style={{ background: "#2dec29" }} />
+          <div className="pointer-events-none absolute bottom-0 left-0 w-56 h-56 rounded-full blur-3xl opacity-[0.07]" style={{ background: "#2dec29" }} />
+
+          {/* ── Avatar — right side, full bleed */}
+          <div className="absolute inset-y-0 right-0 w-[48%] pointer-events-none select-none">
+            {/* mix-blend-mode:multiply on dark bg makes white pixels invisible */}
+            <img
+              src="/image.png"
+              alt="AI Coach"
+              className="absolute inset-0 w-full h-full object-cover object-top"
+              style={{
+                mixBlendMode: "multiply",
+                filter: "contrast(1.05) brightness(1.5)",
+              }}
+            />
+          </div>
+
+          {/* ── Top: badge + headline */}
+          <div className="relative z-10 flex flex-col gap-3 max-w-[56%]">
             <div
-              className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl"
-              style={{ background: "#2dec2916" }}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit"
+              style={{ background: "#2dec2914", border: "1px solid #2dec2935" }}
             >
-              🤖
+              <Sparkles className="w-3 h-3" style={{ color: "#2dec29" }} />
+              <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "#2dec29" }}>
+                AI Coach · 24/7
+              </span>
             </div>
-            <div>
-              <div className="flex items-center gap-1.5 mb-1">
-                <Sparkles className="w-3 h-3" style={{ color: "#2dec29" }} />
-                <span
-                  className="text-[10px] font-bold uppercase tracking-widest"
-                  style={{ color: "#2dec29" }}
-                >
-                  AI Coach · 24/7
-                </span>
-              </div>
-              <h3 className="text-white font-bold text-lg leading-tight">
-                Practice Now
-              </h3>
-              <p className="text-white/50 text-xs mt-1 leading-relaxed">
-                Real-time R-STAR feedback, no scheduling needed
-              </p>
-            </div>
-            <div
-              className="flex items-center gap-1 text-sm font-bold transition-gap"
-              style={{ color: "#2dec29" }}
+
+            <h3 className="text-white font-extrabold leading-[1.1]" style={{ fontSize: "2rem" }}>
+              Practice<br />Now
+            </h3>
+            <p className="text-white/45 text-sm leading-relaxed mb-4">
+              No scheduling needed
+            </p>
+          </div>
+
+          {/* ── Bottom: features + CTA */}
+          <div className="relative z-10 flex flex-col gap-4 max-w-[56%]">
+            <ul className="flex flex-col gap-1.5">
+              {[
+                "Instant AI feedback",
+                "R-STAR framework",
+              ].map((feat) => (
+                <li key={feat} className="flex items-center gap-2">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="flex-shrink-0">
+                    <circle cx="6" cy="6" r="5.5" stroke="#2dec29" strokeOpacity="0.4"/>
+                    <path d="M3.5 6l1.8 1.8L8.5 4.5" stroke="#2dec29" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <span className="text-white/55 text-xs">{feat}</span>
+                </li>
+              ))}
+            </ul>
+
+            <button
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold w-fit transition-all duration-200 group-hover:brightness-110 group-hover:gap-3"
+              style={{ background: "#2dec29", color: "#071a09" }}
             >
               Start session
-              <ChevronRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-            </div>
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         </Link>
 

@@ -4,6 +4,7 @@ import { FC } from "react";
 import Link from "next/link";
 import { Badge } from "../ui";
 import { track } from "@/lib/mixpanel";
+import { Sparkles, ChevronRight } from "lucide-react";
 
 export const FeaturesSection: FC = () => {
   return (
@@ -34,46 +35,98 @@ export const FeaturesSection: FC = () => {
             {/* Bento Grid Layout */}
             <div className="grid lg:grid-cols-3 gap-6">
               {/* Large Card: AI Practice */}
-              <div className="lg:col-span-2 bg-secondary rounded-3xl p-8 text-white relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl"></div>
-                <div className="relative z-10">
-                  <div className="inline-flex items-center space-x-2 mb-6">
-                    <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-                      <svg
-                        className="w-6 h-6 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                        />
-                      </svg>
-                    </div>
-                    <span className="font-bold text-lg">AI Practice</span>
-                    <span className="px-2 py-1 bg-green-500 text-white text-xs rounded-full font-bold">
-                      INSTANT
+              <Link
+                href="/app/practice"
+                onClick={() => track("landing_practice_now_clicked")}
+                className="lg:col-span-2 group relative rounded-3xl overflow-hidden flex flex-col justify-between p-7 transition-all duration-300 hover:scale-[1.005] hover:shadow-2xl"
+                style={{
+                  background: "linear-gradient(160deg, #071a09 0%, #112914 50%, #0a2010 100%)",
+                  minHeight: "288px",
+                }}
+              >
+                {/* Glows */}
+                <div className="pointer-events-none absolute -top-20 right-10 w-72 h-72 rounded-full blur-3xl opacity-[0.08]" style={{ background: "#2dec29" }} />
+                <div className="pointer-events-none absolute bottom-0 left-0 w-56 h-56 rounded-full blur-3xl opacity-[0.07]" style={{ background: "#2dec29" }} />
+
+                {/* Avatar */}
+                <div className="absolute inset-y-0 right-0 w-[48%] pointer-events-none select-none">
+                  <img
+                    src="/image.png"
+                    alt="AI Coach"
+                    className="absolute inset-0 w-full h-full object-cover object-top"
+                    style={{ mixBlendMode: "multiply", filter: "contrast(1.05) brightness(1.5)" }}
+                  />
+                </div>
+
+                {/* Arrow + label pointing at avatar */}
+                <div
+                  className="absolute z-20 pointer-events-none flex flex-col items-start gap-1.5"
+                  style={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}
+                >
+                  {/* Curved arrow pointing right toward face */}
+                  <svg width="90" height="36" viewBox="0 0 90 36" fill="none" className="opacity-70 ml-14">
+                    <path d="M4 30 C18 24, 44 14, 74 6" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M68 2 L76 6 L70 13" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <span
+                    className="text-white/85 whitespace-nowrap px-3 py-1.5 rounded-lg ml-1"
+                    style={{
+                      fontFamily: "Georgia, 'Times New Roman', serif",
+                      fontSize: "0.95rem",
+                      fontStyle: "italic",
+                      fontWeight: 400,
+                      letterSpacing: "0.01em",
+                      transform: "rotate(-2deg)",
+                      display: "inline-block",
+                      background: "rgba(255,255,255,0.07)",
+                      border: "1px solid rgba(255,255,255,0.15)",
+                    }}
+                  >
+                    you&apos;ll be practicing with him
+                  </span>
+                </div>
+
+                {/* Top: badge + headline */}
+                <div className="relative z-10 flex flex-col gap-3 max-w-[56%]">
+                  <div
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit"
+                    style={{ background: "#2dec2914", border: "1px solid #2dec2935" }}
+                  >
+                    <Sparkles className="w-3 h-3" style={{ color: "#2dec29" }} />
+                    <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "#2dec29" }}>
+                      AI Coach · 24/7
                     </span>
                   </div>
-                  <p className="text-xl mb-6 text-white/90">
-                    Start practicing immediately with AI for behavioral &
-                    technical questions. Available 24/7.
+                  <h3 className="text-white font-extrabold leading-[1.1]" style={{ fontSize: "2rem" }}>
+                    Practice<br />Now
+                  </h3>
+                  <p className="text-white/45 text-sm leading-relaxed">
+                    No scheduling needed
                   </p>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
-                      <p className="text-3xl font-black mb-1">∞</p>
-                      <p className="text-sm text-white/70">Practice Sessions</p>
-                    </div>
-                    <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
-                      <p className="text-3xl font-black mb-1">24/7</p>
-                      <p className="text-sm text-white/70">Available</p>
-                    </div>
+                </div>
+
+                {/* Bottom: features + CTA */}
+                <div className="relative z-10 flex flex-col gap-4 max-w-[56%]">
+                  <ul className="flex flex-col gap-1.5">
+                    {["Instant AI feedback", "R-STAR framework"].map((feat) => (
+                      <li key={feat} className="flex items-center gap-2">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="flex-shrink-0">
+                          <circle cx="6" cy="6" r="5.5" stroke="#2dec29" strokeOpacity="0.4"/>
+                          <path d="M3.5 6l1.8 1.8L8.5 4.5" stroke="#2dec29" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        <span className="text-white/55 text-xs">{feat}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <div
+                    className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold w-fit transition-all duration-200 group-hover:brightness-110 group-hover:gap-3"
+                    style={{ background: "#2dec29", color: "#071a09" }}
+                  >
+                    Start session
+                    <ChevronRight className="w-4 h-4" />
                   </div>
                 </div>
-              </div>
+              </Link>
 
               {/* Tailored Questions Card */}
               <div className="bg-cream rounded-3xl p-6 border-2 border-neutral-200 flex flex-col justify-between">
