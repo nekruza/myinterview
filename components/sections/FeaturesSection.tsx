@@ -4,7 +4,7 @@ import { FC } from "react";
 import Link from "next/link";
 
 import { track } from "@/lib/mixpanel";
-import { Sparkles, ChevronRight } from "lucide-react";
+import { Sparkles, ChevronRight, CornerDownLeft } from "lucide-react";
 
 export const FeaturesSection: FC = () => {
   return (
@@ -79,11 +79,7 @@ export const FeaturesSection: FC = () => {
               >
                 you&apos;ll be practicing with him
               </span>
-              {/* Arrow pointing down-left toward the face */}
-              <svg width="70" height="32" viewBox="0 0 70 32" fill="none" className="opacity-50 mr-8">
-                <path d="M60 4 C40 8, 20 16, 6 26" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                <path d="M2 22 L6 28 L12 24" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <CornerDownLeft className="w-12 h-12 opacity-50 mr-8 font-thin relative -left-12" style={{ color: "white" }} />
             </div>
 
             {/* Floating Behavioral/Technical card — bottom right, 3D lift */}
@@ -161,7 +157,7 @@ export const FeaturesSection: FC = () => {
             </div>
 
             {/* Right: all content */}
-            <div className="relative z-10 lg:absolute lg:right-0 lg:top-0 lg:bottom-0 lg:left-[46%] flex flex-col justify-center px-12 py-10">
+            <div className="relative z-10 lg:absolute lg:right-0 lg:top-0 lg:bottom-0 lg:left-[46%] flex flex-col justify-center px-6 py-6 pb-8 lg:px-12 lg:py-10">
               <div className="flex flex-col gap-8 h-full justify-center">
 
                 {/* Top: AI Coach badge + Practice Now heading */}
@@ -211,7 +207,7 @@ export const FeaturesSection: FC = () => {
                   <Link
                     href="/app/practice"
                     onClick={() => track("landing_practice_now_clicked")}
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold w-fit transition-all duration-200 hover:brightness-110 hover:gap-3"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold w-full lg:w-fit transition-all duration-200 hover:brightness-110 hover:gap-3 flex justify-center"
                     style={{ background: "#2dec29", color: "#071a09" }}
                   >
                     Start session
