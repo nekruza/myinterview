@@ -7,6 +7,7 @@ import { Button } from "@/components/ui";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/client";
+import { fireSignupConversion } from "@/lib/conversion";
 
 export default function SignupPage() {
   return (
@@ -35,7 +36,7 @@ function SignupForm() {
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback?next=/app/dashboard?new=1`,
       },
     });
     if (oauthError) {
@@ -72,6 +73,7 @@ function SignupForm() {
       return;
     }
 
+    fireSignupConversion();
     setSuccess(true);
   }
 
