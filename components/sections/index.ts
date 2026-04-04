@@ -1,3 +1,5 @@
+export { CareerServiceHero } from "./CareerServiceHero";
+export { CareerSolutionSection } from "./CareerSolutionSection";
 export { HeroSection } from "./HeroSection";
 export { ProblemStatement } from "./ProblemStatement";
 export { VideoSection } from "./VideoSection";

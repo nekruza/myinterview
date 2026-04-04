@@ -4,10 +4,10 @@ import { Footer } from "@/components/Footer";
 import { SmoothScroll } from "@/components/SmoothScroll";
 import { LandingPageWrapper } from "@/components/LandingPageWrapper";
 import {
-  HeroSection,
+  CareerServiceHero,
+  CareerSolutionSection,
   VideoSection,
   FeaturesSection,
-  TestimonialsSection,
   PricingSection,
   JoinTeamSection,
 } from "@/components/sections";
@@ -18,16 +18,16 @@ import {
 } from "@/components/structured-data/OrganizationSchema";
 
 export const metadata: Metadata = {
-  title: "MyInterview — Conquer Interview Anxiety | AI Practice",
+  title: "MyInterview — Land Your First Engineering Job",
   description:
-    "MyInterview helps software engineers overcome interview anxiety through AI mock interviews. 93% of engineers experience mental freeze — we fix that. Start free.",
+    "A complete career programme for graduates who can code but can't get hired. Resume review, AI mock interviews, peer practice, and a real internship. £199 to start.",
   alternates: {
     canonical: "https://myinterview.com",
   },
   openGraph: {
-    title: "MyInterview — Conquer Interview Anxiety | AI Practice",
+    title: "MyInterview — Land Your First Engineering Job",
     description:
-      "AI-powered mock interview practice to help engineers overcome anxiety and land their dream roles. 500+ beta users. Free to start.",
+      "Resume review, AI mock interviews, peer practice, and a real internship on your CV. £199 to start — £499 when you land the job.",
     url: "https://myinterview.com",
     type: "website",
   },
@@ -43,11 +43,14 @@ export default function Home() {
       <LandingPageWrapper>
         <Navigation />
         <main id="main-content" className="bg-white text-neutral-900 font-sans antialiased mx-auto">
-          <HeroSection />
-          <VideoSection />
+          <CareerServiceHero />
+          <CareerSolutionSection />
+          <div className="hidden">
+            <VideoSection />
+          </div>
           <FeaturesSection />
           <PricingSection />
-          <JoinTeamSection />
+          {/* <JoinTeamSection /> */}
         </main>
         <Footer />
       </LandingPageWrapper>

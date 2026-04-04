@@ -16,13 +16,13 @@ export const FeaturesSection: FC = () => {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-20">
           <p className="text-primary font-bold text-sm uppercase tracking-wider mb-3">
-            Our Solution
+            For all engineers
           </p>
           <h2
             id="features-heading"
             className="text-5xl font-black mb-6 text-secondary"
           >
-            Everything You Need to Land the Offer
+            Practive Interview with our AI Coach
           </h2>
           <p className="text-xl text-neutral-700 max-w-3xl mx-auto">
             Resume-tailored questions + real voice AI + instant feedback reports + progress tracking
