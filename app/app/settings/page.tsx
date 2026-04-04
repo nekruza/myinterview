@@ -188,7 +188,7 @@ const SettingsPage: FC<SettingsProps> = () => {
         // Fire Google Ads conversion
         if (typeof window !== "undefined" && typeof (window as any).gtag === "function") {
           (window as any).gtag("event", "conversion", {
-            send_to: "AW-18056669142/vf0cCKDS25McENbPi6JD",
+            send_to: "AW-18056669142/AbCdEfG12345678",
             value: 39.0,
             currency: "GBP",
           });
