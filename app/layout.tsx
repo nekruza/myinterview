@@ -4,7 +4,7 @@ import "./globals.css";
 import { ComingSoonProvider } from "@/components/ComingSoonProvider";
 import { MixpanelInit } from "@/components/MixpanelInit";
 import { Analytics } from "@vercel/analytics/next"
-import Script from "next/script"
+import { GoogleAnalytics } from "@next/third-parties/google"
 
 const sora = Sora({
   subsets: ["latin"],
@@ -113,37 +113,7 @@ export default function RootLayout({
         >
           Skip to main content
         </a>
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=AW-18056669142"
-          strategy="afterInteractive"
-        />
-        <Script id="google-ads" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'AW-18056669142');
-          `}
-        </Script>
-        <Script id="google-ads-conversion" strategy="afterInteractive">
-          {`
-            function gtag_report_conversion(url) {
-              var callback = function () {
-                if (typeof(url) != 'undefined') {
-                  window.location = url;
-                }
-              };
-              gtag('event', 'conversion', {
-                'send_to': 'AW-18056669142/vf0cCKDS25McENbPi6JD',
-                'value': 39.0,
-                'currency': 'GBP',
-                'transaction_id': '',
-                'event_callback': callback
-              });
-              return false;
-            }
-          `}
-        </Script>
+        <GoogleAnalytics gaId="AW-18056669142" />
         <MixpanelInit />
         <Analytics />
         <ComingSoonProvider>{children}</ComingSoonProvider>

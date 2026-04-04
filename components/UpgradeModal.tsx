@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { fireConversion } from "@/lib/conversion";
 import { Sparkles, X, Zap, Infinity } from "lucide-react";
 import {
   Dialog,
@@ -61,8 +62,7 @@ export function UpgradeModal({
       if (!res.ok) throw new Error("Checkout failed");
       const data = await res.json();
       if (data.url) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (window as any).gtag_report_conversion?.(data.url);
+        fireConversion();
         window.location.href = data.url;
       } else {
         setLoading(false);

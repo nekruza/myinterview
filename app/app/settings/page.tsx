@@ -4,6 +4,7 @@ import { FC, useState, useRef, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
+import { fireConversion } from "@/lib/conversion";
 import { toast } from "sonner";
 import {
   Briefcase,
@@ -340,8 +341,7 @@ const SettingsPage: FC<SettingsProps> = () => {
       });
       const data = await res.json();
       if (data.url) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (window as any).gtag_report_conversion?.(data.url);
+        fireConversion();
         window.location.href = data.url;
       }
     } catch {
