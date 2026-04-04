@@ -7,6 +7,8 @@ import { FeedbackCard } from "@/components/FeedbackCard";
 import Image from "next/image";
 import Link from "next/link";
 import { posts } from "@/lib/blog";
+import { Suspense } from "react";
+import { SignupConversionTracker } from "@/components/SignupConversionTracker";
 
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -229,6 +231,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-5 pb-12 animate-fade-in">
+      <Suspense><SignupConversionTracker /></Suspense>
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       {/* 1 ▸ GREETING                                                          */}
