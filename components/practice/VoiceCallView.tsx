@@ -393,6 +393,53 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [realtime.agentState, useRealtime]);
 
+  // ── Detect AI speaking from agent audio stream (fallback when datachannel events are missing) ──
+  useEffect(() => {
+    if (!useRealtime || !realtime.agentAudioStream) return;
+    const audioCtx = new AudioContext();
+    const source = audioCtx.createMediaStreamSource(realtime.agentAudioStream);
+    const analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 256;
+    analyser.smoothingTimeConstant = 0.5;
+    source.connect(analyser);
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+    const THRESHOLD = 15;
+    const SILENCE_DELAY = 500; // ms of silence before switching to listening
+    let silenceStart = 0;
+
+    let rafId: number;
+    const detect = () => {
+      analyser.getByteFrequencyData(dataArray);
+      let sum = 0;
+      for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+      const avg = sum / dataArray.length;
+      const isSpeaking = avg > THRESHOLD;
+      const now = performance.now();
+
+      if (isSpeaking) {
+        silenceStart = 0;
+        if (convStateRef.current !== "ai_speaking" && convStateRef.current !== "ending" && convStateRef.current !== "paused") {
+          setConvState("ai_speaking");
+        }
+      } else if (convStateRef.current === "ai_speaking") {
+        if (silenceStart === 0) {
+          silenceStart = now;
+        } else if (now - silenceStart > SILENCE_DELAY) {
+          setConvState("listening");
+          silenceStart = 0;
+        }
+      }
+      rafId = requestAnimationFrame(detect);
+    };
+    rafId = requestAnimationFrame(detect);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      audioCtx.close();
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [useRealtime, realtime.agentAudioStream]);
+
   // ── Hybrid mode: auto-start/stop local STT based on convState ──
   useEffect(() => {
     if (!useRealtime) return;

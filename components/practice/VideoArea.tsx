@@ -9,7 +9,6 @@ import { Mic } from "lucide-react";
 const INTERVIEWER = {
   name: "Jason Mitchell",
   title: "VP of Engineering",
-  photo: "https://randomuser.me/api/portraits/men/32.jpg",
 };
 
 interface VideoAreaProps {
@@ -30,7 +29,6 @@ export const VideoArea: FC<VideoAreaProps> = ({
   avatarUrl,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-
   useEffect(() => {
     if (videoRef.current && webcamStream) {
       videoRef.current.srcObject = webcamStream;
@@ -115,68 +113,59 @@ export const VideoArea: FC<VideoAreaProps> = ({
         </div>
       )}
 
-      {/* Interviewer overlay card — realistic human */}
-      <div className="absolute top-4 left-4 z-20">
+      {/* Interviewer video avatar */}
+      <div className="absolute top-4 left-4 z-20 flex flex-col gap-1.5">
+        {/* Video container */}
         <div
-          className="flex items-center gap-3 pl-1.5 pr-5 py-1.5 rounded-2xl backdrop-blur-xl border transition-all duration-500"
+          className="relative w-[200px] h-[130px] max-w-[45vw] rounded-2xl overflow-hidden border transition-all duration-500"
           style={{
-            background: isAISpeaking
-              ? "rgba(0, 0, 0, 0.65)"
-              : "rgba(0, 0, 0, 0.45)",
             borderColor: isAISpeaking
               ? "rgba(45, 236, 41, 0.25)"
               : "rgba(255, 255, 255, 0.08)",
+            boxShadow: isAISpeaking
+              ? "0 0 20px rgba(45, 236, 41, 0.2), 0 0 4px rgba(45, 236, 41, 0.4)"
+              : "none",
           }}
         >
-          {/* Human photo avatar */}
-          <div className="relative">
-            <div
-              className="w-14 h-14 rounded-xl overflow-hidden shrink-0 transition-shadow duration-500"
-              style={{
-                boxShadow: isAISpeaking
-                  ? "0 0 20px rgba(45, 236, 41, 0.35), 0 0 4px rgba(45, 236, 41, 0.5)"
-                  : "none",
-              }}
-            >
-              <Image
-                src={INTERVIEWER.photo}
-                alt={INTERVIEWER.name}
-                width={56}
-                height={56}
-                className="w-full h-full object-cover"
-                unoptimized
-              />
-            </div>
-            {/* Online indicator */}
-            <span
-              className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-black/60"
-              style={{
-                background: isAISpeaking ? "#2dec29" : "#6b7280",
-              }}
-            />
-          </div>
-
-          {/* Name + title + waveform */}
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-white leading-tight">
-              {INTERVIEWER.name}
-            </p>
-            <p className="text-[11px] text-white/45 leading-tight">
-              {INTERVIEWER.title}
-            </p>
-            {isAISpeaking ? (
-              <AudioWaveform
-                isActive={isAISpeaking}
-                variant="ai"
-                barCount={10}
-                className="mt-1.5 h-3"
-              />
-            ) : (
-              <p className="text-[10px] text-white/30 mt-1">
-                {isAISpeaking ? "" : "Listening..."}
-              </p>
-            )}
-          </div>
+          {/* Speaking video */}
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            src="/speaking.mp4"
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ opacity: isAISpeaking ? 1 : 0 }}
+          />
+          {/* Listening video */}
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            src="/listening.mp4"
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ opacity: isAISpeaking ? 0 : 1 }}
+          />
+          {/* Online indicator dot */}
+          <span
+            className="absolute bottom-1.5 right-1.5 w-3 h-3 rounded-full border-2 border-black/60 transition-colors duration-500"
+            style={{
+              background: isAISpeaking ? "#2dec29" : "#6b7280",
+            }}
+          />
+        </div>
+        {/* Name tag below video */}
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-black/45 backdrop-blur-sm w-fit">
+          <p className="text-xs font-semibold text-white leading-tight">
+            {INTERVIEWER.name}
+          </p>
+          <span className="text-[10px] text-white/40">·</span>
+          <p className="text-[10px] text-white/40 leading-tight">
+            {INTERVIEWER.title}
+          </p>
         </div>
       </div>
 
