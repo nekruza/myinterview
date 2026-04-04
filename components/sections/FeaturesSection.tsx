@@ -43,7 +43,7 @@ export const FeaturesSection: FC = () => {
             <div className="pointer-events-none absolute bottom-0 right-1/3 w-64 h-64 rounded-full blur-3xl opacity-[0.04]" style={{ background: "#2dec29" }} />
 
             {/* Video — left side */}
-            <div className="relative h-90 md:h-72 select-none lg:absolute lg:inset-y-0 lg:left-0 lg:right-[56%] lg:h-auto overflow-hidden rounded-l-3xl rounded-r-3xl lg:rounded-none">
+            <div className="relative h-90 md:h-72 select-none lg:absolute lg:inset-y-0 lg:left-0 lg:right-[56%] lg:h-auto overflow-hidden rounded-l-3xl rounded-r-3xl lg:rounded-r-none">
               <video
                 src="/avatar_video.mp4"
                 autoPlay
