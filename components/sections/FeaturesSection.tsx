@@ -35,12 +35,10 @@ export const FeaturesSection: FC = () => {
             {/* Bento Grid Layout */}
             <div className="grid lg:grid-cols-3 gap-6">
               {/* Large Card: AI Practice */}
-              <Link
-                href="/app/practice"
-                onClick={() => track("landing_practice_now_clicked")}
-                className="lg:col-span-2 group relative rounded-3xl overflow-hidden flex flex-col justify-between p-7 transition-all duration-300 hover:scale-[1.005] hover:shadow-2xl"
+              <div
+                className="lg:col-span-2 group relative rounded-3xl overflow-hidden flex flex-col justify-between p-7"
                 style={{
-                  background: "linear-gradient(160deg, #071a09 0%, #112914 50%, #0a2010 100%)",
+                  background: "linear-gradient(to left, #000 0%, #102815 100%)",
                   minHeight: "288px",
                 }}
               >
@@ -48,19 +46,23 @@ export const FeaturesSection: FC = () => {
                 <div className="pointer-events-none absolute -top-20 right-10 w-72 h-72 rounded-full blur-3xl opacity-[0.08]" style={{ background: "#2dec29" }} />
                 <div className="pointer-events-none absolute bottom-0 left-0 w-56 h-56 rounded-full blur-3xl opacity-[0.07]" style={{ background: "#2dec29" }} />
 
-                {/* Avatar */}
-                <div className="absolute inset-y-0 right-0 w-[48%] pointer-events-none select-none">
-                  <img
-                    src="/image.png"
-                    alt="AI Coach"
+                {/* Avatar — top on mobile, right side on desktop */}
+                <div className="relative -mt-7 -mx-7 h-80 mb-4 select-none lg:absolute lg:inset-y-0 lg:right-0 lg:h-auto lg:w-[48%] lg:mt-0 lg:mx-0 lg:mb-0">
+                  <video
+                    src="/avatar_video.mp4"
+                    autoPlay
+                    loop
+                    playsInline
+                    controls
                     className="absolute inset-0 w-full h-full object-cover object-top"
-                    style={{ mixBlendMode: "multiply", filter: "contrast(1.05) brightness(1.5)" }}
                   />
+                  {/* Blend — bottom on mobile, left edge on desktop */}
+                  <div className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none lg:hidden" style={{ background: "linear-gradient(to top, #102815, transparent)" }} />
+                  <div className="absolute inset-y-0 left-0 w-24 pointer-events-none hidden lg:block" style={{ background: "linear-gradient(to right, #102815, transparent)" }} />
                 </div>
 
-
                 {/* Top: badge + headline */}
-                <div className="relative z-10 flex flex-col gap-3 max-w-[56%]">
+                <div className="relative z-10 flex flex-col gap-3 max-w-full lg:max-w-[56%]">
                   <div
                     className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit"
                     style={{ background: "#2dec2914", border: "1px solid #2dec2935" }}
@@ -106,7 +108,7 @@ export const FeaturesSection: FC = () => {
                 </div>
 
                 {/* Bottom: features + CTA */}
-                <div className="relative z-10 flex flex-col gap-4 max-w-[56%]">
+                <div className="relative z-10 flex flex-col gap-4 max-w-full lg:max-w-[40%]">
                   <ul className="flex flex-col gap-1.5">
                     {["Instant AI feedback", "R-STAR framework"].map((feat) => (
                       <li key={feat} className="flex items-center gap-2">
@@ -119,37 +121,18 @@ export const FeaturesSection: FC = () => {
                     ))}
                   </ul>
                   <div className="flex items-end gap-2.5">
-                    <div
-                      className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold w-fit transition-all duration-200 group-hover:brightness-110 group-hover:gap-3 shrink-0"
+                    <Link
+                      href="/app/practice"
+                      onClick={() => track("landing_practice_now_clicked")}
+                      className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold w-fit transition-all duration-200 hover:brightness-110 hover:gap-3 shrink-0"
                       style={{ background: "#2dec29", color: "#071a09" }}
                     >
                       Start session
                       <ChevronRight className="w-4 h-4" />
-                    </div>
-                    {/* Mobile only: annotation next to button */}
-                    <div className="pointer-events-none flex flex-col items-start mb-0.5 lg:hidden">
-                      <svg width="50" height="28" viewBox="0 0 50 28" fill="none" className="opacity-65 ml-2">
-                        <path d="M4 24 C14 16, 28 8, 42 3" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                        <path d="M36 2 L43 3 L39 10" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                      <span
-                        className="text-white/85 whitespace-nowrap px-2 py-1 rounded-lg ml-1"
-                        style={{
-                          fontFamily: "Georgia, 'Times New Roman', serif",
-                          fontSize: "0.7rem",
-                          fontStyle: "italic",
-                          fontWeight: 400,
-                          letterSpacing: "0.01em",
-                          background: "rgba(255,255,255,0.07)",
-                          border: "1px solid rgba(255,255,255,0.15)",
-                        }}
-                      >
-                        you&apos;ll be practicing with him
-                      </span>
-                    </div>
+                    </Link>
                   </div>
                 </div>
-              </Link>
+              </div>
 
               {/* Tailored Questions Card */}
               <div className="bg-cream rounded-3xl p-6 border-2 border-neutral-200 flex flex-col justify-between">
