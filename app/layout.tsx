@@ -125,6 +125,25 @@ export default function RootLayout({
             gtag('config', 'AW-18056669142');
           `}
         </Script>
+        <Script id="google-ads-conversion" strategy="afterInteractive">
+          {`
+            function gtag_report_conversion(url) {
+              var callback = function () {
+                if (typeof(url) != 'undefined') {
+                  window.location = url;
+                }
+              };
+              gtag('event', 'conversion', {
+                'send_to': 'AW-18056669142/vf0cCKDS25McENbPi6JD',
+                'value': 39.0,
+                'currency': 'GBP',
+                'transaction_id': '',
+                'event_callback': callback
+              });
+              return false;
+            }
+          `}
+        </Script>
         <MixpanelInit />
         <Analytics />
         <ComingSoonProvider>{children}</ComingSoonProvider>

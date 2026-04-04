@@ -339,7 +339,11 @@ const SettingsPage: FC<SettingsProps> = () => {
         body: JSON.stringify({ plan: "pro", interval: "quarter" }),
       });
       const data = await res.json();
-      if (data.url) window.location.href = data.url;
+      if (data.url) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (window as any).gtag_report_conversion?.(data.url);
+        window.location.href = data.url;
+      }
     } catch {
       toast.error("Could not start checkout. Please try again.");
     } finally {
