@@ -58,12 +58,31 @@ export const FeaturesSection: FC = () => {
                   />
                 </div>
 
-                {/* Arrow + label pointing at avatar */}
+
+                {/* Top: badge + headline */}
+                <div className="relative z-10 flex flex-col gap-3 max-w-[56%]">
+                  <div
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit"
+                    style={{ background: "#2dec2914", border: "1px solid #2dec2935" }}
+                  >
+                    <Sparkles className="w-3 h-3" style={{ color: "#2dec29" }} />
+                    <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "#2dec29" }}>
+                      AI Coach · 24/7
+                    </span>
+                  </div>
+                  <h3 className="text-white font-extrabold leading-[1.1]" style={{ fontSize: "2rem" }}>
+                    Practice<br />Now
+                  </h3>
+                  <p className="text-white/45 text-sm leading-relaxed">
+                    No scheduling needed
+                  </p>
+                </div>
+
+                {/* Desktop only: original absolute-centered annotation */}
                 <div
-                  className="absolute z-20 pointer-events-none flex flex-col items-start gap-1.5"
+                  className="absolute z-20 pointer-events-none flex-col items-start gap-1.5 hidden lg:flex"
                   style={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}
                 >
-                  {/* Curved arrow pointing right toward face */}
                   <svg width="90" height="36" viewBox="0 0 90 36" fill="none" className="opacity-70 ml-14">
                     <path d="M4 30 C18 24, 44 14, 74 6" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                     <path d="M68 2 L76 6 L70 13" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -86,25 +105,6 @@ export const FeaturesSection: FC = () => {
                   </span>
                 </div>
 
-                {/* Top: badge + headline */}
-                <div className="relative z-10 flex flex-col gap-3 max-w-[56%]">
-                  <div
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit"
-                    style={{ background: "#2dec2914", border: "1px solid #2dec2935" }}
-                  >
-                    <Sparkles className="w-3 h-3" style={{ color: "#2dec29" }} />
-                    <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "#2dec29" }}>
-                      AI Coach · 24/7
-                    </span>
-                  </div>
-                  <h3 className="text-white font-extrabold leading-[1.1]" style={{ fontSize: "2rem" }}>
-                    Practice<br />Now
-                  </h3>
-                  <p className="text-white/45 text-sm leading-relaxed">
-                    No scheduling needed
-                  </p>
-                </div>
-
                 {/* Bottom: features + CTA */}
                 <div className="relative z-10 flex flex-col gap-4 max-w-[56%]">
                   <ul className="flex flex-col gap-1.5">
@@ -118,12 +118,35 @@ export const FeaturesSection: FC = () => {
                       </li>
                     ))}
                   </ul>
-                  <div
-                    className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold w-fit transition-all duration-200 group-hover:brightness-110 group-hover:gap-3"
-                    style={{ background: "#2dec29", color: "#071a09" }}
-                  >
-                    Start session
-                    <ChevronRight className="w-4 h-4" />
+                  <div className="flex items-end gap-2.5">
+                    <div
+                      className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold w-fit transition-all duration-200 group-hover:brightness-110 group-hover:gap-3 shrink-0"
+                      style={{ background: "#2dec29", color: "#071a09" }}
+                    >
+                      Start session
+                      <ChevronRight className="w-4 h-4" />
+                    </div>
+                    {/* Mobile only: annotation next to button */}
+                    <div className="pointer-events-none flex flex-col items-start mb-0.5 lg:hidden">
+                      <svg width="50" height="28" viewBox="0 0 50 28" fill="none" className="opacity-65 ml-2">
+                        <path d="M4 24 C14 16, 28 8, 42 3" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                        <path d="M36 2 L43 3 L39 10" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <span
+                        className="text-white/85 whitespace-nowrap px-2 py-1 rounded-lg ml-1"
+                        style={{
+                          fontFamily: "Georgia, 'Times New Roman', serif",
+                          fontSize: "0.7rem",
+                          fontStyle: "italic",
+                          fontWeight: 400,
+                          letterSpacing: "0.01em",
+                          background: "rgba(255,255,255,0.07)",
+                          border: "1px solid rgba(255,255,255,0.15)",
+                        }}
+                      >
+                        you&apos;ll be practicing with him
+                      </span>
+                    </div>
                   </div>
                 </div>
               </Link>
