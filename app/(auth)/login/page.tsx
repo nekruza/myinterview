@@ -55,7 +55,7 @@ export default function LoginPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-black text-white mb-2">Welcome back</h1>
         <p className="text-sm" style={{ color: "rgba(255,255,255,0.42)" }}>
-          Sign in to continue your interview practice
+          Sign in to continue your practice sessions
         </p>
       </div>
 

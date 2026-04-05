@@ -13,7 +13,7 @@ export function OrganizationSchema() {
     url: "https://myinterview.com",
     logo: "https://myinterview.com/logo.jpg",
     description:
-      "MyInterview is an AI-powered interview practice platform that helps software engineers overcome interview anxiety through AI mock interviews and peer practice sessions. 93% of engineers experience interview anxiety — MyInterview provides proven techniques and deliberate practice to build real confidence.",
+      "MyInterview is a career programme for software engineering graduates who can code but can't get hired. It combines a real 3-month unpaid internship at a partner company, a 1-on-1 CV rewrite, and AI-powered mock interview practice. £359 upfront — £499 placement fee only when you land the job.",
     offers: [
       {
         "@type": "Offer",
@@ -21,7 +21,7 @@ export function OrganizationSchema() {
         price: "0",
         priceCurrency: "GBP",
         description:
-          "3 AI practice sessions and up to 3 peer session joins per month. No credit card required.",
+          "3 free AI mock interview sessions with resume-tailored questions and instant feedback reports. No credit card required.",
         availability: "https://schema.org/InStock",
       },
       {
@@ -30,7 +30,16 @@ export function OrganizationSchema() {
         price: "13",
         priceCurrency: "GBP",
         description:
-          "30 AI practice sessions and 30 peer session joins per month, billed £39 every 3 months.",
+          "30 AI mock interview sessions per month with resume-tailored questions, billed £39 every 3 months.",
+        availability: "https://schema.org/InStock",
+      },
+      {
+        "@type": "Offer",
+        name: "Career Service (Max)",
+        price: "199",
+        priceCurrency: "GBP",
+        description:
+          "3-month career programme including a real unpaid internship at a partner company, 1-on-1 CV rewrite, and AI mock interview practice. £359 upfront plus £499 placement fee charged only on successful job placement.",
         availability: "https://schema.org/InStock",
       },
     ],
@@ -103,47 +112,47 @@ export function HomepageFAQSchema() {
         name: "What is MyInterview?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "MyInterview is an AI-powered interview practice platform that helps software engineers overcome interview anxiety through AI mock interviews and peer practice sessions. It covers behavioral interviews, technical questions, and system design.",
+          text: "MyInterview is a career programme for software engineering graduates. It combines a real 3-month unpaid internship at a partner company, a 1-on-1 CV rewrite from a specialist, and AI-powered mock interview practice — so you build genuine experience and can prove it in interviews.",
         },
       },
       {
         "@type": "Question",
-        name: "How does AI interview practice work?",
+        name: "Why is the internship unpaid?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "MyInterview's AI acts as an interviewer, asking behavioral and technical questions and providing real-time feedback on your answers. It's available 24/7, so you can practice anytime without scheduling.",
+          text: "Paid internships go to people who already have commercial experience — which is the catch-22 graduates face. The unpaid placement breaks that cycle: you ship real work at a partner company, get code-reviewed by engineers, and build 3 months of genuine git history that hiring managers can verify.",
         },
       },
       {
         "@type": "Question",
-        name: "Why do engineers experience interview anxiety?",
+        name: "How does the pricing work?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "93% of candidates experience mental freeze during interviews because the brain's stress response (amygdala activation) partially shuts down the prefrontal cortex — the area responsible for complex thinking and recall. Deliberate practice under simulated pressure is the proven solution.",
+          text: "£359 upfront funds your place in the cohort — covering the internship placement, CV rewrite, and mock interview access. The £499 placement fee is charged only after you accept a paid job offer. If you don't land a job, you don't pay the £499.",
         },
       },
       {
         "@type": "Question",
-        name: "Is MyInterview free?",
+        name: "Is there a free option?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Yes. MyInterview offers a free plan with 3 AI practice sessions and up to 3 peer sessions per month. No credit card is required to get started. Pro plan is £13/month billed quarterly.",
+          text: "Yes. You can use the AI mock interview tool for free — 3 full sessions with resume-tailored questions and instant feedback reports, no credit card required. The full career service (internship, CV rewrite, cohort) requires joining the waitlist.",
         },
       },
       {
         "@type": "Question",
-        name: "How many sessions does it take to improve interview performance?",
+        name: "Do I need to be a CS graduate to join?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Research shows 55-60% performance improvement with consistent mock interview practice. Most users see significant improvement after 8-12 focused sessions with real-time feedback, equivalent to 2-3 sessions per week over a month.",
+          text: "No. The only requirement is that you can code. CS graduates, bootcamp graduates, and self-taught developers are all eligible. If you can build things and reason about code, you qualify for the programme.",
         },
       },
       {
         "@type": "Question",
-        name: "What types of interviews can I practice?",
+        name: "What types of interviews can I practice with the AI tool?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "MyInterview covers behavioral interviews (using the STAR method), technical coding interviews (data structures, algorithms), and system design interviews. Both AI and peer practice options are available for all formats.",
+          text: "The AI practice tool covers behavioural interviews (STAR method, leadership, conflict) and technical interviews (system design, coding, architecture). Questions are tailored to your CV and the specific role you are applying for.",
         },
       },
     ],

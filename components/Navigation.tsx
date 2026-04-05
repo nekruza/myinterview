@@ -52,11 +52,11 @@ export const Navigation: FC = () => {
       <div
         className="max-w-[1200px] mx-auto m-3 rounded-2xl transition-all duration-300"
         style={scrolled ? {
-          background: "rgba(255,255,255,0.92)",
-          backdropFilter: "blur(20px) saturate(1.8)",
-          WebkitBackdropFilter: "blur(20px) saturate(1.8)",
-          border: "1px solid rgba(0,0,0,0.08)",
-          boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
+          background: "rgba(7,26,9,0.92)",
+          backdropFilter: "blur(20px) saturate(1.4)",
+          WebkitBackdropFilter: "blur(20px) saturate(1.4)",
+          border: "1px solid rgba(45,236,41,0.12)",
+          boxShadow: "0 4px 24px rgba(0,0,0,0.4)",
         } : {
           background: "rgba(8,12,9,0.4)",
           backdropFilter: "blur(16px)",
@@ -76,7 +76,7 @@ export const Navigation: FC = () => {
             />
             <span
               className="text-base font-bold tracking-tight transition-colors duration-300"
-              style={{ color: scrolled ? "#112715" : "rgba(255,255,255,0.92)" }}
+              style={{ color: "rgba(255,255,255,0.92)" }}
             >
               MyInterview
             </span>
@@ -89,9 +89,9 @@ export const Navigation: FC = () => {
                 key={link.href}
                 href={link.href}
                 className="text-sm font-medium transition-colors duration-200 hover:opacity-100"
-                style={{ color: scrolled ? "#374151" : "rgba(255,255,255,0.55)" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = scrolled ? "#112715" : "rgba(255,255,255,0.95)")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = scrolled ? "#374151" : "rgba(255,255,255,0.55)")}
+                style={{ color: scrolled ? "rgba(255,255,255,0.65)" : "rgba(255,255,255,0.55)" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.95)")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = scrolled ? "rgba(255,255,255,0.65)" : "rgba(255,255,255,0.55)")}
               >
                 {link.label}
               </Link>
@@ -105,14 +105,14 @@ export const Navigation: FC = () => {
                 <Link
                   href="/app/dashboard"
                   className="text-sm font-semibold transition-colors duration-200"
-                  style={{ color: scrolled ? "#112715" : "rgba(255,255,255,0.8)" }}
+                  style={{ color: "rgba(255,255,255,0.85)" }}
                 >
                   Dashboard
                 </Link>
                 <button
                   onClick={handleSignOut}
                   className="text-sm transition-colors duration-200"
-                  style={{ color: scrolled ? "#6b7280" : "rgba(255,255,255,0.4)" }}
+                  style={{ color: "rgba(255,255,255,0.4)" }}
                 >
                   Sign Out
                 </button>
@@ -122,7 +122,7 @@ export const Navigation: FC = () => {
                 <Link
                   href="/login"
                   className="text-sm font-medium transition-colors duration-200"
-                  style={{ color: scrolled ? "#374151" : "rgba(255,255,255,0.6)" }}
+                  style={{ color: "rgba(255,255,255,0.6)" }}
                   onClick={() => track("CTA Clicked", { button: "Sign In", location: "nav_desktop" })}
                 >
                   Sign In

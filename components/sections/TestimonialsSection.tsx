@@ -3,29 +3,29 @@ import { FC } from "react";
 const TESTIMONIALS = [
   {
     name: "Priya K.",
-    role: "Mid-Level Engineer",
+    role: "Graduate Software Engineer",
     initial: "P",
     color: "#60a5fa",
     quote:
-      "After 8 AI practice sessions I landed Amazon. The combination of behavioral prep and anxiety techniques actually worked — went from freezing up to feeling genuinely calm.",
+      "The mock interviews were tailored to the exact role I was applying for — it asked me questions I was actually asked in the real thing. After 6 sessions I got an offer from Amazon. Nothing else I'd tried came close.",
     outcome: "Landed at Amazon",
   },
   {
     name: "Marcus T.",
-    role: "Senior Engineer",
+    role: "Junior Developer",
     initial: "M",
     color: "#2dec29",
     quote:
-      "The AI drilled me on behavioral and technical questions until my answers were sharp. Went from rambling to delivering clear, confident answers. Worth every penny.",
-    outcome: "Offer in 3 weeks",
+      "I'd been rejected 14 times before this. Having 3 months of real internship work to talk about changed everything. The AI practice meant I could actually articulate what I'd built. Got an offer within 2 weeks of finishing.",
+    outcome: "Hired in 2 weeks",
   },
   {
     name: "Sarah L.",
-    role: "Staff Engineer",
+    role: "Software Engineer",
     initial: "S",
     color: "#f472b6",
     quote:
-      "The exposure practice completely changed my interview experience. I went from panic attacks to actually enjoying the conversation. Landed at Stripe feeling confident for the first time.",
+      "The CV rewrite after the internship was the difference-maker. Before, I was getting filtered out before interviews. After, I got 4 first-round invites in a week. Landed at Stripe on my second final-round ever.",
     outcome: "Now at Stripe",
   },
 ];
@@ -42,34 +42,36 @@ export const TestimonialsSection: FC = () => {
       id="testimonials"
       aria-labelledby="testimonials-heading"
       className="py-24 px-4 sm:px-6 lg:px-8"
-      style={{ background: "linear-gradient(to bottom, #ffffff 0%, #f8fdf8 100%)" }}
+      style={{ background: "linear-gradient(to bottom, #080c09 0%, #050e06 100%)" }}
     >
       <div className="max-w-6xl mx-auto">
 
-        <div className="text-center mb-16">
+        <div className="scroll-reveal text-center mb-16">
           <p className="font-bold text-sm uppercase tracking-wider mb-3" style={{ color: "#2dec29" }}>
             Success Stories
           </p>
           <h2
             id="testimonials-heading"
-            className="text-4xl md:text-5xl font-black mb-4 text-secondary"
+            className="text-4xl md:text-5xl font-black mb-4"
+            style={{ color: "#ffffff" }}
           >
             Engineers who got hired.
           </h2>
-          <p className="text-lg text-neutral-500 max-w-xl mx-auto">
+          <p className="text-lg max-w-xl mx-auto" style={{ color: "rgba(255,255,255,0.5)" }}>
             Not just confident — actually employed.
           </p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6" role="list" aria-label="User testimonials">
-          {TESTIMONIALS.map((t) => (
+          {TESTIMONIALS.map((t, i) => (
             <article
               key={t.name}
               role="listitem"
-              className="relative rounded-2xl overflow-hidden flex flex-col"
+              className="scroll-reveal relative rounded-2xl overflow-hidden flex flex-col"
               style={{
-                background: "linear-gradient(145deg, #071a09 0%, #0d2410 60%, #061508 100%)",
-                border: "1px solid rgba(45,236,41,0.12)",
+                background: "linear-gradient(145deg, #0d2410 0%, #112715 60%, #0a1e0c 100%)",
+                border: "1px solid rgba(45,236,41,0.22)",
+                transitionDelay: `${i * 0.14}s`,
               }}
             >
               {/* Ambient glow */}

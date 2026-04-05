@@ -8,3 +8,5 @@ export { FeaturesSection } from "./FeaturesSection";
 export { TestimonialsSection } from "./TestimonialsSection";
 export { PricingSection } from "./PricingSection";
 export { JoinTeamSection } from "./JoinTeamSection";
+export { StatsStrip } from "./StatsStrip";
+export { FAQSection } from "./FAQSection";

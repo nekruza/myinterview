@@ -5,94 +5,6 @@ import Link from "next/link";
 import { track } from "@/lib/mixpanel";
 import { WaitlistModal } from "@/components/WaitlistModal";
 
-/* ─── Product preview card: live AI session ──────────────────────────────── */
-function InterviewSessionCard() {
-  return (
-    <div
-      className="w-[300px] sm:w-[320px] rounded-2xl p-5 card-float"
-      style={{
-        background: "rgba(255,255,255,0.04)",
-        border: "1px solid rgba(255,255,255,0.10)",
-        backdropFilter: "blur(24px)",
-        boxShadow: "0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)",
-      }}
-    >
-      {/* Session header */}
-      <div className="flex items-center gap-3 mb-4">
-        <div
-          className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm"
-          style={{ background: "linear-gradient(135deg, #2dec29 0%, #0a5c09 100%)" }}
-        >
-          🤖
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-white text-xs font-semibold">AI Coach</p>
-          <div className="flex items-center gap-1.5 mt-0.5">
-            <span
-              className="w-1.5 h-1.5 rounded-full animate-pulse flex-shrink-0"
-              style={{ background: "#2dec29" }}
-            />
-            <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
-              Live session
-            </p>
-          </div>
-        </div>
-        <span className="text-[10px] font-mono tabular-nums" style={{ color: "rgba(255,255,255,0.25)" }}>
-          02:41
-        </span>
-      </div>
-
-      {/* Question bubble */}
-      <div
-        className="rounded-xl p-3.5 mb-3.5"
-        style={{
-          background: "rgba(45,236,41,0.06)",
-          border: "1px solid rgba(45,236,41,0.14)",
-        }}
-      >
-        <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.72)" }}>
-          &ldquo;Tell me about a time you had to debug a production issue under pressure. Walk me through your process.&rdquo;
-        </p>
-      </div>
-
-      {/* Waveform — candidate speaking */}
-      <div className="flex items-center gap-[3px] h-7 mb-3.5">
-        {[2, 5, 8, 5, 10, 7, 4, 9, 6, 8, 5, 7, 10, 6, 4, 8, 6, 9, 5, 7, 4, 6, 8, 5, 3].map(
-          (h, i) => (
-            <div
-              key={i}
-              className="w-[3px] rounded-full origin-center"
-              style={{
-                height: `${h * 2.6}px`,
-                background: "#2dec29",
-                opacity: 0.5 + (i % 4) * 0.12,
-                animation: `waveform-bar ${0.4 + (i % 5) * 0.15}s ease-in-out ${i * 0.06}s infinite`,
-              }}
-            />
-          )
-        )}
-      </div>
-
-      {/* STAR hint chip */}
-      <div className="flex items-center gap-2">
-        <span
-          className="text-[10px] px-2.5 py-1 rounded-full font-bold"
-          style={{
-            background: "rgba(45,236,41,0.14)",
-            color: "#2dec29",
-            border: "1px solid rgba(45,236,41,0.22)",
-          }}
-        >
-          STAR
-        </span>
-        <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.28)" }}>
-          Situation → Task → Action → Result
-        </span>
-      </div>
-    </div>
-  );
-}
-
 /* ─── Floating score card ────────────────────────────────────────────────── */
 function ScoreCard() {
   const bars = [62, 71, 58, 80, 87];
@@ -374,14 +286,26 @@ export const CareerServiceHero: FC = () => {
                 </svg>
               </button>
 
+              <Link
+                href="/signup"
+                onClick={() => track("CTA Clicked", { button: "Try Free", location: "hero" })}
+                className="inline-flex items-center gap-1.5 px-5 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 hover:brightness-125 active:scale-[0.98]"
+                style={{
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  color: "rgba(255,255,255,0.65)",
+                }}
+              >
+                Try free — no card
+              </Link>
             </div>
 
             {/* Trust bullets */}
             <div className="hero-stagger-5 flex flex-col sm:flex-row sm:flex-wrap gap-x-6 gap-y-2.5">
               {[
                 "Real internship on your CV",
-                "Resume reviewed by the founder",
-                "£199 to start — £499 on placement",
+                "3 free AI mock interviews",
+                "£499 fee only when you land the job",
               ].map((point) => (
                 <div key={point} className="flex items-center gap-2">
                   <svg
@@ -411,29 +335,29 @@ export const CareerServiceHero: FC = () => {
             <div className="relative" style={{ width: 360, height: 500 }}>
 
               {/* Main internship card — centerpiece */}
-              <div className="absolute left-0 top-10">
+              <div className="absolute left-0 top-10 hero-card-main">
                 <InternshipCard />
               </div>
 
               {/* Score card — top right, floating accent */}
               <div
-                className="absolute hidden sm:block"
-                style={{ top: 0, right: -16, zIndex: 10 }}
+                className="absolute hidden sm:block hero-card-tr"
+                style={{ bottom: 0, right: -16, zIndex: 10 }}
               >
                 <ScoreCard />
               </div>
 
               {/* Streak chip — bottom right accent */}
               <div
-                className="absolute hidden sm:block"
-                style={{ bottom: 20, right: -8, zIndex: 10 }}
+                className="absolute hidden sm:block hero-card-br"
+                style={{ bottom: 80, left: 8, zIndex: 10 }}
               >
                 <StreakChip />
               </div>
 
               {/* Interview session chip — bottom left accent */}
               <div
-                className="absolute"
+                className="absolute hero-card-bl"
                 style={{ bottom: 0, left: 8, zIndex: 10 }}
               >
                 <div

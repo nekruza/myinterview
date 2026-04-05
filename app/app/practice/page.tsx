@@ -546,7 +546,7 @@ export default function PracticePage() {
         </div>
 
       {/* ── Sticky Start Button ── */}
-      <div className="sticky bottom-16 md:bottom-0 -mx-4 sm:-mx-6 md:-mb-8 px-4 sm:px-6 py-4 mt-6 border-t border-neutral-100" style={{ background: "rgba(251,253,243,0.97)", backdropFilter: "blur(8px)" }}>
+      <div className="sticky bottom-16 md:bottom-0 -mx-4 sm:-mx-6 md:-mb-8 px-4 sm:px-6 py-4 mt-6 border-t border-neutral-100" style={{ background: "rgba(250,249,246,0.97)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}>
         {plan === "free" && (
           <p className="text-center text-xs text-neutral-400 mb-2">
             {sessionsUsed >= 3 ? (

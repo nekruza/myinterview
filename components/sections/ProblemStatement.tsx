@@ -1,75 +1,127 @@
 import { FC } from "react";
 
-export const ProblemStatement: FC = () => {
-  const problems = [
-    {
-      emoji: "🧠",
-      title: "Your Mind Goes Blank",
-      quote: "I know the answers, but when the interviewer asks, my mind freezes. Everything I studied just disappears.",
-      stat: "→ 93% experience this",
-    },
-    {
-      emoji: "🎯",
-      title: "Generic Practice Doesn't Work",
-      quote: "I've done ChatGPT mock interviews and watched YouTube prep videos — but none of it is tailored to my actual resume or the specific job I'm applying for.",
-      stat: "→ Relevance is everything",
-    },
-    {
-      emoji: "😔",
-      title: "You've Failed a Final Round Before",
-      quote: "I made it to the last stage and froze. I knew I could do the job — I just couldn't prove it under pressure when it counted.",
-      stat: "→ Practice beats potential",
-    },
-  ];
+const PROBLEMS = [
+  {
+    number: "01",
+    title: "Every job wants 2+ years of experience.",
+    quote: "I have a first-class degree and two personal projects on GitHub. Every application comes back the same: 'We're looking for someone with commercial experience.'",
+    label: "The catch-22",
+    color: "#f87171",
+  },
+  {
+    number: "02",
+    title: "Side projects don't count as experience.",
+    quote: "I built a full-stack app with 300 users, but hiring managers don't treat it the same as a job. They want to see that someone trusted me with a real codebase.",
+    label: "The credibility gap",
+    color: "#fb923c",
+  },
+  {
+    number: "03",
+    title: "You get filtered before anyone reads your CV.",
+    quote: "I don't even get rejections. My applications just disappear. Six months of applying and I've had three first rounds — none of which led anywhere.",
+    label: "The invisible wall",
+    color: "#facc15",
+  },
+];
 
+export const ProblemStatement: FC = () => {
   return (
     <section
       aria-labelledby="problem-heading"
-      className="py-16 px-4 sm:px-6 lg:px-8 bg-white"
+      className="py-24 px-4 sm:px-6 lg:px-8"
+      style={{ background: "linear-gradient(to bottom, #f8fdf8 0%, #ffffff 100%)" }}
     >
       <div className="max-w-6xl mx-auto">
+
         {/* Header */}
-        <div className="text-center mb-12">
-          <p className="text-primary font-bold text-sm uppercase tracking-wider mb-3">
-            The Real Problem
+        <div className="scroll-reveal max-w-2xl mb-14">
+          <p className="font-bold text-sm uppercase tracking-widest mb-3" style={{ color: "#2dec29" }}>
+            The Problem
           </p>
           <h2
             id="problem-heading"
-            className="text-4xl md:text-5xl font-black mb-4 text-secondary"
+            className="text-4xl md:text-5xl font-black leading-[1.06] mb-5"
+            style={{ color: "#112715" }}
           >
-            You&apos;re Qualified. Generic Prep Is Letting You Down.
+            You can code.<br />
+            You just can&apos;t{" "}
+            <span
+              style={{
+                textDecoration: "underline",
+                textDecorationColor: "rgba(248,113,113,0.5)",
+                textUnderlineOffset: "5px",
+              }}
+            >
+              prove it yet.
+            </span>
           </h2>
-          <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-            The problem isn&apos;t your skills — it&apos;s that you&apos;re practicing the wrong interview for the wrong role.
+          <p className="text-lg leading-relaxed" style={{ color: "#6b7280" }}>
+            The barrier isn&apos;t your ability — it&apos;s the three walls every new graduate hits
+            before anyone gives them a chance.
           </p>
         </div>
 
-        {/* 3 Column Grid */}
-        <div className="grid md:grid-cols-3 gap-6 md:gap-6 md:mt-12">
-          {problems.map((problem, index) => (
+        {/* Problem cards */}
+        <div className="grid md:grid-cols-3 gap-5">
+          {PROBLEMS.map((p, i) => (
             <div
-              key={index}
-              className="group bg-white shadow-sm rounded-2xl p-6 border-2 border-transparent hover:border-secondary transition-all duration-300"
+              key={p.number}
+              className="scroll-reveal relative rounded-2xl p-7 flex flex-col overflow-hidden"
+              style={{
+                background: "linear-gradient(145deg, #071a09 0%, #0d2410 60%, #061508 100%)",
+                border: "1px solid rgba(255,255,255,0.07)",
+                transitionDelay: `${i * 0.12}s`,
+              }}
             >
-              <div className="mb-4 md:mb-0 md:relative md:-top-12">
-                <div className="w-24 h-24 rounded-full border-4 bg-white flex items-center justify-center text-5xl border-primary">
-                  {problem.emoji}
-                </div>
-              </div>
-              <div className="md:-mt-6">
-                <h3 className="text-xl font-bold mb-3 text-secondary">
-                  {problem.title}
-                </h3>
-                <p className="text-sm text-neutral-700 italic mb-4 leading-relaxed">
-                  &quot;{problem.quote}&quot;
-                </p>
-                <div className="text-xs font-semibold text-secondary">
-                  {problem.stat}
-                </div>
-              </div>
+              {/* Number watermark */}
+              <span
+                className="absolute top-5 right-6 font-black opacity-10 select-none leading-none"
+                style={{ fontSize: "4rem", color: p.color }}
+              >
+                {p.number}
+              </span>
+
+              {/* Label pill */}
+              <span
+                className="self-start text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full mb-5"
+                style={{
+                  background: `${p.color}18`,
+                  color: p.color,
+                  border: `1px solid ${p.color}30`,
+                }}
+              >
+                {p.label}
+              </span>
+
+              {/* Title */}
+              <h3 className="font-black text-lg text-white leading-snug mb-4">
+                {p.title}
+              </h3>
+
+              {/* Quote */}
+              <blockquote
+                className="text-sm leading-relaxed mt-auto"
+                style={{
+                  color: "rgba(255,255,255,0.42)",
+                  borderLeft: `2px solid ${p.color}40`,
+                  paddingLeft: "1rem",
+                }}
+              >
+                &ldquo;{p.quote}&rdquo;
+              </blockquote>
             </div>
           ))}
         </div>
+
+        {/* Bridge line */}
+        <div className="mt-12 flex items-center gap-4">
+          <div className="flex-1 h-px" style={{ background: "rgba(17,39,21,0.08)" }} />
+          <p className="text-sm font-semibold text-center px-4" style={{ color: "#112715" }}>
+            This is the problem MyInterview was built to solve.
+          </p>
+          <div className="flex-1 h-px" style={{ background: "rgba(17,39,21,0.08)" }} />
+        </div>
+
       </div>
     </section>
   );

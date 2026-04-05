@@ -44,27 +44,27 @@ export const CareerSolutionSection: FC = () => {
     <section
       aria-labelledby="solution-heading"
       className="py-24 px-4 sm:px-6"
-      style={{ background: "linear-gradient(to bottom, #080c09 0%, #ffffff 140px)" }}
+      style={{ background: "linear-gradient(to bottom, #080c09 0%, #080c09 52%, #ffffff 68%)" }}
     >
       <div className="max-w-7xl mx-auto">
 
         {/* Header */}
-        <div className="text-center mb-14">
+        <div className="scroll-reveal text-center mb-14">
           <p className="font-bold text-sm uppercase tracking-widest mb-3" style={{ color: "#2dec29" }}>
             3-Month Programme
           </p>
           <h2
             id="solution-heading"
             className="text-4xl md:text-5xl font-black mb-4 leading-tight"
-            style={{ color: "#112715" }}
+            style={{ color: "#ffffff" }}
           >
             Join the Cohort.<br className="hidden md:block" /> Land the Job.
           </h2>
-          <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
+          <p className="text-lg max-w-2xl mx-auto" style={{ color: "rgba(255,255,255,0.55)" }}>
             From day one, you&apos;re placed at a partner company. Over 3 months, we work
             alongside you — improving your resume, preparing you for interviews, and giving
             you the proof of experience that gets you hired.{" "}
-            <span className="font-semibold text-secondary">£199 upfront. £499 only when you land the job.</span>
+            <span className="font-semibold" style={{ color: "rgba(255,255,255,0.85)" }}>£359 upfront. £499 only when you land the job.</span>
           </p>
         </div>
 
@@ -79,7 +79,7 @@ export const CareerSolutionSection: FC = () => {
             <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "#2dec29" }}>Pricing</p>
             <div className="flex items-end gap-3">
               <div>
-                <p className="text-white text-2xl font-black leading-none">£199</p>
+                <p className="text-white text-2xl font-black leading-none">£359</p>
                 <p className="text-white/50 text-xs mt-0.5">to start</p>
               </div>
               <div>
@@ -101,8 +101,8 @@ export const CareerSolutionSection: FC = () => {
 
           {/* Main card */}
           <div
-            className="rounded-3xl overflow-hidden grid md:grid-cols-[2fr_3fr]"
-            style={{ background: "linear-gradient(145deg, #071a09 0%, #0d2410 60%, #061508 100%)" }}
+            className="scroll-reveal rounded-3xl overflow-hidden grid md:grid-cols-[2fr_3fr]"
+            style={{ background: "linear-gradient(145deg, #071a09 0%, #0d2410 60%, #061508 100%)", transitionDelay: "0.1s" }}
           >
 
             {/* Left panel — internship terminal visual */}
@@ -253,7 +253,7 @@ export const CareerSolutionSection: FC = () => {
                   </svg>
                 </button>
                 <p className="text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>
-                  Free to join · £199 to start when ready
+                  Free to join · £359 to start when ready
                 </p>
               </div>
 

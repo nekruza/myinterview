@@ -1,3 +1,5 @@
+"use client";
+
 import { FC } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -12,11 +14,9 @@ export const Footer: FC = () => {
       { name: "Anxiety Guide", href: "/blog/how-to-stop-mind-going-blank-interview" },
     ],
     company: [
-      { name: "Careers", href: "#join-team" },
       { name: "Contact", href: "/contact" },
       { name: "Privacy", href: "/privacy" },
       { name: "Terms", href: "/terms" },
-      { name: "Admin", href: "/admin" },
     ],
   };
 
@@ -59,10 +59,10 @@ export const Footer: FC = () => {
               className="text-xs font-bold uppercase tracking-widest mb-4"
               style={{ color: "rgba(45,236,41,0.6)" }}
             >
-              Start today — it&apos;s free
+              Cohort 1 · Now Forming
             </p>
             <h2 className="text-4xl sm:text-5xl font-black text-white mb-4 leading-tight">
-              Your dream job is{" "}
+              Stop getting rejected.{" "}
               <span
                 style={{
                   background: "linear-gradient(90deg, #2dec29 0%, #86efac 100%)",
@@ -71,21 +71,21 @@ export const Footer: FC = () => {
                   backgroundClip: "text",
                 }}
               >
-                one practice away.
+                Start getting hired.
               </span>
             </h2>
             <p
               className="text-base mb-8 max-w-md mx-auto leading-relaxed"
               style={{ color: "rgba(255,255,255,0.45)" }}
             >
-              3 free AI mock interviews — no credit card needed.
+              Real internship. Real CV line. Real offer. £359 to start — £499 only when you land the job.
             </p>
             <Link
-              href="/signup"
+              href="#hero-section"
               className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl font-bold text-sm transition-all hover:brightness-110 hover:gap-3"
               style={{ background: "#2dec29", color: "#071a09" }}
             >
-              Get started free
+              Join the Waitlist
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
               </svg>
@@ -111,16 +111,23 @@ export const Footer: FC = () => {
               className="text-sm leading-relaxed mb-6 max-w-[240px]"
               style={{ color: "rgba(255,255,255,0.38)" }}
             >
-              Helping engineers conquer interview anxiety through AI-powered
-              practice and peer support.
+              Helping graduates land their first engineering job — real internship experience, AI mock interviews, and a career service that only wins when you do.
             </p>
             <Link
               href="https://www.linkedin.com/company/myinterview-me/"
-              className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
+              className="w-9 h-9 rounded-lg flex items-center justify-center"
               style={{
                 background: "rgba(255,255,255,0.06)",
                 border: "1px solid rgba(255,255,255,0.1)",
                 color: "rgba(255,255,255,0.5)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(255,255,255,0.12)";
+                e.currentTarget.style.color = "rgba(255,255,255,0.85)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "rgba(255,255,255,0.06)";
+                e.currentTarget.style.color = "rgba(255,255,255,0.5)";
               }}
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -142,8 +149,10 @@ export const Footer: FC = () => {
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-sm transition-colors"
+                    className="text-sm"
                     style={{ color: "rgba(255,255,255,0.48)" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.85)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.48)")}
                   >
                     {link.name}
                   </Link>
@@ -165,8 +174,10 @@ export const Footer: FC = () => {
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-sm transition-colors"
+                    className="text-sm"
                     style={{ color: "rgba(255,255,255,0.48)" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.85)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.48)")}
                   >
                     {link.name}
                   </Link>

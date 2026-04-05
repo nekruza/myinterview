@@ -2,48 +2,75 @@
 
 import { FC } from "react";
 import Link from "next/link";
-
 import { track } from "@/lib/mixpanel";
 import { Sparkles, ChevronRight, CornerDownLeft } from "lucide-react";
+
+const FEATURE_PILLS = [
+  {
+    icon: (
+      <svg width="14" height="14" fill="none" stroke="#2dec29" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+    ),
+    title: "Resume-tailored questions",
+    desc: "Every question is built from your CV and the exact role you're applying for.",
+  },
+  {
+    icon: (
+      <svg width="14" height="14" fill="none" stroke="#2dec29" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+        <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+      </svg>
+    ),
+    title: "Instant feedback reports",
+    desc: "After each session, see exactly what landed, what didn't, and what to fix next.",
+  },
+  {
+    icon: (
+      <svg width="14" height="14" fill="none" stroke="#2dec29" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+      </svg>
+    ),
+    title: "Practice any time",
+    desc: "No booking, no waiting. Start a full mock session in under 60 seconds.",
+  },
+];
 
 export const FeaturesSection: FC = () => {
   return (
     <section
       id="features"
       aria-labelledby="features-heading"
-      className="py-24 px-4 sm:px-6 lg:px-8 bg-white"
+      className="py-24 px-4 sm:px-6 lg:px-8"
+      style={{ background: "linear-gradient(to bottom, #ffffff 0%, #f4fcf4 100%)" }}
     >
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-20">
-          <p className="text-primary font-bold text-sm uppercase tracking-wider mb-3">
-            For all engineers
+        <div className="scroll-reveal text-center mb-14">
+          <p className="font-bold text-sm uppercase tracking-wider mb-3" style={{ color: "#2dec29" }}>
+            AI Practice Tool
           </p>
           <h2
             id="features-heading"
-            className="text-5xl font-black mb-6 text-secondary"
+            className="text-4xl md:text-5xl font-black mb-4 text-secondary"
           >
-            Practice Interview with our AI Coach
+            Your interview coach.<br className="hidden md:block" /> Available 24/7.
           </h2>
-          <p className="text-xl text-neutral-700 max-w-3xl mx-auto">
-            Resume-tailored questions + real voice AI + instant feedback reports + progress tracking
+          <p className="text-lg max-w-xl mx-auto" style={{ color: "#6b7280" }}>
+            Practice out loud with a voice AI that knows your CV. Get scored. Repeat until you&apos;re ready.
           </p>
         </div>
 
-        <div className="space-y-12">
-          {/* Full-width Practice Card */}
+        <div className="space-y-5">
+          {/* Main AI coach card */}
           <div
-            className="relative rounded-3xl"
-            style={{
-              background: "#071a09",
-              minHeight: "560px",
-            }}
+            className="scroll-reveal relative rounded-3xl overflow-hidden"
+            style={{ background: "#071a09", minHeight: "520px", transitionDelay: "0.08s" }}
           >
-            {/* Subtle right-side glow */}
+            {/* Glows */}
             <div className="pointer-events-none absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-[0.06]" style={{ background: "#2dec29" }} />
             <div className="pointer-events-none absolute bottom-0 right-1/3 w-64 h-64 rounded-full blur-3xl opacity-[0.04]" style={{ background: "#2dec29" }} />
 
             {/* Video — left side */}
-            <div className="relative h-90 md:h-72 select-none lg:absolute lg:inset-y-0 lg:left-0 lg:right-[56%] lg:h-auto overflow-hidden rounded-l-3xl rounded-r-3xl lg:rounded-r-none">
+            <div className="relative h-72 md:h-80 select-none lg:absolute lg:inset-y-0 lg:left-0 lg:right-[56%] lg:h-auto overflow-hidden rounded-l-3xl rounded-r-3xl lg:rounded-r-none">
               <video
                 src="/avatar_video.mp4"
                 autoPlay
@@ -52,11 +79,10 @@ export const FeaturesSection: FC = () => {
                 controls
                 className="absolute inset-0 w-full h-full object-cover object-top"
               />
-              {/* Desktop right fade — wide and smooth */}
               <div className="absolute inset-y-0 right-0 w-48 pointer-events-none hidden lg:block" style={{ background: "linear-gradient(to left, #071a09 0%, rgba(7,26,9,0.8) 40%, transparent 100%)" }} />
             </div>
 
-            {/* Annotation — sits inside video area, above the face */}
+            {/* Annotation */}
             <div
               className="absolute z-20 pointer-events-none flex-col items-end gap-1 hidden lg:flex"
               style={{ top: "10%", left: "28%" }}
@@ -82,18 +108,15 @@ export const FeaturesSection: FC = () => {
               <CornerDownLeft className="w-12 h-12 opacity-50 mr-8 font-thin relative -left-12" style={{ color: "white" }} />
             </div>
 
-            {/* Floating Behavioral/Technical card — bottom right, 3D lift */}
-            <div
-              className="absolute z-30 hidden lg:block"
-              style={{ bottom: "-24px", right: "-24px" }}
-            >
+            {/* Floating question types card */}
+            <div className="absolute z-30 hidden lg:block" style={{ bottom: "-24px", right: "-24px" }}>
               <div
                 className="rounded-2xl px-4 py-3"
                 style={{
                   background: "rgba(10,30,12,0.85)",
                   border: "1px solid rgba(255,255,255,0.08)",
                   backdropFilter: "blur(16px)",
-                  boxShadow: "0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.06)",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
                   transform: "perspective(600px) rotateX(-2deg) rotateY(-2deg)",
                 }}
               >
@@ -101,43 +124,40 @@ export const FeaturesSection: FC = () => {
                 <div className="flex gap-3">
                   <div className="flex flex-col gap-1.5">
                     <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0" style={{ background: "#2dec29" }}>
+                      <div className="w-4 h-4 rounded flex items-center justify-center" style={{ background: "#2dec29" }}>
                         <svg className="w-2.5 h-2.5" fill="none" stroke="#071a09" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
                       </div>
                       <span className="text-[10px] font-semibold text-white">Behavioral</span>
                     </div>
                     <div className="flex gap-1">
-                      {["Leadership", "Conflict"].map(tag => <span key={tag} className="text-[8px] px-1.5 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.08)" }}>{tag}</span>)}
+                      {["Leadership", "Conflict"].map(t => <span key={t} className="text-[8px] px-1.5 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.08)" }}>{t}</span>)}
                     </div>
                   </div>
                   <div className="w-px" style={{ background: "rgba(255,255,255,0.08)" }} />
                   <div className="flex flex-col gap-1.5">
                     <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0" style={{ background: "rgba(255,255,255,0.12)" }}>
+                      <div className="w-4 h-4 rounded flex items-center justify-center" style={{ background: "rgba(255,255,255,0.12)" }}>
                         <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
                       </div>
                       <span className="text-[10px] font-semibold text-white">Technical</span>
                     </div>
                     <div className="flex gap-1">
-                      {["Data", "Algo", "System"].map(tag => <span key={tag} className="text-[8px] px-1.5 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.08)" }}>{tag}</span>)}
+                      {["Data", "Algo", "System"].map(t => <span key={t} className="text-[8px] px-1.5 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.08)" }}>{t}</span>)}
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Floating stats card — top right, 3D lift */}
-            <div
-              className="absolute z-30 hidden lg:block"
-              style={{ top: "-28px", right: "-28px" }}
-            >
+            {/* Floating stats card */}
+            <div className="absolute z-30 hidden lg:block" style={{ top: "-28px", right: "-28px" }}>
               <div
                 className="rounded-2xl px-5 py-4"
                 style={{
                   background: "rgba(10,30,12,0.85)",
                   border: "1px solid rgba(45,236,41,0.15)",
                   backdropFilter: "blur(16px)",
-                  boxShadow: "0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.06)",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
                   transform: "perspective(600px) rotateX(2deg) rotateY(-2deg)",
                 }}
               >
@@ -156,12 +176,11 @@ export const FeaturesSection: FC = () => {
               </div>
             </div>
 
-            {/* Right: all content */}
+            {/* Right: content */}
             <div className="relative z-10 lg:absolute lg:right-0 lg:top-0 lg:bottom-0 lg:left-[46%] flex flex-col justify-center px-6 py-6 pb-8 lg:px-12 lg:py-10">
-              <div className="flex flex-col gap-8 h-full justify-center">
+              <div className="flex flex-col gap-7 h-full justify-center">
 
-                {/* Top: AI Coach badge + Practice Now heading */}
-                <div className="flex flex-col gap-5">
+                <div className="flex flex-col gap-4">
                   <div
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full w-fit"
                     style={{ background: "rgba(45,236,41,0.08)", border: "1px solid rgba(45,236,41,0.2)" }}
@@ -170,52 +189,69 @@ export const FeaturesSection: FC = () => {
                     <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "#2dec29" }}>AI Coach · 24/7</span>
                   </div>
                   <div>
-                    <h3 className="text-white font-extrabold leading-none mb-2" style={{ fontSize: "2.5rem" }}>Practice Now</h3>
-                    <p className="text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>No scheduling. Start instantly.</p>
+                    <h3 className="text-white font-extrabold leading-none mb-2" style={{ fontSize: "2.4rem" }}>
+                      Practice Now
+                    </h3>
+                    <p className="text-sm" style={{ color: "rgba(255,255,255,0.35)" }}>
+                      No scheduling. Start in under 60 seconds.
+                    </p>
                   </div>
                 </div>
 
-                {/* Middle: Tailored to you */}
-                <div className="flex flex-col gap-4">
-                  <div>
-                    <div className="flex items-center gap-2.5 mb-1.5">
-                      <p className="text-white font-bold text-sm">Tailored to you</p>
-                      <span className="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide" style={{ background: "rgba(45,236,41,0.1)", color: "#2dec29", border: "1px solid rgba(45,236,41,0.2)" }}>Personalised</span>
-                    </div>
-                    <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.3)" }}>Questions matched to your resume and exact role.</p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      { label: "Resume", desc: "Upload your CV" },
-                      { label: "Job Description", desc: "Paste or link the role" },
-                      { label: "AI Questions", desc: "Get role-specific practice" },
-                      { label: "Detailed Feedback", desc: "Instant report after each session" },
-                    ].map((item, i) => (
-                      <div key={i} className="flex items-center gap-3 rounded-xl px-3 py-2.5" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                        <span className="w-5 h-5 rounded-full text-[9px] font-black flex items-center justify-center flex-shrink-0" style={{ background: "rgba(45,236,41,0.12)", color: "#2dec29" }}>{i + 1}</span>
-                        <div>
-                          <p className="text-xs font-semibold" style={{ color: "rgba(255,255,255,0.85)" }}>{item.label}</p>
-                          <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.32)" }}>{item.desc}</p>
-                        </div>
+                <div className="flex flex-col gap-3">
+                  <p className="text-white font-semibold text-sm mb-1">How it works</p>
+                  {[
+                    { n: "1", label: "Upload your CV", sub: "Paste the role you're targeting" },
+                    { n: "2", label: "Practice out loud", sub: "Voice AI asks the real questions" },
+                    { n: "3", label: "Read your report", sub: "See exactly what to fix" },
+                  ].map((step) => (
+                    <div key={step.n} className="flex items-center gap-3 rounded-xl px-3 py-2.5" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                      <span className="w-5 h-5 rounded-full text-[9px] font-black flex items-center justify-center flex-shrink-0" style={{ background: "rgba(45,236,41,0.14)", color: "#2dec29" }}>{step.n}</span>
+                      <div>
+                        <p className="text-xs font-semibold" style={{ color: "rgba(255,255,255,0.85)" }}>{step.label}</p>
+                        <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.3)" }}>{step.sub}</p>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
 
-                {/* Bottom: CTA */}
-                <div>
-                  <Link
-                    href="/app/practice"
-                    onClick={() => track("landing_practice_now_clicked")}
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold w-full lg:w-fit transition-all duration-200 hover:brightness-110 hover:gap-3 flex justify-center"
-                    style={{ background: "#2dec29", color: "#071a09" }}
-                  >
-                    Start session
-                    <ChevronRight className="w-4 h-4" />
-                  </Link>
-                </div>
+                <Link
+                  href="/app/practice"
+                  onClick={() => track("landing_practice_now_clicked")}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-bold w-full lg:w-fit transition-all hover:brightness-110 hover:gap-3"
+                  style={{ background: "#2dec29", color: "#071a09" }}
+                >
+                  Start free session
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
               </div>
             </div>
+          </div>
+
+          {/* Feature pills row */}
+          <div className="grid md:grid-cols-3 gap-4">
+            {FEATURE_PILLS.map((pill, i) => (
+              <div
+                key={pill.title}
+                className="scroll-reveal flex items-start gap-4 rounded-2xl px-5 py-4"
+                style={{
+                  transitionDelay: `${i * 0.1}s`,
+                  background: "linear-gradient(145deg, #071a09 0%, #0c1e0e 100%)",
+                  border: "1px solid rgba(45,236,41,0.12)",
+                }}
+              >
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
+                  style={{ background: "rgba(45,236,41,0.10)", border: "1px solid rgba(45,236,41,0.2)" }}
+                >
+                  {pill.icon}
+                </div>
+                <div>
+                  <p className="text-sm font-bold mb-0.5" style={{ color: "rgba(255,255,255,0.85)" }}>{pill.title}</p>
+                  <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.38)" }}>{pill.desc}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

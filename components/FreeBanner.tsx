@@ -44,7 +44,7 @@ export function FreeBanner({ practiceLeft }: FreeBannerProps) {
       <div className="flex-1 min-w-0">
         <p className="text-xs font-bold text-amber-800 leading-tight">Free Plan</p>
         <p className="text-[11px] text-amber-600 mt-0.5">
-          {practiceLeft}/3 AI sessions left this month
+          {practiceLeft}/3 free AI sessions remaining
         </p>
       </div>
       <div className="flex items-center gap-1 text-xs font-bold shrink-0" style={{ color: "#d97706" }}>

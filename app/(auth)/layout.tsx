@@ -45,7 +45,7 @@ export default function AuthLayout({
           </Link>
 
           {/* Hero copy */}
-          <div className="flex-1 flex flex-col justify-center gap-9">
+          <div className="flex-1 flex flex-col justify-center gap-8">
             <div>
               <div
                 className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-5"
@@ -55,19 +55,19 @@ export default function AuthLayout({
                 }}
               >
                 <span
-                  className="w-1.5 h-1.5 rounded-full"
+                  className="w-1.5 h-1.5 rounded-full animate-pulse"
                   style={{ background: "#2dec29" }}
                 />
                 <span
                   className="text-[10px] font-bold uppercase tracking-widest"
                   style={{ color: "rgba(45,236,41,0.65)" }}
                 >
-                  AI-Powered Interview Prep
+                  Cohort 1 · Now Forming
                 </span>
               </div>
 
-              <h2 className="text-[2.4rem] font-black leading-[1.1] mb-4 text-white">
-                Land your dream job
+              <h2 className="text-[2.2rem] font-black leading-[1.1] mb-4 text-white">
+                From graduate
                 <br />
                 <span
                   style={{
@@ -77,77 +77,76 @@ export default function AuthLayout({
                     backgroundClip: "text",
                   }}
                 >
-                  with confidence.
+                  to hired.
                 </span>
               </h2>
               <p
-                className="text-sm leading-relaxed max-w-[280px]"
+                className="text-sm leading-relaxed max-w-[290px]"
                 style={{ color: "rgba(255,255,255,0.42)" }}
               >
-                Practice with AI feedback, compete with peers, and track your
-                progress toward your next offer.
+                Start with 3 free AI mock interviews — no card needed. Join the
+                waitlist for the full career programme when you&apos;re ready.
               </p>
             </div>
 
-            {/* Stats row */}
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { value: "500+", label: "Active Users" },
-                { value: "10k+", label: "Interviews Done" },
-                { value: "94%", label: "Success Rate" },
-              ].map((s) => (
-                <div
-                  key={s.label}
-                  className="rounded-xl p-4"
-                  style={{
-                    background: "rgba(45,236,41,0.04)",
-                    border: "1px solid rgba(45,236,41,0.1)",
-                  }}
-                >
-                  <div className="text-2xl font-black text-white">{s.value}</div>
-                  <div
-                    className="text-[10px] mt-0.5"
-                    style={{ color: "rgba(255,255,255,0.35)" }}
-                  >
-                    {s.label}
+            {/* What you get free */}
+            <div
+              className="rounded-2xl p-5"
+              style={{
+                background: "rgba(45,236,41,0.04)",
+                border: "1px solid rgba(45,236,41,0.1)",
+              }}
+            >
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-4" style={{ color: "rgba(45,236,41,0.5)" }}>
+                Free — no card required
+              </p>
+              <div className="space-y-3">
+                {[
+                  "3 full AI mock interview sessions",
+                  "Resume-tailored questions per role",
+                  "Instant scored feedback after each session",
+                ].map((f) => (
+                  <div key={f} className="flex items-center gap-3">
+                    <div
+                      className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{
+                        background: "rgba(45,236,41,0.12)",
+                        border: "1px solid rgba(45,236,41,0.25)",
+                      }}
+                    >
+                      <svg width="8" height="8" viewBox="0 0 9 9" fill="none">
+                        <path d="M1.5 4.5l2 2 4-4" stroke="#2dec29" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
+                    <span className="text-xs" style={{ color: "rgba(255,255,255,0.6)" }}>{f}</span>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
-            {/* Feature checklist */}
-            <div className="space-y-3">
-              {[
-                "Real-time AI feedback on every answer",
-                "Peer practice with live video sessions",
-                "Progress tracking across all competencies",
-              ].map((f) => (
-                <div key={f} className="flex items-center gap-3">
-                  <div
-                    className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-                    style={{
-                      background: "rgba(45,236,41,0.08)",
-                      border: "1px solid rgba(45,236,41,0.22)",
-                    }}
-                  >
-                    <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
-                      <path
-                        d="M1.5 4.5l2 2 4-4"
-                        stroke="#2dec29"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
+            {/* Career service teaser */}
+            <div
+              className="rounded-2xl p-5"
+              style={{
+                background: "rgba(255,255,255,0.025)",
+                border: "1px solid rgba(255,255,255,0.06)",
+              }}
+            >
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: "rgba(255,255,255,0.28)" }}>
+                Full career programme
+              </p>
+              <div className="space-y-2">
+                {[
+                  { icon: "🏢", text: "3-month internship at a partner company" },
+                  { icon: "📄", text: "1-on-1 CV rewrite from a specialist" },
+                  { icon: "💼", text: "£499 placement fee — only on success" },
+                ].map((item) => (
+                  <div key={item.text} className="flex items-center gap-2.5">
+                    <span className="text-sm">{item.icon}</span>
+                    <span className="text-xs" style={{ color: "rgba(255,255,255,0.42)" }}>{item.text}</span>
                   </div>
-                  <span
-                    className="text-sm"
-                    style={{ color: "rgba(255,255,255,0.55)" }}
-                  >
-                    {f}
-                  </span>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
 
@@ -163,30 +162,26 @@ export default function AuthLayout({
               className="text-sm leading-relaxed italic mb-3"
               style={{ color: "rgba(255,255,255,0.5)" }}
             >
-              &ldquo;I landed 3 interviews in one week after practicing with
-              MyInterview for just 2 days.&rdquo;
+              &ldquo;I&apos;d been rejected 14 times before this. Having 3 months of
+              real internship work to talk about changed everything.&rdquo;
             </p>
             <div className="flex items-center gap-2.5">
               <div
-                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
                 style={{
-                  background: "linear-gradient(135deg, #2dec29, #16a34a)",
+                  background: "rgba(45,236,41,0.2)",
+                  border: "1px solid rgba(45,236,41,0.3)",
+                  color: "#2dec29",
                 }}
               >
-                S
+                M
               </div>
               <div>
-                <div
-                  className="text-xs font-semibold"
-                  style={{ color: "rgba(255,255,255,0.75)" }}
-                >
-                  Sarah K.
+                <div className="text-xs font-semibold" style={{ color: "rgba(255,255,255,0.75)" }}>
+                  Marcus T.
                 </div>
-                <div
-                  className="text-[10px]"
-                  style={{ color: "rgba(255,255,255,0.3)" }}
-                >
-                  Software Engineer @ Google
+                <div className="text-[10px]" style={{ color: "rgba(255,255,255,0.3)" }}>
+                  Hired in 2 weeks · Junior Developer
                 </div>
               </div>
             </div>

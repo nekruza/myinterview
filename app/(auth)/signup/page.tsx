@@ -116,8 +116,8 @@ function SignupForm() {
         <h1 className="text-3xl font-black text-white mb-2">Create account</h1>
         <p className="text-sm" style={{ color: "rgba(255,255,255,0.42)" }}>
           {plan
-            ? `Start your ${plan} plan and begin practicing`
-            : "Start practicing interviews for free"}
+            ? `Start your ${plan} plan — 3 free sessions included`
+            : "3 free AI mock interviews — no card needed"}
         </p>
       </div>
 
