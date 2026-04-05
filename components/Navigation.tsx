@@ -17,11 +17,8 @@ export const Navigation: FC = () => {
   const supabase = createClient();
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-
-    window.addEventListener("scroll", handleScroll);
+    const handleScroll = () => setScrolled(window.scrollY > 60);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -30,11 +27,9 @@ export const Navigation: FC = () => {
       setUser(currentUser);
     });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => setUser(session?.user ?? null)
+    );
 
     return () => subscription.unsubscribe();
   }, [supabase.auth]);
@@ -49,37 +44,54 @@ export const Navigation: FC = () => {
     { href: "#features", label: "Features" },
     { href: "#pricing", label: "Pricing" },
     { href: "/blog", label: "Blog" },
-    { href: "#join-team", label: "Careers" },
     { href: "/contact", label: "Contact" },
   ];
 
   return (
-    <nav className="px-0 fixed w-full bg-cream/95 bg-transparent z-50 transition-all duration-300">
-      <div className="max-w-[1220px] mx-auto backdrop-blur-sm z-50 transition-all duration-300 p-4 sm:px-6 lg:px-8 border m-2 border-neutral-200 m-4 rounded-3xl">
-        <div className="flex justify-between items-center">
+    <nav className="fixed w-full z-50 transition-all duration-300" style={{ top: 0 }}>
+      <div
+        className="max-w-[1200px] mx-auto m-3 rounded-2xl transition-all duration-300"
+        style={scrolled ? {
+          background: "rgba(255,255,255,0.92)",
+          backdropFilter: "blur(20px) saturate(1.8)",
+          WebkitBackdropFilter: "blur(20px) saturate(1.8)",
+          border: "1px solid rgba(0,0,0,0.08)",
+          boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
+        } : {
+          background: "rgba(8,12,9,0.4)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          border: "1px solid rgba(255,255,255,0.08)",
+        }}
+      >
+        <div className="flex justify-between items-center px-5 py-3">
           {/* Logo */}
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-2">
-              <Image
-                src="/logo.jpg"
-                alt="MyInterview logo"
-                width={32}
-                height={32}
-                className="rounded-lg"
-              />
-              <span className="text-xl font-bold text-secondary">
-                MyInterview
-              </span>
-            </Link>
-          </div>
+          <Link href="/" className="flex items-center gap-2.5">
+            <Image
+              src="/logo.jpg"
+              alt="MyInterview logo"
+              width={28}
+              height={28}
+              className="rounded-lg"
+            />
+            <span
+              className="text-base font-bold tracking-tight transition-colors duration-300"
+              style={{ color: scrolled ? "#112715" : "rgba(255,255,255,0.92)" }}
+            >
+              MyInterview
+            </span>
+          </Link>
 
           {/* Desktop nav links */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center gap-7">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-secondary hover:text-primary transition font-medium"
+                className="text-sm font-medium transition-colors duration-200 hover:opacity-100"
+                style={{ color: scrolled ? "#374151" : "rgba(255,255,255,0.55)" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = scrolled ? "#112715" : "rgba(255,255,255,0.95)")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = scrolled ? "#374151" : "rgba(255,255,255,0.55)")}
               >
                 {link.label}
               </Link>
@@ -87,18 +99,20 @@ export const Navigation: FC = () => {
           </div>
 
           {/* Desktop CTA */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center gap-4">
             {user ? (
               <>
                 <Link
                   href="/app/dashboard"
-                  className="text-secondary hover:text-primary transition font-medium"
+                  className="text-sm font-semibold transition-colors duration-200"
+                  style={{ color: scrolled ? "#112715" : "rgba(255,255,255,0.8)" }}
                 >
                   Dashboard
                 </Link>
                 <button
                   onClick={handleSignOut}
-                  className="text-neutral-500 hover:text-secondary transition font-medium text-sm"
+                  className="text-sm transition-colors duration-200"
+                  style={{ color: scrolled ? "#6b7280" : "rgba(255,255,255,0.4)" }}
                 >
                   Sign Out
                 </button>
@@ -107,57 +121,40 @@ export const Navigation: FC = () => {
               <>
                 <Link
                   href="/login"
-                  className="text-secondary hover:text-primary transition font-medium"
+                  className="text-sm font-medium transition-colors duration-200"
+                  style={{ color: scrolled ? "#374151" : "rgba(255,255,255,0.6)" }}
                   onClick={() => track("CTA Clicked", { button: "Sign In", location: "nav_desktop" })}
                 >
                   Sign In
                 </Link>
-                <Button
-                  size="md"
+                <button
                   onClick={() => {
                     track("CTA Clicked", { button: "Join Free", location: "nav_desktop" });
                     router.push("/signup");
                   }}
+                  className="text-sm font-bold px-4 py-2 rounded-xl transition-all duration-200 hover:brightness-110"
+                  style={{ background: "#2dec29", color: "#071a09" }}
                 >
                   Join Free
-                </Button>
+                </button>
               </>
             )}
           </div>
 
-          {/* Mobile: hamburger */}
+          {/* Mobile hamburger */}
           <button
-            className="md:hidden flex items-center justify-center w-10 h-10 rounded-lg text-secondary hover:bg-neutral-100 transition"
+            className="md:hidden flex items-center justify-center w-9 h-9 rounded-lg transition-colors"
+            style={{ color: scrolled ? "#112715" : "rgba(255,255,255,0.8)" }}
             onClick={() => setMenuOpen((v) => !v)}
             aria-label="Toggle menu"
           >
             {menuOpen ? (
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M6 18L18 6M6 6l12 12"
-                />
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
             ) : (
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             )}
           </button>
@@ -166,35 +163,43 @@ export const Navigation: FC = () => {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="md:hidden bg-cream border-t border-neutral-200 px-4 pb-6">
-          <div className="flex flex-col space-y-1 pt-4">
+        <div
+          className="md:hidden mx-3 rounded-2xl overflow-hidden"
+          style={{
+            background: "rgba(8,12,9,0.96)",
+            backdropFilter: "blur(20px)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            marginTop: "-4px",
+          }}
+        >
+          <div className="flex flex-col px-5 py-4 gap-1">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-secondary hover:text-primary transition font-medium py-3 border-b border-neutral-100 last:border-0"
+                className="py-3 text-sm font-medium border-b transition-colors hover:text-white"
+                style={{ color: "rgba(255,255,255,0.6)", borderColor: "rgba(255,255,255,0.06)" }}
                 onClick={() => setMenuOpen(false)}
               >
                 {link.label}
               </Link>
             ))}
           </div>
-          <div className="flex flex-col gap-3 mt-6">
+          <div className="flex flex-col gap-3 px-5 pb-5 pt-2">
             {user ? (
               <>
                 <Link
                   href="/app/dashboard"
-                  className="text-secondary hover:text-primary transition font-medium text-left py-2"
+                  className="text-sm font-semibold py-2"
+                  style={{ color: "rgba(255,255,255,0.8)" }}
                   onClick={() => setMenuOpen(false)}
                 >
                   Dashboard
                 </Link>
                 <button
-                  onClick={() => {
-                    handleSignOut();
-                    setMenuOpen(false);
-                  }}
-                  className="text-neutral-500 hover:text-secondary transition font-medium text-left py-2"
+                  onClick={() => { handleSignOut(); setMenuOpen(false); }}
+                  className="text-sm text-left py-2"
+                  style={{ color: "rgba(255,255,255,0.4)" }}
                 >
                   Sign Out
                 </button>
@@ -203,7 +208,8 @@ export const Navigation: FC = () => {
               <>
                 <Link
                   href="/login"
-                  className="text-secondary hover:text-primary transition font-medium text-left py-2"
+                  className="text-sm font-medium py-2"
+                  style={{ color: "rgba(255,255,255,0.6)" }}
                   onClick={() => {
                     track("CTA Clicked", { button: "Sign In", location: "nav_mobile" });
                     setMenuOpen(false);
@@ -211,17 +217,17 @@ export const Navigation: FC = () => {
                 >
                   Sign In
                 </Link>
-                <Button
-                  size="md"
-                  className="w-full justify-center"
+                <button
                   onClick={() => {
                     track("CTA Clicked", { button: "Join Free", location: "nav_mobile" });
                     setMenuOpen(false);
                     router.push("/signup");
                   }}
+                  className="w-full py-3 text-sm font-bold rounded-xl"
+                  style={{ background: "#2dec29", color: "#071a09" }}
                 >
                   Join Free
-                </Button>
+                </button>
               </>
             )}
           </div>

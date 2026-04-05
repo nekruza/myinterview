@@ -6,8 +6,8 @@ export const TestimonialsSection: FC = () => {
       name: "Priya K.",
       role: "Mid-Level Engineer",
       initial: "P",
-      gradient: "from-blue-500 to-purple-500",
-      bgGradient: "from-blue-50 to-purple-50",
+      gradient: "from-blue-500 to-cyan-500",
+      bgGradient: "from-blue-50 to-cyan-50",
       borderColor: "border-blue-100",
       quote:
         "After 8 AI practice sessions I landed Amazon. The combination of behavioral prep and anxiety techniques actually worked — went from freezing up to feeling genuinely calm.",
@@ -18,13 +18,13 @@ export const TestimonialsSection: FC = () => {
       name: "Marcus T.",
       role: "Senior Engineer",
       initial: "M",
-      gradient: "from-purple-500 to-pink-500",
-      bgGradient: "from-purple-50 to-pink-50",
-      borderColor: "border-purple-100",
+      gradient: "from-teal-500 to-emerald-500",
+      bgGradient: "from-teal-50 to-emerald-50",
+      borderColor: "border-teal-100",
       quote:
         "The AI drilled me on behavioral and technical questions until my answers were sharp. The anxiety techniques helped me go from rambling to delivering clear, confident answers. Worth every penny.",
       badge: "Anxiety conquered",
-      badgeColor: "text-purple-600",
+      badgeColor: "text-teal-600",
     },
     {
       name: "Sarah L.",

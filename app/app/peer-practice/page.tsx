@@ -115,13 +115,13 @@ function formatSessionDate(dateStr: string): string {
 function getAvatarColor(id: string): string {
   const colors = [
     "#2dec29",
-    "#8b5cf6",
+    "#3b82f6",
     "#f59e0b",
     "#ec4899",
     "#06b6d4",
     "#f97316",
     "#14b8a6",
-    "#6366f1",
+    "#2dec29",
   ];
   let hash = 0;
   for (let i = 0; i < id.length; i++) {

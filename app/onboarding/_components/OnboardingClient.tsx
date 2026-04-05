@@ -13,6 +13,7 @@ import {
   Upload,
   CheckCircle,
   AlertTriangle,
+  Sparkles,
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -346,16 +347,29 @@ function StepResume({
           />
           {resumeState === "uploading" ? (
             <>
-              <div className="text-3xl mb-2">⏳</div>
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3"
+                style={{ background: "rgba(45,236,41,0.08)", border: "1px solid rgba(45,236,41,0.18)" }}
+              >
+                <Upload size={18} className="animate-bounce" style={{ color: "#2dec29" }} />
+              </div>
               <p className="text-sm font-semibold text-secondary">Uploading &amp; extracting…</p>
               <p className="text-xs text-neutral-400 mt-1">This takes a few seconds</p>
             </>
           ) : (
             <>
-              <div className="text-3xl mb-2">📄</div>
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3"
+                style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}
+              >
+                <Upload size={18} style={{ color: "#16a34a" }} />
+              </div>
               <p className="text-sm font-semibold text-secondary">Drop your resume here</p>
               <p className="text-xs text-neutral-400 mt-1">PDF or DOCX · Max 5MB</p>
-              <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-secondary text-white rounded-lg text-xs font-semibold">
+              <div
+                className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold"
+                style={{ background: "#2dec29", color: "#071a09" }}
+              >
                 <Upload size={12} /> Browse files
               </div>
             </>
@@ -410,11 +424,37 @@ function StepHeardFrom({
 
 function StepDone() {
   return (
-    <div className="min-h-screen bg-[#faf9f6] flex items-center justify-center">
-      <div className="text-center">
-        <div className="text-5xl mb-4">🎉</div>
-        <h2 className="text-2xl font-bold text-secondary mb-2">You're all set!</h2>
-        <p className="text-neutral-500">Taking you to your dashboard…</p>
+    <div
+      className="min-h-screen flex items-center justify-center relative overflow-hidden"
+      style={{ background: "linear-gradient(135deg, #071a09 0%, #0d2410 60%, #061508 100%)" }}
+    >
+      {/* Dot grid */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: "radial-gradient(circle, rgba(45,236,41,0.06) 1px, transparent 1px)",
+          backgroundSize: "28px 28px",
+        }}
+      />
+      {/* Ambient glow */}
+      <div
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full blur-3xl pointer-events-none"
+        style={{ background: "rgba(45,236,41,0.07)" }}
+      />
+      <div className="relative z-10 text-center px-6">
+        <div
+          className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6"
+          style={{
+            background: "rgba(45,236,41,0.10)",
+            border: "1px solid rgba(45,236,41,0.25)",
+          }}
+        >
+          <CheckCircle className="w-8 h-8" style={{ color: "#2dec29" }} />
+        </div>
+        <h2 className="text-2xl font-black text-white mb-2">You&apos;re all set!</h2>
+        <p className="text-sm" style={{ color: "rgba(255,255,255,0.42)" }}>
+          Taking you to your dashboard…
+        </p>
       </div>
     </div>
   );
@@ -567,37 +607,64 @@ export default function OnboardingClient() {
       {/* Progress bar */}
       <div className="h-1 bg-neutral-200 w-full flex-shrink-0">
         <div
-          className="h-full bg-secondary transition-all duration-500 ease-out"
-          style={{ width: `${progress}%` }}
+          className="h-full transition-all duration-500 ease-out"
+          style={{ width: `${progress}%`, background: "#2dec29" }}
         />
       </div>
 
       <div className="flex flex-1 overflow-hidden">
 
         {/* ── Left panel: personalisation hint ── */}
-        <div className="hidden md:flex w-80 lg:w-96 flex-shrink-0 flex-col justify-between bg-secondary px-8 py-10 overflow-hidden relative">
-          {/* Subtle ambient blob */}
+        <div
+          className="hidden md:flex w-80 lg:w-96 flex-shrink-0 flex-col justify-between px-8 py-10 overflow-hidden relative"
+          style={{
+            background: "linear-gradient(160deg, #071a09 0%, #0a1f0b 55%, #040d05 100%)",
+          }}
+        >
+          {/* Dot grid */}
           <div
-            className="pointer-events-none absolute inset-0"
-            style={{ background: "radial-gradient(ellipse 80% 60% at 10% 80%, rgba(255,255,255,0.06) 0%, transparent 70%)" }}
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              backgroundImage: "radial-gradient(circle, rgba(45,236,41,0.06) 1px, transparent 1px)",
+              backgroundSize: "26px 26px",
+            }}
+          />
+          {/* Ambient glow */}
+          <div
+            className="pointer-events-none absolute bottom-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-15"
+            style={{ background: "#2dec29" }}
           />
 
           {/* Top: logo/brand mark */}
           <div className="relative z-10">
-            <div className="text-2xl font-black text-white tracking-tight">myinterview</div>
-            <div className="mt-1 text-xs font-semibold text-white/40 uppercase tracking-widest">Setup</div>
+            <div className="text-xl font-black text-white tracking-tight">myinterview</div>
+            <div
+              className="mt-1 text-[10px] font-bold uppercase tracking-widest"
+              style={{ color: "rgba(45,236,41,0.55)" }}
+            >
+              Account Setup
+            </div>
           </div>
 
           {/* Middle: step hint */}
           <div className="relative z-10 flex flex-col gap-5">
-            <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-2xl">
-              ✨
+            <div
+              className="w-11 h-11 rounded-2xl flex items-center justify-center"
+              style={{
+                background: "rgba(45,236,41,0.08)",
+                border: "1px solid rgba(45,236,41,0.2)",
+              }}
+            >
+              <Sparkles className="w-5 h-5" style={{ color: "#2dec29" }} />
             </div>
             <div>
-              <p className="text-xs font-bold text-white/40 uppercase tracking-widest mb-3">
+              <p
+                className="text-[10px] font-bold uppercase tracking-widest mb-3"
+                style={{ color: "rgba(255,255,255,0.3)" }}
+              >
                 Why we ask
               </p>
-              <p className="text-xl font-bold text-white leading-snug">
+              <p className="text-lg font-bold text-white leading-snug">
                 {STEP_SUBTITLES[step - 1]}
               </p>
             </div>
@@ -608,10 +675,11 @@ export default function OnboardingClient() {
             {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
               <div
                 key={i}
-                className={cn(
-                  "h-1.5 rounded-full transition-all duration-300",
-                  i < step ? "bg-white w-6" : "bg-white/25 w-3"
-                )}
+                className="h-1.5 rounded-full transition-all duration-300"
+                style={{
+                  width: i < step ? 24 : 12,
+                  background: i < step ? "#2dec29" : "rgba(255,255,255,0.2)",
+                }}
               />
             ))}
           </div>
@@ -658,9 +726,17 @@ export default function OnboardingClient() {
           </div>
 
           {/* Mobile hint */}
-          <div className="md:hidden mt-6 flex items-start gap-3 px-4 py-3 rounded-2xl border bg-neutral-100/80 border-neutral-200">
-            <span className="text-base leading-none mt-px flex-shrink-0">✨</span>
-            <p className="text-xs leading-relaxed text-neutral-500">{STEP_SUBTITLES[step - 1]}</p>
+          <div
+            className="md:hidden mt-6 flex items-start gap-3 px-4 py-3 rounded-2xl"
+            style={{
+              background: "rgba(45,236,41,0.05)",
+              border: "1px solid rgba(45,236,41,0.15)",
+            }}
+          >
+            <Sparkles className="w-4 h-4 mt-px flex-shrink-0" style={{ color: "#2dec29" }} />
+            <p className="text-xs leading-relaxed" style={{ color: "rgba(0,0,0,0.5)" }}>
+              {STEP_SUBTITLES[step - 1]}
+            </p>
           </div>
 
           {/* Footer nav */}

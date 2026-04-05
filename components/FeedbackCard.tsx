@@ -48,39 +48,59 @@ export function FeedbackCard() {
       {/* Card */}
       <button
         onClick={openDialog}
-        className="group relative rounded-2xl overflow-hidden flex flex-col gap-4 p-5 text-left hover:opacity-95 transition-opacity w-full"
-        style={{ background: "linear-gradient(145deg, #1a1a2e 0%, #16213e 60%, #0f0f1a 100%)" }}
+        className="group relative rounded-2xl overflow-hidden flex flex-col gap-4 p-5 text-left transition-all duration-200 hover:brightness-105 w-full"
+        style={{
+          background: "linear-gradient(145deg, #071a09 0%, #0d2410 60%, #061508 100%)",
+          border: "1px solid rgba(45,236,41,0.12)",
+        }}
       >
+        {/* Ambient glow */}
         <div
           className="pointer-events-none absolute -bottom-6 -right-6 w-32 h-32 rounded-full blur-2xl opacity-20"
-          style={{ background: "#818cf8" }}
+          style={{ background: "#2dec29" }}
         />
+
         <div className="relative z-10 flex flex-col gap-4">
+          {/* Icon */}
           <div
-            className="w-12 h-12 rounded-2xl flex items-center justify-center"
-            style={{ background: "rgba(129,140,248,0.12)" }}
+            className="w-11 h-11 rounded-2xl flex items-center justify-center"
+            style={{
+              background: "rgba(45,236,41,0.10)",
+              border: "1px solid rgba(45,236,41,0.18)",
+            }}
           >
-            <MessageSquare className="w-6 h-6" style={{ color: "#818cf8" }} />
+            <MessageSquare className="w-5 h-5" style={{ color: "#2dec29" }} />
           </div>
+
           <div>
             <div className="flex items-center gap-1.5 mb-1">
               <span
+                className="w-1 h-1 rounded-full"
+                style={{ background: "#2dec29" }}
+              />
+              <span
                 className="text-[10px] font-bold uppercase tracking-widest"
-                style={{ color: "#818cf8" }}
+                style={{ color: "rgba(45,236,41,0.65)" }}
               >
                 Help us improve
               </span>
             </div>
-            <h3 className="text-white font-bold text-lg leading-tight">Give Feedback</h3>
-            <p className="text-white/50 text-xs mt-1 leading-relaxed">
+            <h3 className="text-white font-bold text-lg leading-tight">
+              Give Feedback
+            </h3>
+            <p className="text-white/45 text-xs mt-1 leading-relaxed">
               Share a bug, suggestion, or tell us what you think
             </p>
           </div>
+
           <div
-            className="flex items-center gap-1 text-sm font-bold"
-            style={{ color: "#818cf8" }}
+            className="flex items-center gap-1.5 text-sm font-bold transition-all duration-200 group-hover:gap-2.5"
+            style={{ color: "#2dec29" }}
           >
             Share now
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+            </svg>
           </div>
         </div>
       </button>
@@ -89,13 +109,19 @@ export function FeedbackCard() {
       {open && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: "rgba(0,0,0,0.4)" }}
+          style={{ background: "rgba(0,0,0,0.45)" }}
           onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
         >
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+          <div
+            className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl"
+            style={{ border: "1px solid rgba(0,0,0,0.06)" }}
+          >
             {submitted ? (
               <div className="text-center py-6 space-y-3">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto" style={{ background: "#f4fdf3" }}>
+                <div
+                  className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto"
+                  style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}
+                >
                   <CheckCircle className="w-6 h-6" style={{ color: "#2dec29" }} />
                 </div>
                 <p className="font-bold text-secondary text-lg">Thanks for your feedback!</p>
@@ -111,18 +137,32 @@ export function FeedbackCard() {
               <>
                 <div className="flex items-center justify-between mb-5">
                   <h2 className="text-base font-bold text-secondary">Share your feedback</h2>
-                  <button onClick={() => setOpen(false)} className="text-neutral-400 hover:text-neutral-600 transition text-xl leading-none">&times;</button>
+                  <button
+                    onClick={() => setOpen(false)}
+                    className="text-neutral-300 hover:text-neutral-500 transition text-xl leading-none w-7 h-7 flex items-center justify-center rounded-lg hover:bg-neutral-100"
+                  >
+                    &times;
+                  </button>
                 </div>
 
                 {/* Rating */}
                 <div className="mb-4">
-                  <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-2">How&apos;s the app?</p>
-                  <div className="flex gap-2">
+                  <p className="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-2">
+                    How&apos;s the app?
+                  </p>
+                  <div className="flex gap-1.5">
                     {[1, 2, 3, 4, 5].map((star) => (
-                      <button key={star} onClick={() => setRating(star)}>
+                      <button
+                        key={star}
+                        onClick={() => setRating(star)}
+                        className="transition-transform hover:scale-110 active:scale-95"
+                      >
                         <Star
-                          className="w-7 h-7 transition"
-                          style={{ color: star <= rating ? "#f59e0b" : "#e5e7eb", fill: star <= rating ? "#f59e0b" : "none" }}
+                          className="w-7 h-7 transition-colors"
+                          style={{
+                            color: star <= rating ? "#f59e0b" : "#e5e7eb",
+                            fill: star <= rating ? "#f59e0b" : "none",
+                          }}
                         />
                       </button>
                     ))}
@@ -131,17 +171,22 @@ export function FeedbackCard() {
 
                 {/* Category */}
                 <div className="mb-4">
-                  <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-2">Type</p>
+                  <p className="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-2">
+                    Type
+                  </p>
                   <div className="flex gap-2">
                     {(["suggestion", "bug", "other"] as const).map((c) => (
                       <button
                         key={c}
                         onClick={() => setCategory(c)}
-                        className="px-3 py-1.5 rounded-lg text-xs font-medium border transition capitalize"
+                        className="px-3 py-1.5 rounded-lg text-xs font-medium transition capitalize"
                         style={{
-                          borderColor: category === c ? "#2dec29" : "transparent",
-                          background: category === c ? "#f4fdf3" : "#f9fafb",
+                          border: category === c ? "1.5px solid #2dec29" : "1.5px solid transparent",
+                          background: category === c
+                            ? "linear-gradient(135deg, #f0fdf4, #dcfce7)"
+                            : "#f9fafb",
                           color: category === c ? "#112715" : "#6b7280",
+                          boxShadow: category === c ? "0 0 0 3px rgba(45,236,41,0.08)" : "none",
                         }}
                       >
                         {c}
@@ -152,7 +197,9 @@ export function FeedbackCard() {
 
                 {/* Message */}
                 <div className="mb-5">
-                  <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-2">Message</p>
+                  <p className="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-2">
+                    Message
+                  </p>
                   <textarea
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
@@ -165,10 +212,10 @@ export function FeedbackCard() {
                 <button
                   onClick={submit}
                   disabled={submitting || (!message.trim() && rating === 0)}
-                  className="w-full py-2.5 rounded-xl font-bold text-sm transition disabled:opacity-40"
-                  style={{ background: "#2dec29", color: "#112715" }}
+                  className="w-full py-2.5 rounded-xl font-bold text-sm transition-all hover:brightness-110 disabled:opacity-40"
+                  style={{ background: "#2dec29", color: "#071a09" }}
                 >
-                  {submitting ? "Submitting..." : "Submit Feedback"}
+                  {submitting ? "Submitting…" : "Submit Feedback"}
                 </button>
               </>
             )}

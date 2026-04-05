@@ -22,7 +22,7 @@ export const FeaturesSection: FC = () => {
             id="features-heading"
             className="text-5xl font-black mb-6 text-secondary"
           >
-            Practive Interview with our AI Coach
+            Practice Interview with our AI Coach
           </h2>
           <p className="text-xl text-neutral-700 max-w-3xl mx-auto">
             Resume-tailored questions + real voice AI + instant feedback reports + progress tracking

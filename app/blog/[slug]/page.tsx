@@ -43,7 +43,7 @@ export async function generateMetadata({
 const categoryColors: Record<string, string> = {
   Anxiety: "bg-red-100 text-red-700",
   Preparation: "bg-blue-100 text-blue-700",
-  Strategy: "bg-purple-100 text-purple-700",
+  Strategy: "bg-teal-100 text-teal-700",
   Technical: "bg-green-100 text-green-700",
   Mindset: "bg-orange-100 text-orange-700",
 };
@@ -205,20 +205,33 @@ export default async function BlogPostPage({
         )}
 
         {/* CTA */}
-        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-secondary">
-          <div className="max-w-2xl mx-auto text-center">
-            <p className="text-7xl mb-6">🎯</p>
+        <section
+          className="py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden"
+          style={{ background: "linear-gradient(160deg, #071a09 0%, #0d2410 55%, #061508 100%)" }}
+        >
+          <div
+            className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-32 rounded-full blur-3xl"
+            style={{ background: "rgba(45,236,41,0.06)" }}
+          />
+          <div className="relative z-10 max-w-2xl mx-auto text-center">
+            <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "rgba(45,236,41,0.6)" }}>
+              Put it into practice
+            </p>
             <h2 className="text-3xl font-black text-white mb-4">
               Now put it into practice
             </h2>
-            <p className="text-neutral-300 mb-8">
+            <p className="mb-8" style={{ color: "rgba(255,255,255,0.45)" }}>
               Apply what you just read in a real mock interview session. Free to start, no credit card needed.
             </p>
             <Link
               href="/"
-              className="inline-flex items-center bg-primary text-secondary font-bold px-8 py-4 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] hover:brightness-95 active:translate-y-1 transition-all duration-100"
+              className="inline-flex items-center gap-2 font-bold px-8 py-3.5 rounded-xl transition-all hover:brightness-110"
+              style={{ background: "#2dec29", color: "#071a09" }}
             >
-              Start Practicing Free →
+              Start Practicing Free
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+              </svg>
             </Link>
           </div>
         </section>

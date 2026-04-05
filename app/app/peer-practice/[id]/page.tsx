@@ -80,13 +80,13 @@ function getInitials(name: string | null, fallback?: string): string {
 function getAvatarColor(id: string): string {
   const colors = [
     "#2dec29",
-    "#8b5cf6",
+    "#3b82f6",
     "#f59e0b",
     "#ec4899",
     "#06b6d4",
     "#f97316",
     "#14b8a6",
-    "#6366f1",
+    "#2dec29",
   ];
   let hash = 0;
   for (let i = 0; i < id.length; i++) {
@@ -209,7 +209,7 @@ const HeroIllustration: FC = () => (
 
     {/* Person 1 - left */}
     <rect x="55" y="60" width="80" height="85" rx="10" fill="rgba(45,236,41,0.06)" stroke="rgba(45,236,41,0.15)" strokeWidth="1" />
-    <circle cx="95" cy="88" r="16" fill="#8b5cf6" opacity="0.8" />
+    <circle cx="95" cy="88" r="16" fill="#3b82f6" opacity="0.8" />
     <text x="95" y="93" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">A</text>
     <rect x="75" y="112" width="40" height="4" rx="2" fill="rgba(255,255,255,0.2)" />
     <rect x="82" y="120" width="26" height="3" rx="1.5" fill="rgba(255,255,255,0.1)" />
@@ -284,8 +284,8 @@ const PracticeTipsBanner: FC = () => (
           <circle cx="28" cy="34" r="10" fill="#2dec29" opacity="0.3" />
           <circle cx="28" cy="34" r="6" fill="#2dec29" opacity="0.6" />
           <text x="28" y="37" textAnchor="middle" fill="#112715" fontSize="7" fontWeight="bold">1</text>
-          <circle cx="52" cy="34" r="10" fill="#8b5cf6" opacity="0.3" />
-          <circle cx="52" cy="34" r="6" fill="#8b5cf6" opacity="0.6" />
+          <circle cx="52" cy="34" r="10" fill="#3b82f6" opacity="0.3" />
+          <circle cx="52" cy="34" r="6" fill="#3b82f6" opacity="0.6" />
           <text x="52" y="37" textAnchor="middle" fill="white" fontSize="7" fontWeight="bold">2</text>
           <path d="M34 46 Q40 54 46 46" stroke="rgba(45,236,41,0.4)" strokeWidth="2" fill="none" strokeLinecap="round" />
           <circle cx="40" cy="58" r="4" fill="rgba(45,236,41,0.3)" />

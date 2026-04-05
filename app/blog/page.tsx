@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 const categoryColors: Record<string, string> = {
   Anxiety: "bg-red-100 text-red-700",
   Preparation: "bg-blue-100 text-blue-700",
-  Strategy: "bg-purple-100 text-purple-700",
+  Strategy: "bg-teal-100 text-teal-700",
   Technical: "bg-green-100 text-green-700",
   Mindset: "bg-orange-100 text-orange-700",
 };
@@ -121,9 +121,12 @@ export default function BlogPage() {
                     {featured.excerpt}
                   </p>
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm">
-                      {featured.author[0]}
-                    </div>
+                    <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm"
+                    style={{ background: "#2dec29", color: "#071a09" }}
+                  >
+                    {featured.author[0]}
+                  </div>
                     <div>
                       <p className="text-white text-sm font-semibold">{featured.author}</p>
                       <p className="text-neutral-400 text-xs">{featured.date}</p>
@@ -139,9 +142,12 @@ export default function BlogPage() {
                 <Link
                   key={post.slug}
                   href={`/blog/${post.slug}`}
-                  className="group bg-white rounded-2xl border-2 border-neutral-100 hover:border-primary transition-all duration-300 overflow-hidden flex flex-col"
+                  className="group bg-white rounded-2xl border border-neutral-100 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col"
                 >
-                  <div className="bg-cream flex items-center justify-center py-10 text-6xl">
+                  <div
+                    className="flex items-center justify-center py-10 text-6xl"
+                    style={{ background: "linear-gradient(135deg, #f8fdf8 0%, #f0fdf4 100%)" }}
+                  >
                     {post.coverEmoji}
                   </div>
                   <div className="p-6 flex flex-col flex-1">
@@ -174,20 +180,34 @@ export default function BlogPage() {
         </section>
 
         {/* CTA */}
-        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-cream">
-          <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-3xl font-black text-secondary mb-4">
+        <section
+          className="py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden"
+          style={{ background: "linear-gradient(160deg, #071a09 0%, #0d2410 55%, #061508 100%)" }}
+        >
+          <div
+            className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-32 rounded-full blur-3xl"
+            style={{ background: "rgba(45,236,41,0.06)" }}
+          />
+          <div className="relative z-10 max-w-2xl mx-auto text-center">
+            <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "rgba(45,236,41,0.6)" }}>
+              Put it into practice
+            </p>
+            <h2 className="text-3xl font-black text-white mb-4">
               Ready to put this into practice?
             </h2>
-            <p className="text-neutral-600 mb-8">
+            <p className="mb-8" style={{ color: "rgba(255,255,255,0.45)" }}>
               Reading helps — but nothing beats deliberate practice. Start your
               first AI mock interview session for free.
             </p>
             <Link
               href="/#pricing"
-              className="inline-flex items-center bg-primary text-secondary font-bold px-8 py-4 rounded-2xl shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A] transition-all duration-100"
+              className="inline-flex items-center gap-2 font-bold px-8 py-3.5 rounded-xl transition-all hover:brightness-110"
+              style={{ background: "#2dec29", color: "#071a09" }}
             >
-              Start Practicing Free →
+              Start Practicing Free
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+              </svg>
             </Link>
           </div>
         </section>

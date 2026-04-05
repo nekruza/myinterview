@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { ChevronRight, BookOpen, Clock } from "lucide-react";
+import { ChevronRight, BookOpen, Clock, Lightbulb } from "lucide-react";
 import { posts } from "@/lib/blog";
 
 const categoryColors: Record<string, { bg: string; text: string }> = {
   Anxiety:     { bg: "#fef3c720", text: "#92400e" },
   Preparation: { bg: "#2dec2920", text: "#0a5c09" },
   Strategy:    { bg: "#dbeafe20", text: "#1e40af" },
-  Technical:   { bg: "#f3e8ff20", text: "#6b21a8" },
+  Technical:   { bg: "#ccfbf120", text: "#0f766e" },
   Mindset:     { bg: "#fce7f320", text: "#9d174d" },
 };
 
@@ -17,13 +17,35 @@ export default function ResourcesPage() {
     <div className="space-y-6 pb-12 animate-fade-in">
 
       {/* Header */}
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-secondary leading-tight">
-          Resources
-        </h1>
-        <p className="text-neutral-500 text-sm mt-1">
-          Guides and strategies to ace your next interview.
-        </p>
+      <div
+        className="relative rounded-2xl overflow-hidden px-6 py-5 flex items-center gap-4"
+        style={{
+          background: "linear-gradient(135deg, #071a09 0%, #0d2410 60%, #061508 100%)",
+          border: "1px solid rgba(45,236,41,0.12)",
+        }}
+      >
+        <div
+          className="pointer-events-none absolute -top-6 -right-6 w-32 h-32 rounded-full blur-2xl opacity-20"
+          style={{ background: "#2dec29" }}
+        />
+        <div
+          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 relative z-10"
+          style={{ background: "rgba(45,236,41,0.10)", border: "1px solid rgba(45,236,41,0.18)" }}
+        >
+          <Lightbulb className="w-5 h-5" style={{ color: "#2dec29" }} />
+        </div>
+        <div className="relative z-10">
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <span className="w-1 h-1 rounded-full" style={{ background: "#2dec29" }} />
+            <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(45,236,41,0.65)" }}>
+              Interview Guides
+            </span>
+          </div>
+          <h1 className="text-white font-bold text-lg leading-tight">Resources</h1>
+          <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.42)" }}>
+            Guides and strategies to ace your next interview.
+          </p>
+        </div>
       </div>
 
       {/* Featured post */}

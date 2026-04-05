@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui";
+import { MessageSquare, Briefcase, HelpCircle, CheckCircle } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -50,24 +51,24 @@ const topics = [
 
 const contactCards = [
   {
-    emoji: "💬",
+    icon: MessageSquare,
     title: "Send a message",
     description: "Fill in the form below and we'll get back to you within one business day.",
-    action: "Use the form below ↓",
+    action: "Use the form below",
     href: "#contact-form",
   },
   {
-    emoji: "💼",
+    icon: Briefcase,
     title: "Careers",
-    description: "Interested in joining the team?",
+    description: "Interested in joining the team? We'd love to hear from you.",
     action: "See open roles",
     href: "/#join-team",
   },
   {
-    emoji: "❓",
+    icon: HelpCircle,
     title: "Common questions",
     description: "Check our FAQ and legal pages for quick answers.",
-    action: "Browse below ↓",
+    action: "Browse below",
     href: "#faq",
   },
 ];
@@ -122,23 +123,43 @@ export default function ContactPage() {
 
         {/* Info cards */}
         <section className="py-12 px-4 sm:px-6 lg:px-8 border-b border-neutral-100">
-          <div className="max-w-6xl mx-auto grid sm:grid-cols-3 gap-6">
-            {contactCards.map((card) => (
-              <Link
-                key={card.title}
-                href={card.href}
-                className="group bg-white rounded-2xl p-6 border-2 border-neutral-100 hover:border-primary transition-all duration-300 flex items-start gap-4"
-              >
-                <span className="text-3xl">{card.emoji}</span>
-                <div>
-                  <h3 className="font-bold text-secondary mb-1">{card.title}</h3>
-                  <p className="text-sm text-neutral-500 mb-2">{card.description}</p>
-                  <span className="text-sm font-semibold text-primary group-hover:underline">
-                    {card.action}
-                  </span>
-                </div>
-              </Link>
-            ))}
+          <div className="max-w-6xl mx-auto grid sm:grid-cols-3 gap-5">
+            {contactCards.map((card) => {
+              const Icon = card.icon;
+              return (
+                <Link
+                  key={card.title}
+                  href={card.href}
+                  className="group rounded-2xl p-6 transition-all duration-200 hover:shadow-md flex flex-col gap-4"
+                  style={{
+                    background: "linear-gradient(145deg, #071a09 0%, #0d2410 60%, #061508 100%)",
+                    border: "1px solid rgba(45,236,41,0.12)",
+                  }}
+                >
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center"
+                    style={{ background: "rgba(45,236,41,0.10)", border: "1px solid rgba(45,236,41,0.18)" }}
+                  >
+                    <Icon className="w-5 h-5" style={{ color: "#2dec29" }} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white mb-1">{card.title}</h3>
+                    <p className="text-xs leading-relaxed mb-3" style={{ color: "rgba(255,255,255,0.42)" }}>
+                      {card.description}
+                    </p>
+                    <span
+                      className="text-sm font-bold flex items-center gap-1 transition-gap duration-200 group-hover:gap-2"
+                      style={{ color: "#2dec29" }}
+                    >
+                      {card.action}
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </section>
 
@@ -181,21 +202,28 @@ export default function ContactPage() {
             </div>
 
             {/* Right: form */}
-            <div className="bg-white rounded-3xl border-2 border-neutral-300 p-8 shadow-sm">
+            <div
+              className="rounded-3xl p-8"
+              style={{ background: "#fafdf9", border: "1.5px solid #e8f5e9" }}
+            >
               {submitted ? (
                 <div className="flex flex-col items-center text-center py-12">
-                  <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-                    <svg className="w-10 h-10 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                  <div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5"
+                    style={{ background: "rgba(45,236,41,0.08)", border: "1px solid rgba(45,236,41,0.2)" }}
+                  >
+                    <CheckCircle className="w-7 h-7" style={{ color: "#2dec29" }} />
                   </div>
                   <h3 className="text-2xl font-black text-secondary mb-3">Message sent!</h3>
                   <p className="text-neutral-600 mb-8">
                     Thanks for reaching out. We&apos;ll get back to you within one business day.
                   </p>
-                  <Button variant="outline" onClick={() => setSubmitted(false)}>
+                  <button
+                    onClick={() => setSubmitted(false)}
+                    className="px-5 py-2.5 rounded-xl text-sm font-semibold border border-neutral-200 text-secondary hover:bg-neutral-50 transition"
+                  >
                     Send another message
-                  </Button>
+                  </button>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-5">
@@ -255,19 +283,33 @@ export default function ContactPage() {
         </section>
 
         {/* Bottom CTA */}
-        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-secondary">
-          <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-3xl font-black text-white mb-4">
+        <section
+          className="py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden"
+          style={{ background: "linear-gradient(160deg, #071a09 0%, #0d2410 55%, #061508 100%)" }}
+        >
+          <div
+            className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-32 rounded-full blur-3xl"
+            style={{ background: "rgba(45,236,41,0.06)" }}
+          />
+          <div className="relative z-10 max-w-2xl mx-auto text-center">
+            <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "rgba(45,236,41,0.6)" }}>
+              Start today — it&apos;s free
+            </p>
+            <h2 className="text-3xl font-black text-white mb-3">
               Not sure where to start?
             </h2>
-            <p className="text-neutral-300 mb-8">
+            <p className="mb-8" style={{ color: "rgba(255,255,255,0.45)" }}>
               Try the platform for free — no credit card, no commitment.
             </p>
             <Link
               href="/#pricing"
-              className="inline-flex items-center bg-primary text-secondary font-bold px-8 py-4 rounded-2xl shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] hover:brightness-95 active:translate-y-1 transition-all duration-100"
+              className="inline-flex items-center gap-2 font-bold px-8 py-3.5 rounded-xl transition-all hover:brightness-110"
+              style={{ background: "#2dec29", color: "#071a09" }}
             >
-              Start for Free →
+              Start for Free
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+              </svg>
             </Link>
           </div>
         </section>
