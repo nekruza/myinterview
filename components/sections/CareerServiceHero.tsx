@@ -260,7 +260,8 @@ export const CareerServiceHero: FC = () => {
     <section
       id="hero-section"
       aria-label="Career Service — Land Your First Engineering Job"
-      className="relative min-h-screen flex flex-col justify-center overflow-hidden animated-gradient"
+      className="relative min-h-screen flex flex-col justify-center overflow-hidden"
+      style={{ background: "#080c09" }}
     >
       {/* ── Ambient background glows ───────────────────────────────────────── */}
       <div
