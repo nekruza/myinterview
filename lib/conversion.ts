@@ -26,5 +26,30 @@ export function fireConversion() {
 }
 
 export function fireSignupConversion() {
-  fireWithRetry("19ZqCOyL2pUcENbPi6JD", 0, "GBP");
+  const gtag = (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag;
+  if (typeof gtag === "function") {
+    gtag("event", "conversion", {
+      send_to: "AW-18056669142/19ZqCOyL2pUcENbPi6JD",
+      value: 1.0,
+      currency: "GBP",
+    });
+  }
+}
+
+export function fireSignupConversionOnClick(url?: string) {
+  const gtag = (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag;
+  const callback = () => {
+    if (url) window.location.href = url;
+  };
+  if (typeof gtag === "function") {
+    gtag("event", "conversion", {
+      send_to: "AW-18056669142/19ZqCOyL2pUcENbPi6JD",
+      value: 1.0,
+      currency: "GBP",
+      event_callback: callback,
+    });
+  } else {
+    callback();
+  }
+  return false;
 }

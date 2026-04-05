@@ -9,6 +9,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { track } from "@/lib/mixpanel";
+import { fireSignupConversion } from "@/lib/conversion";
 
 interface WaitlistModalProps {
   open: boolean;
@@ -61,6 +62,7 @@ export const WaitlistModal: FC<WaitlistModalProps> = ({ open, onClose }) => {
       }
 
       track("Waitlist Joined", { location: "waitlist_modal" });
+      fireSignupConversion();
       setSubmitted(true);
     } catch {
       setError("Something went wrong. Please try again.");
