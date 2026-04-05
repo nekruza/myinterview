@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
@@ -463,7 +462,6 @@ function StepDone() {
 // ─── Main client component ────────────────────────────────────────────────────
 
 export default function OnboardingClient() {
-  const router = useRouter();
   const [step, setStep] = useState(1);
   const [done, setDone] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -563,9 +561,13 @@ export default function OnboardingClient() {
         setSaving(false);
         return;
       }
-      const { error: updateError } = await supabase
+
+      // Use upsert + select so we can verify the write actually committed.
+      // A plain .update() returns no error even when RLS blocks it (0 rows affected).
+      const { data: saved, error: upsertError } = await supabase
         .from("profiles")
-        .update({
+        .upsert({
+          id: user.id,
           full_name: data.full_name.trim(),
           age: data.age ? parseInt(data.age, 10) : null,
           experience_level: data.experience_level,
@@ -576,12 +578,15 @@ export default function OnboardingClient() {
           heard_from: data.heard_from,
           onboarding_complete: true,
         })
-        .eq("id", user.id);
-      if (updateError) {
+        .select("onboarding_complete")
+        .single();
+
+      if (upsertError || !saved?.onboarding_complete) {
         setSaveError("Something went wrong saving your preferences. Please try again.");
         setSaving(false);
         return;
       }
+
       setDone(true);
     } catch {
       setSaveError("Something went wrong. Please try again.");
@@ -590,12 +595,16 @@ export default function OnboardingClient() {
     }
   };
 
-  // Redirect to dashboard 1.5s after showing the done screen
+  // Redirect to dashboard 1.5s after showing the done screen.
+  // Use a hard navigation so the server re-fetches the profile with
+  // onboarding_complete=true, bypassing Next.js's router cache.
   useEffect(() => {
     if (!done) return;
-    const t = setTimeout(() => router.push("/app/dashboard"), 1500);
+    const t = setTimeout(() => {
+      window.location.href = "/app/dashboard";
+    }, 1500);
     return () => clearTimeout(t);
-  }, [done, router]);
+  }, [done]);
 
   if (done) return <StepDone />;
 

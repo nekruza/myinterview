@@ -25,30 +25,62 @@ export function FreeBanner({ practiceLeft }: FreeBannerProps) {
     }
   }
 
+  const isExhausted = practiceLeft === 0;
+
   return (
     <button
       onClick={handleUpgrade}
       disabled={loading}
-      className="w-full flex items-center gap-3 rounded-2xl px-4 py-3 hover:opacity-90 transition-opacity text-left"
+      className="w-full flex items-center gap-4 rounded-2xl px-5 py-4 text-left transition-all duration-200 group"
       style={{
-        background: "linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)",
-        border: "1px solid #fde68a",
+        background: isExhausted
+          ? "linear-gradient(135deg, #071a09 0%, #0d2410 100%)"
+          : "linear-gradient(135deg, #071a09 0%, #0d2410 100%)",
+        border: isExhausted
+          ? "1px solid rgba(45,236,41,0.35)"
+          : "1px solid rgba(45,236,41,0.18)",
+        boxShadow: isExhausted ? "0 0 24px rgba(45,236,41,0.06)" : "none",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.border = "1px solid rgba(45,236,41,0.45)";
+        e.currentTarget.style.boxShadow = "0 0 32px rgba(45,236,41,0.08)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.border = isExhausted
+          ? "1px solid rgba(45,236,41,0.35)"
+          : "1px solid rgba(45,236,41,0.18)";
+        e.currentTarget.style.boxShadow = isExhausted ? "0 0 24px rgba(45,236,41,0.06)" : "none";
       }}
     >
-      <div
-        className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-        style={{ background: "#f59e0b20" }}
-      >
-        <Zap className="w-4 h-4" style={{ color: "#f59e0b" }} />
+      {/* Sessions remaining pills */}
+      <div className="flex gap-1 shrink-0">
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className="w-2 h-6 rounded-full transition-all"
+            style={{
+              background: i < practiceLeft
+                ? "#2dec29"
+                : "rgba(255,255,255,0.1)",
+            }}
+          />
+        ))}
       </div>
+
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-bold text-amber-800 leading-tight">Free Plan</p>
-        <p className="text-[11px] text-amber-600 mt-0.5">
-          {practiceLeft}/3 free AI sessions remaining
+        <p className="text-xs font-bold leading-tight" style={{ color: "rgba(255,255,255,0.85)" }}>
+          {isExhausted ? "Free sessions used up" : `${practiceLeft} of 3 free sessions left`}
+        </p>
+        <p className="text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
+          {isExhausted ? "Upgrade to keep practicing" : "Upgrade for unlimited AI practice"}
         </p>
       </div>
-      <div className="flex items-center gap-1 text-xs font-bold shrink-0" style={{ color: "#d97706" }}>
-        {loading ? "Redirecting…" : <><span>Upgrade</span><ChevronRight className="w-3.5 h-3.5" /></>}
+
+      <div
+        className="flex items-center gap-1.5 text-xs font-bold shrink-0 px-3 py-1.5 rounded-lg transition-all"
+        style={{ background: "#2dec29", color: "#071a09" }}
+      >
+        {loading ? "…" : <><Zap className="w-3 h-3" /><span>Upgrade</span></>}
       </div>
     </button>
   );

@@ -144,7 +144,7 @@ export const Navigation: FC = () => {
           {/* Mobile hamburger */}
           <button
             className="md:hidden flex items-center justify-center w-9 h-9 rounded-lg transition-colors"
-            style={{ color: scrolled ? "#112715" : "rgba(255,255,255,0.8)" }}
+            style={{ color: "rgba(255,255,255,0.8)" }}
             onClick={() => setMenuOpen((v) => !v)}
             aria-label="Toggle menu"
           >
@@ -177,9 +177,11 @@ export const Navigation: FC = () => {
               <Link
                 key={link.href}
                 href={link.href}
-                className="py-3 text-sm font-medium border-b transition-colors hover:text-white"
+                className="py-3 text-sm font-medium border-b"
                 style={{ color: "rgba(255,255,255,0.6)", borderColor: "rgba(255,255,255,0.06)" }}
                 onClick={() => setMenuOpen(false)}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.95)")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
               >
                 {link.label}
               </Link>
