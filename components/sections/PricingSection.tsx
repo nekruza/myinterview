@@ -40,7 +40,7 @@ const SUBSCRIPTION_TIERS = [
     cta: "Start Pro Trial",
     href: "/signup",
     variant: "primary" as const,
-    popular: false,
+    popular: true,
   },
 ];
 
@@ -61,7 +61,8 @@ export const PricingSection: FC = () => {
     <section
       id="pricing"
       aria-labelledby="pricing-heading"
-      className="py-24 px-4 sm:px-6 lg:px-8 bg-neutral-50"
+      className="py-24 px-4 sm:px-6 lg:px-8"
+      style={{ background: "linear-gradient(to bottom, #ffffff 0%, #f8fdf8 100%)" }}
     >
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
@@ -79,7 +80,7 @@ export const PricingSection: FC = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 items-start">
+        <div className="grid md:grid-cols-3 gap-8 items-center">
 
           {/* Subscription tiers */}
           {SUBSCRIPTION_TIERS.map((tier, index) => (
@@ -87,14 +88,20 @@ export const PricingSection: FC = () => {
               key={index}
               className={`relative ${
                 tier.popular
-                  ? "bg-secondary text-white rounded-3xl p-8 shadow-2xl border-2 border-primary"
-                  : "bg-white shadow-lg rounded-2xl border border-neutral-200 p-8"
+                  ? "rounded-3xl p-8 shadow-2xl overflow-hidden"
+                  : "bg-white shadow-sm rounded-2xl border border-neutral-200 p-8"
               }`}
+              style={tier.popular ? {
+                background: "linear-gradient(145deg, #071a09 0%, #0d2410 60%, #061508 100%)",
+                border: "1.5px solid rgba(45,236,41,0.35)",
+              } : undefined}
             >
+              {/* Popular card ambient glow */}
               {tier.popular && (
-                <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-black text-white px-6 py-2 rounded-full text-sm font-black shadow-lg">
-                  MOST POPULAR
-                </div>
+                <div
+                  className="pointer-events-none absolute -top-10 -right-10 w-48 h-48 rounded-full blur-3xl opacity-15"
+                  style={{ background: "#2dec29" }}
+                />
               )}
               <div className="text-center mb-8">
                 <h3 className={`text-2xl font-bold mb-4 ${tier.popular ? "text-white" : "text-secondary"}`}>
@@ -123,7 +130,8 @@ export const PricingSection: FC = () => {
                 {tier.features.map((feature, i) => (
                   <li key={i} className="flex items-start">
                     <svg
-                      className={`w-6 h-6 ${tier.popular ? "text-white" : "text-green-500"} mr-3 flex-shrink-0 mt-0.5`}
+                      className={`w-6 h-6 mr-3 flex-shrink-0 mt-0.5`}
+                      style={{ color: tier.popular ? "#2dec29" : "#22c55e" }}
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -133,7 +141,7 @@ export const PricingSection: FC = () => {
                         clipRule="evenodd"
                       />
                     </svg>
-                    <span className={`${tier.popular ? "text-white" : "text-neutral-700"} ${feature.bold ? "font-bold" : ""}`}>
+                    <span className={`${tier.popular ? "text-white/85" : "text-neutral-700"} ${feature.bold ? "font-bold" : ""}`}>
                       {feature.text}
                     </span>
                   </li>
@@ -141,7 +149,8 @@ export const PricingSection: FC = () => {
               </ul>
               <Button
                 variant={tier.variant}
-                className={`w-full py-4 text-lg ${tier.popular ? "bg-white text-black hover:bg-neutral-100" : ""}`}
+                className={`w-full py-4 text-lg font-bold ${tier.popular ? "border-0 hover:brightness-110" : ""}`}
+                style={tier.popular ? { background: "#2dec29", color: "#061508" } : undefined}
                 onClick={() => {
                   track("CTA Clicked", { button: tier.cta, location: "pricing", plan: tier.name });
                   router.push(tier.href);
@@ -155,12 +164,12 @@ export const PricingSection: FC = () => {
           {/* Career Service Cohort card */}
           <div
             className="relative rounded-3xl p-8 shadow-2xl overflow-hidden"
-            style={{ background: "linear-gradient(145deg, #1a1a2e 0%, #16213e 60%, #0f0f1a 100%)", border: "1px solid rgba(129,140,248,0.3)" }}
+            style={{ background: "linear-gradient(145deg, #071a09 0%, #0d2410 60%, #061508 100%)", border: "1px solid rgba(45,236,41,0.3)" }}
           >
             {/* Ambient glow */}
             <div
               className="pointer-events-none absolute -top-10 -right-10 w-40 h-40 rounded-full blur-3xl opacity-20"
-              style={{ background: "#818cf8" }}
+              style={{ background: "#2dec29" }}
             />
 
             <div className="relative z-10">
@@ -175,7 +184,7 @@ export const PricingSection: FC = () => {
                 </div>
                 <div className="flex items-center gap-2 justify-center">
                   <span className="text-white/40 text-sm">+</span>
-                  <span className="font-bold text-center" style={{ color: "#818cf8" }}>£499 only when you land the job</span>
+                  <span className="font-bold text-center" style={{ color: "#2dec29" }}>£499 only when you land the job</span>
                 </div>
                 <p className="text-white/50 text-sm mt-2 text-center">3-month programme</p>
               </div>
@@ -186,7 +195,7 @@ export const PricingSection: FC = () => {
                   <li key={i} className="flex items-start gap-3">
                     <svg
                       className="w-5 h-5 flex-shrink-0 mt-0.5"
-                      style={{ color: "#818cf8" }}
+                      style={{ color: "#2dec29" }}
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -208,7 +217,7 @@ export const PricingSection: FC = () => {
                   track("CTA Clicked", { button: "Join the Waitlist", location: "pricing", plan: "cohort" });
                 }}
                 className="w-full py-4 text-base font-black rounded-xl hover:brightness-110 active:brightness-90 transition-all shadow-lg"
-                style={{ background: "#818cf8", color: "#0f0f1a" }}
+                style={{ background: "#2dec29", color: "#061508" }}
               >
                 Join the Waitlist
               </button>

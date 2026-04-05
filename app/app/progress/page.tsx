@@ -36,7 +36,7 @@ const COMPETENCY_LABELS: Record<string, string> = {
 const COMPETENCY_COLORS: Record<string, string> = {
   leadership: "#2dec29",
   ownership: "#f59e0b",
-  conflict: "#8b5cf6",
+  conflict: "#3b82f6",
   failure: "#ef4444",
   collaboration: "#06b6d4",
 };
@@ -318,29 +318,50 @@ export default async function ProgressPage() {
       label: "Best Score",
       value: bestScore !== null ? `${bestScore}%` : "—",
       icon: BarChart3,
-      color: "#8b5cf6",
+      color: "#06b6d4",
       sub: bestScore !== null ? "Personal best" : "Complete a session",
     },
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 pb-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-secondary">Progress</h1>
-          <p className="text-neutral-500 mt-1 text-sm">
-            Track your improvement across behavioral interview competencies.
-          </p>
+      <div
+        className="relative rounded-2xl overflow-hidden p-6"
+        style={{ background: "linear-gradient(135deg, #071a09 0%, #0d2410 100%)" }}
+      >
+        {/* Ambient glow */}
+        <div
+          className="pointer-events-none absolute -top-10 right-0 w-48 h-48 rounded-full blur-3xl opacity-[0.12]"
+          style={{ background: "#2dec29" }}
+        />
+        <div className="relative z-10 flex items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <TrendingUp className="w-3.5 h-3.5" style={{ color: "rgba(45,236,41,0.7)" }} />
+              <span
+                className="text-[10px] font-bold uppercase tracking-[0.18em]"
+                style={{ color: "rgba(45,236,41,0.7)" }}
+              >
+                Progress Tracker
+              </span>
+            </div>
+            <h1 className="text-2xl font-bold text-white">Your Progress</h1>
+            <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.42)" }}>
+              {completed.length > 0
+                ? `${completed.length} session${completed.length !== 1 ? "s" : ""} completed · keep the momentum going`
+                : "Complete your first session to start tracking improvement"}
+            </p>
+          </div>
+          <Link
+            href="/app/practice"
+            className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 hover:brightness-110 active:scale-[0.97]"
+            style={{ background: "#2dec29", color: "#071a09" }}
+          >
+            <Sparkles className="w-4 h-4" />
+            Practice Now
+          </Link>
         </div>
-        <Link
-          href="/app/practice"
-          className="self-start sm:self-auto flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A]"
-          style={{ background: "#2dec29", color: "#112715" }}
-        >
-          <Sparkles className="w-4 h-4" />
-          Practice Now
-        </Link>
       </div>
 
       {/* Stats */}
@@ -441,48 +462,58 @@ export default async function ProgressPage() {
           <div className="divide-y divide-neutral-50 max-h-96 overflow-y-auto">
             {sessionList.map((s) => {
               const { category, question, date } = parseSession(s);
+              const accentColor = COMPETENCY_COLORS[category] ?? "#6b7280";
+              const scoreColor =
+                s.score === null ? "#6b7280"
+                : s.score >= 80 ? "#2dec29"
+                : s.score >= 60 ? "#f59e0b"
+                : "#ef4444";
               return (
                 <div
                   key={s.id}
-                  className="flex items-start gap-4 px-6 py-4 hover:bg-neutral-50 transition"
+                  className="flex items-start gap-4 px-6 py-4 hover:bg-neutral-50/70 transition-colors duration-150"
                 >
-                  <div
-                    className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5"
-                    style={{
-                      background:
-                        (COMPETENCY_COLORS[category] ?? "#6b7280") + "20",
-                    }}
-                  >
+                  {/* Color-coded left dot */}
+                  <div className="flex flex-col items-center gap-1 shrink-0 mt-1.5">
                     <div
-                      className="w-2 h-2 rounded-full"
-                      style={{
-                        background: COMPETENCY_COLORS[category] ?? "#6b7280",
-                      }}
+                      className="w-2.5 h-2.5 rounded-full"
+                      style={{ background: accentColor }}
                     />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wide">
+                    <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                      <span
+                        className="text-[10px] font-bold uppercase tracking-wider"
+                        style={{ color: accentColor }}
+                      >
                         {COMPETENCY_LABELS[category] ?? category}
                       </span>
                       {s.status === "completed" ? (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700 font-medium">
-                          Completed
+                        <span
+                          className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold"
+                          style={{ background: "#f0fdf4", color: "#16a34a" }}
+                        >
+                          Done
                         </span>
                       ) : (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-500 font-medium">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-neutral-100 text-neutral-400 font-semibold">
                           In progress
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-secondary truncate max-w-sm">
+                    <p className="text-sm font-medium text-secondary truncate max-w-sm leading-snug">
                       {question}
                     </p>
-                    <p className="text-xs text-neutral-400 mt-0.5">{date}</p>
+                    <p className="text-[11px] text-neutral-400 mt-0.5">{date}</p>
                   </div>
                   {s.score !== null && (
                     <div className="text-right shrink-0">
-                      <p className="text-lg font-bold text-secondary">{s.score}%</p>
+                      <span
+                        className="text-base font-black tabular-nums"
+                        style={{ color: scoreColor }}
+                      >
+                        {s.score}%
+                      </span>
                     </div>
                   )}
                 </div>

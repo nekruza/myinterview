@@ -7,7 +7,7 @@
 :root {
 
   /* Brand Colors - MyInterview Palette */
-  --primary: #2dec29; /* Coral orange */
+  --primary: #2dec29; /* Bright green */
   --primary-hover: #48e57c;
   --secondary: #112715; /* Near black */
   --cream: #fbfdf3; /* Warm cream background */ 
@@ -287,8 +287,39 @@ html {
 }
 
 .animated-gradient {
-  background: #FDF8F3;
+  background: #080c09;
 }
+
+/* Hero staggered entrance animations */
+@keyframes stagger-fade-up {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes card-float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-10px); }
+}
+
+@keyframes card-float-alt {
+  0%, 100% { transform: translateY(0px) rotate(2deg); }
+  50%       { transform: translateY(-8px) rotate(2deg); }
+}
+
+@keyframes waveform-bar {
+  0%, 100% { transform: scaleY(0.4); }
+  50%       { transform: scaleY(1); }
+}
+
+.hero-stagger-1 { animation: stagger-fade-up 0.55s cubic-bezier(0.22,1,0.36,1) 0.05s both; }
+.hero-stagger-2 { animation: stagger-fade-up 0.55s cubic-bezier(0.22,1,0.36,1) 0.15s both; }
+.hero-stagger-3 { animation: stagger-fade-up 0.55s cubic-bezier(0.22,1,0.36,1) 0.26s both; }
+.hero-stagger-4 { animation: stagger-fade-up 0.55s cubic-bezier(0.22,1,0.36,1) 0.38s both; }
+.hero-stagger-5 { animation: stagger-fade-up 0.55s cubic-bezier(0.22,1,0.36,1) 0.50s both; }
+.hero-stagger-6 { animation: stagger-fade-up 0.55s cubic-bezier(0.22,1,0.36,1) 0.62s both; }
+
+.card-float     { animation: card-float     4.2s ease-in-out infinite; }
+.card-float-alt { animation: card-float-alt 3.8s ease-in-out 1.4s infinite; }
 
 .hover-lift {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -346,16 +377,16 @@ html {
 }
 
 ::-webkit-scrollbar-track {
-  background: #FDF8F3;
+  background: var(--cream);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #FF6B59;
+  background: #c4dfc5;
   border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #E55A48;
+  background: #2dec29;
 }
 
 .dark {

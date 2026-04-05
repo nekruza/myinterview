@@ -16,5 +16,6 @@ export function initMixpanel() {
 
 export function track(event: string, properties?: Record<string, unknown>) {
   if (typeof window === "undefined") return;
+  if (!initialized) return;
   mixpanel.track(event, properties);
 }

@@ -238,12 +238,34 @@ export default function PracticePage() {
     return (
       <div className="max-w-5xl mx-auto w-full">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-secondary">AI Practice</h1>
-            <p className="text-neutral-500 text-sm mt-0.5">
-              Practice interview questions with your AI coach
-            </p>
+        <div
+          className="relative rounded-2xl overflow-hidden mb-6 p-6"
+          style={{ background: "linear-gradient(135deg, #071a09 0%, #0d2410 100%)" }}
+        >
+          <div
+            className="pointer-events-none absolute -top-12 right-0 w-52 h-52 rounded-full blur-3xl opacity-[0.10]"
+            style={{ background: "#2dec29" }}
+          />
+          <div className="relative z-10 flex items-start justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1.5">
+                <span
+                  className="w-1.5 h-1.5 rounded-full animate-pulse"
+                  style={{ background: "#2dec29" }}
+                />
+                <span
+                  className="text-[10px] font-bold uppercase tracking-[0.18em]"
+                  style={{ color: "rgba(45,236,41,0.7)" }}
+                >
+                  AI Coach · 24/7
+                </span>
+              </div>
+              <h1 className="text-2xl font-bold text-white">Configure Session</h1>
+              <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+                Tailor the interview to your target role and resume for maximum relevance.
+              </p>
+            </div>
+            <Sparkles className="w-7 h-7 shrink-0 mt-0.5" style={{ color: "rgba(45,236,41,0.25)" }} />
           </div>
         </div>
 
@@ -252,77 +274,58 @@ export default function PracticePage() {
           <div className="flex-1 min-w-0 space-y-5">
             {/* Interview Type */}
             <div className="glass-card rounded-2xl p-6">
-              <label className="block text-xs font-semibold text-neutral-600 uppercase tracking-wide mb-3">
-                1. Interview Type
+              <label className="block text-xs font-semibold text-neutral-500 uppercase tracking-widest mb-3">
+                Interview Type
               </label>
               <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => setInterviewType("technical")}
-                  className="flex items-center gap-3 p-4 rounded-xl border-2 transition text-left"
-                  style={{
-                    borderColor: interviewType === "technical" ? "#2dec29" : "transparent",
-                    background: interviewType === "technical" ? "#f4fdf3" : "#f9fafb",
-                  }}
-                >
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                    style={{
-                      background: interviewType === "technical" ? "#2dec29" : "#e5e7eb",
-                    }}
-                  >
-                    <Brain
-                      className="w-5 h-5"
+                {([
+                  { value: "technical", icon: Brain, label: "Technical", sub: "System design, coding, architecture" },
+                  { value: "behavioural", icon: Users, label: "Behavioural", sub: "Leadership, teamwork, conflict" },
+                ] as const).map(({ value, icon: Icon, label, sub }) => {
+                  const active = interviewType === value;
+                  return (
+                    <button
+                      key={value}
+                      onClick={() => setInterviewType(value)}
+                      className="flex items-center gap-3 p-4 rounded-xl transition-all duration-150 text-left"
                       style={{
-                        color: interviewType === "technical" ? "#112715" : "#6b7280",
+                        border: active ? "1.5px solid #2dec29" : "1.5px solid transparent",
+                        background: active
+                          ? "linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)"
+                          : "#f9fafb",
+                        boxShadow: active ? "0 0 0 3px rgba(45,236,41,0.08)" : "none",
                       }}
-                    />
-                  </div>
-                  <div>
-                    <span className="text-sm font-semibold text-secondary block">
-                      Technical
-                    </span>
-                    <span className="text-xs text-neutral-400">
-                      System design, coding, architecture
-                    </span>
-                  </div>
-                </button>
-                <button
-                  onClick={() => setInterviewType("behavioural")}
-                  className="flex items-center gap-3 p-4 rounded-xl border-2 transition text-left"
-                  style={{
-                    borderColor: interviewType === "behavioural" ? "#2dec29" : "transparent",
-                    background: interviewType === "behavioural" ? "#f4fdf3" : "#f9fafb",
-                  }}
-                >
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                    style={{
-                      background: interviewType === "behavioural" ? "#2dec29" : "#e5e7eb",
-                    }}
-                  >
-                    <Users
-                      className="w-5 h-5"
-                      style={{
-                        color: interviewType === "behavioural" ? "#112715" : "#6b7280",
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <span className="text-sm font-semibold text-secondary block">
-                      Behavioural
-                    </span>
-                    <span className="text-xs text-neutral-400">
-                      Leadership, teamwork, conflict
-                    </span>
-                  </div>
-                </button>
+                    >
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors duration-150"
+                        style={{
+                          background: active ? "#2dec29" : "#e5e7eb",
+                        }}
+                      >
+                        <Icon
+                          className="w-5 h-5 transition-colors duration-150"
+                          style={{ color: active ? "#071a09" : "#6b7280" }}
+                        />
+                      </div>
+                      <div>
+                        <span
+                          className="text-sm font-semibold block transition-colors duration-150"
+                          style={{ color: active ? "#112715" : "#374151" }}
+                        >
+                          {label}
+                        </span>
+                        <span className="text-xs text-neutral-400">{sub}</span>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             {/* Target Role */}
             <div className="glass-card rounded-2xl p-6">
-              <label className="block text-xs font-semibold text-neutral-600 uppercase tracking-wide mb-3">
-                2. Target Role
+              <label className="block text-xs font-semibold text-neutral-500 uppercase tracking-widest mb-3">
+                Target Role
               </label>
               <select
                 value={role}
@@ -346,8 +349,8 @@ export default function PracticePage() {
 
             {/* Job Context */}
             <div className="glass-card rounded-2xl p-6">
-              <label className="block text-xs font-semibold text-neutral-600 uppercase tracking-wide mb-3">
-                3. Job Context
+              <label className="block text-xs font-semibold text-neutral-500 uppercase tracking-widest mb-3">
+                Job Context
               </label>
               <div className="grid grid-cols-2 gap-2 mb-4">
                 <button
@@ -419,8 +422,8 @@ export default function PracticePage() {
             {hasResume !== null && (
               <div className="glass-card rounded-2xl p-6">
                 <div className="flex items-center justify-between mb-3">
-                  <label className="block text-xs font-semibold text-neutral-600 uppercase tracking-wide">
-                    4. Your Resume
+                  <label className="block text-xs font-semibold text-neutral-500 uppercase tracking-widest">
+                    Your Resume
                   </label>
                   <span className="text-xs text-neutral-400 font-medium px-2 py-0.5 rounded-full bg-neutral-100">
                     Optional
@@ -440,8 +443,8 @@ export default function PracticePage() {
             {/* Level + Confidence */}
             <div className="glass-card rounded-2xl p-6 space-y-5">
               <div>
-                <label className="block text-xs font-semibold text-neutral-600 uppercase tracking-wide mb-3">
-                  5. Your Experience Level
+                <label className="block text-xs font-semibold text-neutral-500 uppercase tracking-widest mb-3">
+                  Experience Level
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {LEVELS.map(({ value, label }) => (
@@ -543,7 +546,7 @@ export default function PracticePage() {
         </div>
 
       {/* ── Sticky Start Button ── */}
-      <div className="sticky bottom-16 md:bottom-0 -mx-4 sm:-mx-6 md:-mb-8 px-4 sm:px-6 py-4 mt-6 border-t border-neutral-100" style={{ background: "rgba(250,249,246,0.97)", backdropFilter: "blur(8px)" }}>
+      <div className="sticky bottom-16 md:bottom-0 -mx-4 sm:-mx-6 md:-mb-8 px-4 sm:px-6 py-4 mt-6 border-t border-neutral-100" style={{ background: "rgba(251,253,243,0.97)", backdropFilter: "blur(8px)" }}>
         {plan === "free" && (
           <p className="text-center text-xs text-neutral-400 mb-2">
             {sessionsUsed >= 3 ? (
@@ -577,7 +580,7 @@ export default function PracticePage() {
     const jobContext = getJobContext();
     return (
       <VoiceCallView
-        selectedCategory={{ id: interviewType, label: interviewType === "technical" ? "Technical Interview" : "Behavioural Interview", color: interviewType === "technical" ? "#06b6d4" : "#8b5cf6" }}
+        selectedCategory={{ id: interviewType, label: interviewType === "technical" ? "Technical Interview" : "Behavioural Interview", color: interviewType === "technical" ? "#06b6d4" : "#2dec29" }}
         selectedQuestion={`${interviewType} interview practice`}
         level={level}
         role={role === "other" ? customRole.trim() : role}
@@ -613,64 +616,112 @@ export default function PracticePage() {
     <div className="max-w-3xl mx-auto py-12 space-y-6">
       {/* ── Score Hero ── */}
       {feedbackLoading ? (
-        <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm animate-pulse">
-          <div className="flex items-start justify-between mb-4">
+        <div
+          className="rounded-2xl p-6 animate-pulse"
+          style={{ background: "linear-gradient(135deg, #071a09, #0d2410)", border: "1px solid rgba(45,236,41,0.08)" }}
+        >
+          <div className="flex items-start justify-between mb-6">
             <div>
-              <div className="h-5 w-48 bg-neutral-100 rounded mb-2" />
-              <div className="h-3 w-64 bg-neutral-100 rounded" />
+              <div className="h-4 w-40 rounded mb-2" style={{ background: "rgba(255,255,255,0.07)" }} />
+              <div className="h-3 w-56 rounded" style={{ background: "rgba(255,255,255,0.04)" }} />
             </div>
-            <div className="h-6 w-24 bg-neutral-100 rounded-lg" />
+            <div className="h-6 w-24 rounded-xl" style={{ background: "rgba(255,255,255,0.07)" }} />
           </div>
-          <div className="flex items-center gap-6">
-            <div className="h-14 w-32 bg-neutral-100 rounded-xl" />
-            <div className="flex-1 h-2 bg-neutral-100 rounded" />
-          </div>
+          <div className="h-16 w-32 rounded-xl mb-4" style={{ background: "rgba(255,255,255,0.07)" }} />
+          <div className="h-1.5 w-full rounded-full" style={{ background: "rgba(255,255,255,0.06)" }} />
         </div>
-      ) : feedbackData ? (
-        <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h1 className="text-xl font-bold text-neutral-900 tracking-tight">{feedbackData.company}</h1>
-              <p className="text-sm text-neutral-400 mt-1">
-                {feedbackData.role}
-                {` · ${feedbackData.interviewType} interview`}
-                {sessionDuration !== "00:00" && ` · ${sessionDuration}`}
-                {sessionQuestionCount > 0 && ` · ${sessionQuestionCount} question${sessionQuestionCount !== 1 ? "s" : ""}`}
-                {` · ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`}
-              </p>
-            </div>
-            <span
-              className="shrink-0 text-xs font-bold px-3 py-1 rounded-lg"
-              style={{
-                background: `${getVerdict(feedbackData.score).color}20`,
-                color: getVerdict(feedbackData.score).color,
-              }}
-            >
-              {feedbackData.verdict}
-            </span>
-          </div>
-          <div className="flex items-center gap-6">
-            <div className="flex items-baseline gap-1 shrink-0">
-              <p className="text-5xl font-black text-neutral-900 tracking-tight">{feedbackData.score.toFixed(1)}</p>
-              <p className="text-xl text-neutral-300 font-medium">/10</p>
-            </div>
-            <div className="flex-1">
-              <div className="h-2 bg-neutral-100 rounded-full overflow-hidden mb-2">
-                <div
-                  className="h-full rounded-full transition-all duration-700"
+      ) : feedbackData ? (() => {
+        const verdict = getVerdict(feedbackData.score);
+        const pct = feedbackData.score * 10;
+        return (
+          <div
+            className="relative rounded-2xl overflow-hidden p-6"
+            style={{ background: "linear-gradient(135deg, #071a09 0%, #0d2410 100%)" }}
+          >
+            {/* Ambient glow — colour-coded to score */}
+            <div
+              className="pointer-events-none absolute -top-10 -right-10 w-56 h-56 rounded-full blur-3xl"
+              style={{ background: verdict.color, opacity: 0.08 }}
+            />
+
+            <div className="relative z-10">
+              {/* Session meta row */}
+              <div className="flex items-start justify-between gap-3 mb-6">
+                <div>
+                  <h1 className="text-lg font-bold text-white leading-tight">
+                    {feedbackData.company}
+                  </h1>
+                  <p className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.32)" }}>
+                    {feedbackData.role}
+                    {` · ${feedbackData.interviewType}`}
+                    {sessionDuration !== "00:00" && ` · ${sessionDuration}`}
+                    {sessionQuestionCount > 0 && ` · ${sessionQuestionCount}Q`}
+                    {` · ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`}
+                  </p>
+                </div>
+                <span
+                  className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-xl whitespace-nowrap"
                   style={{
-                    width: `${feedbackData.score * 10}%`,
-                    background: "linear-gradient(90deg, #2dec29, #16a34a)",
+                    background: `${verdict.color}20`,
+                    color: verdict.color,
+                    border: `1px solid ${verdict.color}35`,
+                  }}
+                >
+                  {feedbackData.verdict}
+                </span>
+              </div>
+
+              {/* Score display */}
+              <div className="flex items-end gap-3 mb-5">
+                <span
+                  className="text-7xl font-black leading-none tabular-nums"
+                  style={{ color: verdict.color }}
+                >
+                  {feedbackData.score.toFixed(1)}
+                </span>
+                <span
+                  className="text-2xl font-bold mb-2"
+                  style={{ color: "rgba(255,255,255,0.18)" }}
+                >
+                  /10
+                </span>
+              </div>
+
+              {/* Progress bar */}
+              <div
+                className="h-1.5 rounded-full overflow-hidden mb-2"
+                style={{ background: "rgba(255,255,255,0.08)" }}
+              >
+                <div
+                  className="h-full rounded-full transition-all duration-1000"
+                  style={{
+                    width: `${pct}%`,
+                    background: `linear-gradient(90deg, ${verdict.color}, ${verdict.color}bb)`,
                   }}
                 />
               </div>
-              <p className="text-xs text-neutral-400">
-                8–10 Strong pass · 6–8 Lean pass · 4–6 Needs work · &lt;4 Unlikely to pass
+
+              {/* Scale */}
+              <div className="flex justify-between">
+                {["0", "2", "4", "6", "8", "10"].map((v) => (
+                  <span
+                    key={v}
+                    className="text-[9px] tabular-nums"
+                    style={{ color: "rgba(255,255,255,0.18)" }}
+                  >
+                    {v}
+                  </span>
+                ))}
+              </div>
+
+              {/* Threshold legend */}
+              <p className="text-[10px] mt-3" style={{ color: "rgba(255,255,255,0.22)" }}>
+                8–10 Strong pass &middot; 6–8 Lean pass &middot; 4–6 Needs work &middot; &lt;4 Unlikely to pass
               </p>
             </div>
           </div>
-        </div>
-      ) : null}
+        );
+      })() : null}
 
       {/* Summary */}
       {feedbackLoading ? (
@@ -683,8 +734,16 @@ export default function PracticePage() {
           </div>
         </div>
       ) : feedbackData?.summary ? (
-        <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm">
-          <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wide mb-3">Summary</p>
+        <div
+          className="rounded-2xl p-6"
+          style={{
+            background: "#fafdf9",
+            border: "1px solid #e8f5e9",
+          }}
+        >
+          <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: "#2dec29" }}>
+            AI Summary
+          </p>
           <p className="text-sm leading-relaxed text-neutral-700">{feedbackData.summary}</p>
         </div>
       ) : null}
@@ -705,24 +764,37 @@ export default function PracticePage() {
           ))}
         </div>
       ) : feedbackData && feedbackData.categories.length > 0 ? (
-        <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm">
-          <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wide mb-5">Category Breakdown</p>
+        <div className="rounded-2xl p-6" style={{ background: "#fff", border: "1px solid #f0f0f0" }}>
+          <p className="text-[10px] font-bold uppercase tracking-widest mb-5" style={{ color: "#9ca3af" }}>
+            Category Breakdown
+          </p>
           <div className="space-y-5">
-            {feedbackData.categories.map((cat, i) => (
-              <div key={i}>
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-sm font-semibold text-neutral-800">{cat.name}</span>
-                  <span className="text-sm font-bold text-neutral-800">{cat.score.toFixed(0)}/10</span>
+            {feedbackData.categories.map((cat, i) => {
+              const barColor = getCategoryBarColor(cat.score);
+              return (
+                <div key={i}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-semibold text-neutral-800">{cat.name}</span>
+                    <span
+                      className="text-xs font-bold px-2 py-0.5 rounded-lg tabular-nums"
+                      style={{
+                        background: `${barColor}15`,
+                        color: barColor,
+                      }}
+                    >
+                      {cat.score.toFixed(0)}/10
+                    </span>
+                  </div>
+                  <div className="h-[4px] rounded-full overflow-hidden mb-2" style={{ background: "#f3f4f6" }}>
+                    <div
+                      className="h-full rounded-full transition-all duration-700"
+                      style={{ width: `${cat.score * 10}%`, background: barColor }}
+                    />
+                  </div>
+                  <p className="text-xs leading-relaxed" style={{ color: "#6b7280" }}>{cat.comment}</p>
                 </div>
-                <div className="h-[5px] bg-neutral-100 rounded-full overflow-hidden mb-1.5">
-                  <div
-                    className="h-full rounded-full transition-all duration-700"
-                    style={{ width: `${cat.score * 10}%`, background: getCategoryBarColor(cat.score) }}
-                  />
-                </div>
-                <p className="text-xs text-neutral-500 leading-relaxed">{cat.comment}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       ) : null}

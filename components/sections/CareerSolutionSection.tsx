@@ -43,18 +43,20 @@ export const CareerSolutionSection: FC = () => {
   return (
     <section
       aria-labelledby="solution-heading"
-      className="py-24 px-4 sm:px-6 bg-white"
+      className="py-24 px-4 sm:px-6"
+      style={{ background: "linear-gradient(to bottom, #080c09 0%, #ffffff 140px)" }}
     >
       <div className="max-w-7xl mx-auto">
 
         {/* Header */}
         <div className="text-center mb-14">
-          <p className="text-primary font-bold text-sm uppercase tracking-widest mb-3">
+          <p className="font-bold text-sm uppercase tracking-widest mb-3" style={{ color: "#2dec29" }}>
             3-Month Programme
           </p>
           <h2
             id="solution-heading"
-            className="text-4xl md:text-5xl font-black text-secondary mb-4 leading-tight"
+            className="text-4xl md:text-5xl font-black mb-4 leading-tight"
+            style={{ color: "#112715" }}
           >
             Join the Cohort.<br className="hidden md:block" /> Land the Job.
           </h2>
@@ -72,9 +74,9 @@ export const CareerSolutionSection: FC = () => {
           {/* Floating stat card — top right */}
           <div
             className="hidden md:block absolute -top-5 right-0 z-10 rounded-2xl px-5 py-4 shadow-2xl min-w-[180px]"
-            style={{ background: "linear-gradient(145deg, #1a1a2e 0%, #16213e 100%)", border: "1px solid rgba(129,140,248,0.25)" }}
+            style={{ background: "linear-gradient(145deg, #071a09 0%, #0d2410 100%)", border: "1px solid rgba(45,236,41,0.25)" }}
           >
-            <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "#818cf8" }}>Pricing</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "#2dec29" }}>Pricing</p>
             <div className="flex items-end gap-3">
               <div>
                 <p className="text-white text-2xl font-black leading-none">£199</p>
@@ -90,28 +92,28 @@ export const CareerSolutionSection: FC = () => {
           {/* Floating stat card — bottom right */}
           <div
             className="hidden md:block absolute -bottom-5 right-0 z-10 rounded-2xl px-5 py-4 shadow-2xl min-w-[180px]"
-            style={{ background: "linear-gradient(145deg, #1a1a2e 0%, #16213e 100%)", border: "1px solid rgba(129,140,248,0.25)" }}
+            style={{ background: "linear-gradient(145deg, #071a09 0%, #0d2410 100%)", border: "1px solid rgba(45,236,41,0.25)" }}
           >
-            <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "#818cf8" }}>Cohort 1 Goal</p>
-            <p className="text-3xl font-black leading-none" style={{ color: "#818cf8" }}>100%</p>
-            <p className="text-white/50 text-xs mt-1">internship placement</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "#2dec29" }}>Cohort 1 Goal</p>
+            <p className="text-3xl font-black leading-none" style={{ color: "#2dec29" }}>100%</p>
+            <p className="text-white/50 text-xs mt-1">job placement</p>
           </div>
 
           {/* Main card */}
           <div
             className="rounded-3xl overflow-hidden grid md:grid-cols-[2fr_3fr]"
-            style={{ background: "linear-gradient(145deg, #1a1a2e 0%, #16213e 60%, #0f0f1a 100%)" }}
+            style={{ background: "linear-gradient(145deg, #071a09 0%, #0d2410 60%, #061508 100%)" }}
           >
 
             {/* Left panel — internship terminal visual */}
             <div
               className="p-8 md:p-10 flex flex-col justify-between min-h-[320px] relative"
-              style={{ background: "rgba(129,140,248,0.04)", borderRight: "1px solid rgba(129,140,248,0.1)" }}
+              style={{ background: "rgba(45,236,41,0.04)", borderRight: "1px solid rgba(45,236,41,0.1)" }}
             >
               {/* Ambient glow */}
               <div
                 className="pointer-events-none absolute -bottom-8 -left-8 w-48 h-48 rounded-full blur-3xl opacity-20"
-                style={{ background: "#818cf8" }}
+                style={{ background: "#2dec29" }}
               />
 
               <div className="relative z-10 space-y-2.5">
@@ -119,7 +121,7 @@ export const CareerSolutionSection: FC = () => {
                 <div className="flex items-center gap-2 mb-5">
                   <span className="w-3 h-3 rounded-full bg-red-500/70" />
                   <span className="w-3 h-3 rounded-full bg-yellow-500/70" />
-                  <span className="w-3 h-3 rounded-full" style={{ background: "rgba(129,140,248,0.7)" }} />
+                  <span className="w-3 h-3 rounded-full" style={{ background: "rgba(45,236,41,0.7)" }} />
                   <span className="ml-2 text-white/30 text-xs font-mono">internship-project</span>
                 </div>
 
@@ -128,11 +130,11 @@ export const CareerSolutionSection: FC = () => {
                   <div key={i} className="flex items-start gap-2.5 font-mono text-sm">
                     <span
                       className="flex-shrink-0 font-semibold"
-                      style={{ color: line.accent ? "#a5b4fc" : "rgba(255,255,255,0.35)" }}
+                      style={{ color: line.accent ? "#2dec29" : "rgba(255,255,255,0.35)" }}
                     >
                       {line.prefix}
                     </span>
-                    <span style={{ color: line.accent ? "#c4b5fd" : "rgba(255,255,255,0.45)" }}>
+                    <span style={{ color: line.accent ? "rgba(45,236,41,0.8)" : "rgba(255,255,255,0.45)" }}>
                       {line.text}
                     </span>
                   </div>
@@ -143,7 +145,7 @@ export const CareerSolutionSection: FC = () => {
                   <span style={{ color: "rgba(255,255,255,0.35)" }}>$</span>
                   <span
                     className="inline-block w-1.5 h-4 rounded-sm animate-pulse"
-                    style={{ background: "#818cf8", opacity: 0.6 }}
+                    style={{ background: "#2dec29", opacity: 0.6 }}
                   />
                 </div>
               </div>
@@ -151,9 +153,9 @@ export const CareerSolutionSection: FC = () => {
               {/* CV line */}
               <div
                 className="relative z-10 mt-8 pt-5"
-                style={{ borderTop: "1px solid rgba(129,140,248,0.15)" }}
+                style={{ borderTop: "1px solid rgba(45,236,41,0.15)" }}
               >
-                <p className="text-[10px] font-mono uppercase tracking-widest mb-1.5" style={{ color: "rgba(129,140,248,0.5)" }}>
+                <p className="text-[10px] font-mono uppercase tracking-widest mb-1.5" style={{ color: "rgba(45,236,41,0.5)" }}>
                   CV line
                 </p>
                 <p className="text-white/80 font-medium text-sm leading-relaxed">
@@ -168,10 +170,10 @@ export const CareerSolutionSection: FC = () => {
               {/* Badge */}
               <div
                 className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-5 self-start"
-                style={{ background: "rgba(129,140,248,0.12)", border: "1px solid rgba(129,140,248,0.25)" }}
+                style={{ background: "rgba(45,236,41,0.12)", border: "1px solid rgba(45,236,41,0.25)" }}
               >
-                <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#818cf8" }} />
-                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "#818cf8" }}>
+                <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#2dec29" }} />
+                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "#2dec29" }}>
                   Career Service · End to End
                 </span>
               </div>
@@ -185,11 +187,6 @@ export const CareerSolutionSection: FC = () => {
 
               {/* Pillars with step connector */}
               <div className="relative mb-8">
-                {/* Vertical connector line */}
-                <div
-                  className="absolute left-[13px] top-7 bottom-7 w-px hidden sm:block"
-                  style={{ background: "linear-gradient(to bottom, rgba(129,140,248,0.08), rgba(129,140,248,0.25), rgba(129,140,248,0.08))" }}
-                />
 
                 <div className="space-y-2.5">
                   {PILLARS.map((pillar) => (
@@ -197,7 +194,7 @@ export const CareerSolutionSection: FC = () => {
                       key={pillar.number}
                       className="flex items-start gap-4 rounded-xl p-4 transition-colors duration-150"
                       style={pillar.highlight
-                        ? { background: "rgba(129,140,248,0.12)", border: "1px solid rgba(129,140,248,0.3)" }
+                        ? { background: "rgba(45,236,41,0.12)", border: "1px solid rgba(45,236,41,0.3)" }
                         : { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }
                       }
                     >
@@ -205,7 +202,7 @@ export const CareerSolutionSection: FC = () => {
                       <span
                         className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-sm font-black relative z-10"
                         style={pillar.highlight
-                          ? { background: "#818cf8", color: "#0f0f1a" }
+                          ? { background: "#2dec29", color: "#061508" }
                           : { background: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.55)" }
                         }
                       >
@@ -217,14 +214,14 @@ export const CareerSolutionSection: FC = () => {
                         <div className="flex items-center gap-2 flex-wrap mb-0.5">
                           <p
                             className="font-bold text-sm"
-                            style={{ color: pillar.highlight ? "#818cf8" : "white" }}
+                            style={{ color: pillar.highlight ? "#2dec29" : "white" }}
                           >
                             {pillar.title}
                           </p>
                           <span
                             className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
                             style={pillar.highlight
-                              ? { background: "rgba(129,140,248,0.2)", color: "#a5b4fc" }
+                              ? { background: "rgba(45,236,41,0.2)", color: "rgba(45,236,41,0.8)" }
                               : { background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.35)" }
                             }
                           >
@@ -248,7 +245,7 @@ export const CareerSolutionSection: FC = () => {
                     track("CTA Clicked", { button: "Join the Waitlist", location: "solution_section" });
                   }}
                   className="self-start flex items-center gap-2 px-6 py-3 font-black text-base rounded-xl hover:brightness-110 active:brightness-90 transition-all shadow-lg"
-                  style={{ background: "#818cf8", color: "#0f0f1a" }}
+                  style={{ background: "#2dec29", color: "#061508" }}
                 >
                   Join the Waitlist
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

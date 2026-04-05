@@ -65,25 +65,28 @@ export const WaitlistModal: FC<WaitlistModalProps> = ({ open, onClose }) => {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md bg-white">
+      <DialogContent className="sm:max-w-md" style={{ background: "#fafdf9", border: "1.5px solid #e8f5e9" }}>
         <DialogHeader>
           <DialogTitle className="text-2xl font-black text-secondary">
             Join the Waitlist
           </DialogTitle>
-          <DialogDescription className="text-neutral-600">
+          <DialogDescription className="text-neutral-500">
             Cohort 1 is filling up. Reserve your spot — we&apos;ll be in touch within 48 hours.
           </DialogDescription>
         </DialogHeader>
 
         {submitted ? (
           <div className="py-6 text-center">
-            <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-7 h-7 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div
+              className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
+              style={{ background: "rgba(45,236,41,0.08)", border: "1px solid rgba(45,236,41,0.2)" }}
+            >
+              <svg className="w-7 h-7" style={{ color: "#2dec29" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <p className="text-xl font-black text-secondary mb-1">You&apos;re on the list!</p>
-            <p className="text-neutral-600 text-sm">We&apos;ll be in touch soon.</p>
+            <p className="text-neutral-500 text-sm">We&apos;ll be in touch soon.</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-3 mt-2">
@@ -94,7 +97,10 @@ export const WaitlistModal: FC<WaitlistModalProps> = ({ open, onClose }) => {
               onChange={(e) => setName(e.target.value)}
               required
               aria-label="Full Name"
-              className="w-full px-4 py-3 rounded-xl border border-neutral-300 bg-white text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+              className="w-full px-4 py-3 rounded-xl text-sm text-neutral-900 placeholder-neutral-400 outline-none transition-all"
+              style={{ background: "white", border: "1.5px solid #e8f5e9" }}
+              onFocus={(e) => { e.currentTarget.style.border = "1.5px solid rgba(45,236,41,0.5)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(45,236,41,0.08)"; }}
+              onBlur={(e) => { e.currentTarget.style.border = "1.5px solid #e8f5e9"; e.currentTarget.style.boxShadow = "none"; }}
             />
             <input
               type="email"
@@ -103,7 +109,10 @@ export const WaitlistModal: FC<WaitlistModalProps> = ({ open, onClose }) => {
               onChange={(e) => setEmail(e.target.value)}
               required
               aria-label="Email Address"
-              className="w-full px-4 py-3 rounded-xl border border-neutral-300 bg-white text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+              className="w-full px-4 py-3 rounded-xl text-sm text-neutral-900 placeholder-neutral-400 outline-none transition-all"
+              style={{ background: "white", border: "1.5px solid #e8f5e9" }}
+              onFocus={(e) => { e.currentTarget.style.border = "1.5px solid rgba(45,236,41,0.5)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(45,236,41,0.08)"; }}
+              onBlur={(e) => { e.currentTarget.style.border = "1.5px solid #e8f5e9"; e.currentTarget.style.boxShadow = "none"; }}
             />
             <input
               type="tel"
@@ -112,17 +121,21 @@ export const WaitlistModal: FC<WaitlistModalProps> = ({ open, onClose }) => {
               onChange={(e) => setPhone(e.target.value)}
               required
               aria-label="Phone Number"
-              className="w-full px-4 py-3 rounded-xl border border-neutral-300 bg-white text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+              className="w-full px-4 py-3 rounded-xl text-sm text-neutral-900 placeholder-neutral-400 outline-none transition-all"
+              style={{ background: "white", border: "1.5px solid #e8f5e9" }}
+              onFocus={(e) => { e.currentTarget.style.border = "1.5px solid rgba(45,236,41,0.5)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(45,236,41,0.08)"; }}
+              onBlur={(e) => { e.currentTarget.style.border = "1.5px solid #e8f5e9"; e.currentTarget.style.boxShadow = "none"; }}
             />
             {error && (
-              <p className="text-sm text-red-500">{error}</p>
+              <p className="text-sm" style={{ color: "#ef4444" }}>{error}</p>
             )}
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-6 bg-secondary text-white font-black text-base rounded-xl hover:brightness-95 active:brightness-90 transition-all disabled:opacity-60 disabled:cursor-not-allowed mt-1"
+              className="w-full py-3 px-6 font-black text-base rounded-xl transition-all disabled:opacity-60 disabled:cursor-not-allowed mt-1 hover:brightness-110"
+              style={{ background: "#2dec29", color: "#071a09" }}
             >
-              {loading ? "Joining..." : "Join the Waitlist"}
+              {loading ? "Joining…" : "Join the Waitlist"}
             </button>
           </form>
         )}

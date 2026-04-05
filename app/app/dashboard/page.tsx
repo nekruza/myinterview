@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 import type { Plan } from "@/lib/session-limits";
-import { ChevronRight, PlayCircle, Users, Sparkles, Zap } from "lucide-react";
+import { ChevronRight, PlayCircle, User, Sparkles, Zap } from "lucide-react";
 import { FreeBanner } from "@/components/FreeBanner";
 import { FeedbackCard } from "@/components/FeedbackCard";
 import Image from "next/image";
@@ -560,11 +560,11 @@ export default async function DashboardPage() {
           className="glass-card group flex items-center gap-3 rounded-2xl px-4 py-3.5 hover:shadow-sm transition-shadow"
         >
           <div className="w-8 h-8 rounded-xl bg-neutral-100 flex items-center justify-center shrink-0">
-            <Users className="w-4 h-4 text-neutral-500" />
+            <User className="w-4 h-4 text-neutral-500" />
           </div>
           <div className="min-w-0">
             <p className="font-semibold text-secondary text-sm truncate">Profile</p>
-            <p className="text-[12apx] text-neutral-400 truncate">Set your goals</p>
+            <p className="text-[12px] text-neutral-400 truncate">Set your goals</p>
           </div>
           <ChevronRight className="w-3.5 h-3.5 text-neutral-300 ml-auto shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" />
         </Link>

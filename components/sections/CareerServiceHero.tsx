@@ -1,9 +1,173 @@
 "use client";
 
 import { FC, useState } from "react";
+import Link from "next/link";
 import { track } from "@/lib/mixpanel";
 import { WaitlistModal } from "@/components/WaitlistModal";
 
+/* ─── Product preview card: live AI session ──────────────────────────────── */
+function InterviewSessionCard() {
+  return (
+    <div
+      className="w-[300px] sm:w-[320px] rounded-2xl p-5 card-float"
+      style={{
+        background: "rgba(255,255,255,0.04)",
+        border: "1px solid rgba(255,255,255,0.10)",
+        backdropFilter: "blur(24px)",
+        boxShadow: "0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)",
+      }}
+    >
+      {/* Session header */}
+      <div className="flex items-center gap-3 mb-4">
+        <div
+          className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm"
+          style={{ background: "linear-gradient(135deg, #2dec29 0%, #0a5c09 100%)" }}
+        >
+          🤖
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-white text-xs font-semibold">AI Coach</p>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <span
+              className="w-1.5 h-1.5 rounded-full animate-pulse flex-shrink-0"
+              style={{ background: "#2dec29" }}
+            />
+            <p className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
+              Live session
+            </p>
+          </div>
+        </div>
+        <span className="text-[10px] font-mono tabular-nums" style={{ color: "rgba(255,255,255,0.25)" }}>
+          02:41
+        </span>
+      </div>
+
+      {/* Question bubble */}
+      <div
+        className="rounded-xl p-3.5 mb-3.5"
+        style={{
+          background: "rgba(45,236,41,0.06)",
+          border: "1px solid rgba(45,236,41,0.14)",
+        }}
+      >
+        <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.72)" }}>
+          &ldquo;Tell me about a time you had to debug a production issue under pressure. Walk me through your process.&rdquo;
+        </p>
+      </div>
+
+      {/* Waveform — candidate speaking */}
+      <div className="flex items-center gap-[3px] h-7 mb-3.5">
+        {[2, 5, 8, 5, 10, 7, 4, 9, 6, 8, 5, 7, 10, 6, 4, 8, 6, 9, 5, 7, 4, 6, 8, 5, 3].map(
+          (h, i) => (
+            <div
+              key={i}
+              className="w-[3px] rounded-full origin-center"
+              style={{
+                height: `${h * 2.6}px`,
+                background: "#2dec29",
+                opacity: 0.5 + (i % 4) * 0.12,
+                animation: `waveform-bar ${0.4 + (i % 5) * 0.15}s ease-in-out ${i * 0.06}s infinite`,
+              }}
+            />
+          )
+        )}
+      </div>
+
+      {/* STAR hint chip */}
+      <div className="flex items-center gap-2">
+        <span
+          className="text-[10px] px-2.5 py-1 rounded-full font-bold"
+          style={{
+            background: "rgba(45,236,41,0.14)",
+            color: "#2dec29",
+            border: "1px solid rgba(45,236,41,0.22)",
+          }}
+        >
+          STAR
+        </span>
+        <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.28)" }}>
+          Situation → Task → Action → Result
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Floating score card ────────────────────────────────────────────────── */
+function ScoreCard() {
+  const bars = [62, 71, 58, 80, 87];
+  return (
+    <div
+      className="rounded-2xl px-5 py-4 card-float-alt"
+      style={{
+        background: "rgba(255,255,255,0.06)",
+        border: "1px solid rgba(255,255,255,0.10)",
+        backdropFilter: "blur(20px)",
+        boxShadow: "0 20px 48px rgba(0,0,0,0.5)",
+        minWidth: 160,
+      }}
+    >
+      <p
+        className="text-[9px] font-bold uppercase tracking-[0.18em] mb-2.5"
+        style={{ color: "rgba(255,255,255,0.3)" }}
+      >
+        Session Score
+      </p>
+      <div className="flex items-end gap-1.5 mb-3">
+        <span className="text-4xl font-black leading-none" style={{ color: "#2dec29" }}>
+          87
+        </span>
+        <span className="text-lg font-bold mb-0.5" style={{ color: "rgba(255,255,255,0.2)" }}>
+          /100
+        </span>
+      </div>
+      {/* Mini bar chart — last 5 sessions */}
+      <div className="flex items-end gap-1 h-7">
+        {bars.map((v, i) => (
+          <div
+            key={i}
+            className="flex-1 rounded-sm transition-all"
+            style={{
+              height: `${(v / 100) * 100}%`,
+              background:
+                i === bars.length - 1
+                  ? "#2dec29"
+                  : `rgba(45,236,41,${0.15 + i * 0.06})`,
+            }}
+          />
+        ))}
+      </div>
+      <p
+        className="text-[9px] mt-1.5"
+        style={{ color: "rgba(255,255,255,0.2)" }}
+      >
+        +25 pts vs first session
+      </p>
+    </div>
+  );
+}
+
+/* ─── Floating streak chip ───────────────────────────────────────────────── */
+function StreakChip() {
+  return (
+    <div
+      className="rounded-2xl px-4 py-3 flex items-center gap-3 card-float"
+      style={{
+        background: "linear-gradient(135deg, #ea580c 0%, #f97316 50%, #fb923c 100%)",
+        boxShadow: "0 16px 40px rgba(234,88,12,0.35)",
+        animationDelay: "0.8s",
+      }}
+    >
+      <span className="text-2xl leading-none select-none">🔥</span>
+      <div>
+        <p className="text-white font-black text-xl leading-none tabular-nums">12</p>
+        <p className="text-white/70 text-[10px] font-semibold mt-0.5">day streak</p>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Hero ───────────────────────────────────────────────────────────────── */
 export const CareerServiceHero: FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -11,76 +175,207 @@ export const CareerServiceHero: FC = () => {
     <section
       id="hero-section"
       aria-label="Career Service — Land Your First Engineering Job"
-      className="min-h-screen flex items-start pt-28 md:pt-32 px-4 sm:px-6 lg:px-8 animated-gradient overflow-hidden"
+      className="relative min-h-screen flex flex-col justify-center overflow-hidden animated-gradient"
     >
-      <div className="max-w-6xl mx-auto w-full">
-        <div className="flex justify-center items-start text-center">
-          <div id="hero-content" className="animate-fade-in max-w-2xl">
+      {/* ── Ambient background glows ───────────────────────────────────────── */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        aria-hidden="true"
+      >
+        {/* Top-left warm glow */}
+        <div
+          className="absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(45,236,41,0.07) 0%, transparent 70%)",
+          }}
+        />
+        {/* Bottom-right glow */}
+        <div
+          className="absolute -bottom-48 -right-48 w-[700px] h-[700px] rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(45,236,41,0.05) 0%, transparent 70%)",
+          }}
+        />
+        {/* Subtle grid overlay */}
+        <div
+          className="absolute inset-0 opacity-[0.025]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }}
+        />
+      </div>
 
-            {/* Badge */}
-            <div className="inline-flex items-center bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-semibold mb-6 border border-neutral-200">
-              <span className="relative flex h-3 w-3 mr-2" aria-hidden="true">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-primary" />
+      {/* ── Main content ───────────────────────────────────────────────────── */}
+      <div className="relative z-10 max-w-[1200px] mx-auto w-full px-5 sm:px-8 pt-32 pb-20">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-16 lg:gap-12">
+
+          {/* ── LEFT: Text content ─────────────────────────────────────────── */}
+          <div className="flex-1 max-w-[560px]">
+
+            {/* Enrolling badge */}
+            <div className="hero-stagger-1 inline-flex items-center gap-2 mb-7">
+              <span
+                className="relative flex h-2 w-2"
+                aria-hidden="true"
+              >
+                <span
+                  className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                  style={{ background: "#2dec29" }}
+                />
+                <span
+                  className="relative inline-flex rounded-full h-2 w-2"
+                  style={{ background: "#2dec29" }}
+                />
               </span>
-              <span className="text-secondary">Now Enrolling — Cohort 1</span>
+              <span
+                className="text-xs font-bold uppercase tracking-[0.18em]"
+                style={{ color: "rgba(255,255,255,0.55)" }}
+              >
+                Now Enrolling &mdash; Cohort 1
+              </span>
             </div>
 
             {/* Headline */}
-            <h1 className="text-5xl md:text-6xl font-black leading-tight mb-6 text-secondary">
-              Land Your First
-              <span className="block">Engineering Job</span>
+            <h1
+              className="hero-stagger-2 font-black leading-[1.05] tracking-tight mb-6"
+              style={{ fontSize: "clamp(2.8rem, 6vw, 4.5rem)", color: "rgba(255,255,255,0.95)" }}
+            >
+              Land your first
+              <br />
+              <span
+                style={{
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                  backgroundImage: "linear-gradient(90deg, #2dec29 0%, #86efac 100%)",
+                }}
+              >
+                engineering
+              </span>
+              <br />
+              job.
             </h1>
 
-            {/* Subheadline */}
-            <p className="text-xl text-neutral-800 mb-8 leading-relaxed">
-              A complete programme for graduates who can code but can&apos;t get hired —
-              resume review, AI mock interviews, and a{" "}
-              <strong className="font-semibold text-secondary">real internship on your CV.</strong>
+            {/* Sub-headline */}
+            <p
+              className="hero-stagger-3 text-lg leading-relaxed mb-9"
+              style={{ color: "rgba(255,255,255,0.48)", maxWidth: 460 }}
+            >
+              A complete programme for graduates who can code but can&apos;t get hired.
+              Resume review, AI mock interviews, and a{" "}
+              <strong style={{ color: "rgba(255,255,255,0.75)", fontWeight: 600 }}>
+                real internship on your CV.
+              </strong>
             </p>
 
+            {/* CTAs */}
+            <div className="hero-stagger-4 flex flex-wrap items-center gap-3 mb-10">
+              <button
+                onClick={() => {
+                  track("CTA Clicked", { button: "Join the Waitlist", location: "hero" });
+                  setModalOpen(true);
+                }}
+                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 hover:brightness-110 active:scale-[0.98]"
+                style={{ background: "#2dec29", color: "#071a09" }}
+              >
+                Join the Waitlist
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+
+              <Link
+                href="/signup"
+                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 hover:opacity-80"
+                style={{
+                  color: "rgba(255,255,255,0.7)",
+                  border: "1px solid rgba(255,255,255,0.14)",
+                }}
+              >
+                Try free &rarr;
+              </Link>
+            </div>
+
             {/* Trust bullets */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm text-neutral-700 mb-10">
+            <div className="hero-stagger-5 flex flex-col sm:flex-row sm:flex-wrap gap-x-6 gap-y-2.5">
               {[
                 "Real internship on your CV",
-                "Resume review by the founder",
-                "£199 to start — £499 when you land the job",
+                "Resume reviewed by the founder",
+                "£199 to start — £499 on placement",
               ].map((point) => (
                 <div key={point} className="flex items-center gap-2">
-                  <svg className="w-5 h-5 text-secondary flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <svg
+                    className="w-4 h-4 flex-shrink-0"
+                    fill="none"
+                    stroke="#2dec29"
+                    viewBox="0 0 24 24"
+                  >
                     <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                      clipRule="evenodd"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2.5}
+                      d="M5 13l4 4L19 7"
                     />
                   </svg>
-                  <span className="font-medium text-secondary">{point}</span>
+                  <span className="text-sm" style={{ color: "rgba(255,255,255,0.42)" }}>
+                    {point}
+                  </span>
                 </div>
               ))}
             </div>
-
-            {/* CTA */}
-            <button
-              onClick={() => {
-                track("CTA Clicked", { button: "Join the Waitlist", location: "hero" });
-                setModalOpen(true);
-              }}
-              className="px-8 py-4 bg-secondary text-white font-black text-lg rounded-xl hover:brightness-95 active:brightness-90 transition-all shadow-lg"
-            >
-              Join the Waitlist
-            </button>
-
-            {/* Secondary link */}
-            <p className="mt-6 text-sm text-neutral-500">
-              Just want to practice interviews?{" "}
-              <a href="/signup" className="text-secondary font-semibold hover:underline">
-                Try the free tool →
-              </a>
-            </p>
-
           </div>
+
+          {/* ── RIGHT: Product preview ─────────────────────────────────────── */}
+          <div className="hero-stagger-6 flex-1 relative flex justify-center lg:justify-end">
+            {/* Layout container for overlapping cards */}
+            <div className="relative" style={{ width: 340, height: 440 }}>
+
+              {/* Main interview card — centered */}
+              <div className="absolute left-0 top-8">
+                <InterviewSessionCard />
+              </div>
+
+              {/* Score card — top right, elevated */}
+              <div
+                className="absolute hidden sm:block"
+                style={{ top: 0, right: -8, zIndex: 10 }}
+              >
+                <ScoreCard />
+              </div>
+
+              {/* Streak chip — bottom left */}
+              <div
+                className="absolute"
+                style={{ bottom: 0, left: 16, zIndex: 10 }}
+              >
+                <StreakChip />
+              </div>
+
+              {/* Connecting glow between cards */}
+              <div
+                className="pointer-events-none absolute inset-0 rounded-3xl"
+                style={{
+                  background:
+                    "radial-gradient(ellipse at 60% 50%, rgba(45,236,41,0.06) 0%, transparent 70%)",
+                }}
+              />
+            </div>
+          </div>
+
         </div>
       </div>
+
+      {/* ── Bottom fade into next section ──────────────────────────────────── */}
+      <div
+        className="absolute bottom-0 inset-x-0 h-32 pointer-events-none"
+        style={{
+          background: "linear-gradient(to bottom, transparent, rgba(8,12,9,0.6))",
+        }}
+      />
 
       <WaitlistModal open={modalOpen} onClose={() => setModalOpen(false)} />
     </section>
