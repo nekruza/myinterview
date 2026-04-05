@@ -50,8 +50,7 @@ export default function Home() {
         <Navigation />
         <main id="main-content" className="bg-white text-neutral-900 font-sans antialiased mx-auto">
           <CareerServiceHero />
-          <StatsStrip />
-          <ProblemStatement />
+<ProblemStatement />
           <CareerSolutionSection />
           <div className="hidden">
             <VideoSection />

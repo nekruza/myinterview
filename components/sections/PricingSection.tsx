@@ -210,13 +210,24 @@ export const PricingSection: FC = () => {
             style={{
               transitionDelay: "0.26s",
               background: "linear-gradient(145deg, #071a09 0%, #0d2410 60%, #061508 100%)",
-              border: "1px solid rgba(45,236,41,0.22)",
+              border: "1.5px solid rgba(45,236,41,0.45)",
+              boxShadow: "0 0 80px rgba(45,236,41,0.10), 0 8px 48px rgba(0,0,0,0.5)",
             }}
           >
-            {/* Ambient glow */}
+            {/* Flagship accent line at top */}
             <div
-              className="pointer-events-none absolute -bottom-10 -left-10 w-40 h-40 rounded-full blur-3xl opacity-15"
+              className="pointer-events-none absolute top-0 inset-x-0 h-px"
+              style={{ background: "linear-gradient(90deg, transparent 5%, #2dec29 35%, #86efac 65%, transparent 95%)" }}
+            />
+            {/* Ambient glow — bottom left */}
+            <div
+              className="pointer-events-none absolute -bottom-12 -left-12 w-56 h-56 rounded-full blur-3xl opacity-25"
               style={{ background: "#2dec29" }}
+            />
+            {/* Ambient glow — top right */}
+            <div
+              className="pointer-events-none absolute -top-8 -right-8 w-32 h-32 rounded-full blur-3xl opacity-10"
+              style={{ background: "#86efac" }}
             />
 
             <div className="relative z-10 flex flex-col flex-1">
@@ -225,14 +236,14 @@ export const PricingSection: FC = () => {
               <div className="h-6 mb-4">
                 <span
                   className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full"
-                  style={{ background: "rgba(45,236,41,0.10)", color: "rgba(45,236,41,0.7)", border: "1px solid rgba(45,236,41,0.18)" }}
+                  style={{ background: "rgba(45,236,41,0.16)", color: "#2dec29", border: "1px solid rgba(45,236,41,0.32)" }}
                 >
                   Career Service
                 </span>
               </div>
 
               {/* Tier name */}
-              <p className="text-sm font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.45)" }}>
+              <p className="text-sm font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.55)" }}>
                 Max
               </p>
 

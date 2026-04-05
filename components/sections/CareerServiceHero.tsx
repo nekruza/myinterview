@@ -285,27 +285,14 @@ export const CareerServiceHero: FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                 </svg>
               </button>
-
-              <Link
-                href="/signup"
-                onClick={() => track("CTA Clicked", { button: "Try Free", location: "hero" })}
-                className="inline-flex items-center gap-1.5 px-5 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 hover:brightness-125 active:scale-[0.98]"
-                style={{
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  color: "rgba(255,255,255,0.65)",
-                }}
-              >
-                Try free — no card
-              </Link>
             </div>
 
             {/* Trust bullets */}
             <div className="hero-stagger-5 flex flex-col sm:flex-row sm:flex-wrap gap-x-6 gap-y-2.5">
               {[
                 "Real internship on your CV",
-                "3 free AI mock interviews",
-                "£499 fee only when you land the job",
+                "AI-powered mock interviews",
+                "Community support",
               ].map((point) => (
                 <div key={point} className="flex items-center gap-2">
                   <svg

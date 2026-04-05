@@ -109,7 +109,7 @@ export const FeaturesSection: FC = () => {
             </div>
 
             {/* Floating question types card */}
-            <div className="absolute z-30 hidden lg:block" style={{ bottom: "-24px", right: "-24px" }}>
+            {/* <div className="absolute z-30 hidden lg:block" style={{ bottom: "-24px", right: "-24px" }}>
               <div
                 className="rounded-2xl px-4 py-3"
                 style={{
@@ -147,10 +147,10 @@ export const FeaturesSection: FC = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* Floating stats card */}
-            <div className="absolute z-30 hidden lg:block" style={{ top: "-28px", right: "-28px" }}>
+            {/* <div className="absolute z-30 hidden lg:block" style={{ top: "-28px", right: "-28px" }}>
               <div
                 className="rounded-2xl px-5 py-4"
                 style={{
@@ -174,7 +174,7 @@ export const FeaturesSection: FC = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* Right: content */}
             <div className="relative z-10 lg:absolute lg:right-0 lg:top-0 lg:bottom-0 lg:left-[46%] flex flex-col justify-center px-6 py-6 pb-8 lg:px-12 lg:py-10">

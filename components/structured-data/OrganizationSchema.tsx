@@ -36,7 +36,7 @@ export function OrganizationSchema() {
       {
         "@type": "Offer",
         name: "Career Service (Max)",
-        price: "199",
+        price: "359",
         priceCurrency: "GBP",
         description:
           "3-month career programme including a real unpaid internship at a partner company, 1-on-1 CV rewrite, and AI mock interview practice. £359 upfront plus £499 placement fee charged only on successful job placement.",

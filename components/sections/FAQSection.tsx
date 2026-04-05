@@ -18,8 +18,8 @@ const FAQS = [
     a: "You keep everything: the internship on your CV, the code you shipped, the improved resume, and all the practice sessions. The £499 success fee simply doesn't apply. We take the same risk you do — we don't get paid unless we deliver the outcome.",
   },
   {
-    q: "What kinds of companies are the partner companies?",
-    a: "Early-stage and scaling tech startups — the kind that genuinely need engineers but can't compete with Amazon salaries for experienced hires. Your work ships to real users. You'll contribute to features, attend code reviews, and deploy to production. Not busy-work, not tutorial repos.",
+    q: "How much time do I need to commit?",
+    a: "It is very flexible. You can work around your existing commitments. Up to 10 hours per week is recommended.",
   },
   {
     q: "Do I need to be a CS graduate?",
