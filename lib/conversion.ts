@@ -2,7 +2,7 @@ function send(label: string, value: number, currency: string) {
   const gtag = (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag;
   if (typeof gtag !== "function") return false;
   gtag("event", "conversion", {
-    send_to: `AW-18056669142/${label}`,
+    send_to: `AW-18065580102/${label}`,
     value,
     currency,
     transport_type: "beacon",

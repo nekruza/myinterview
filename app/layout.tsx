@@ -113,7 +113,7 @@ export default function RootLayout({
         >
           Skip to main content
         </a>
-        <GoogleAnalytics gaId="AW-18056669142" />
+        <GoogleAnalytics gaId="AW-18065580102" />
         <MixpanelInit />
         <Analytics />
         <ComingSoonProvider>{children}</ComingSoonProvider>
