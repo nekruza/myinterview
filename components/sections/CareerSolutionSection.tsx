@@ -7,8 +7,8 @@ import { WaitlistModal } from "@/components/WaitlistModal";
 const PILLARS = [
   {
     number: "1",
-    title: "Internship at a partner company — from day one",
-    description: "The moment you join the cohort, you're matched to one of our partner companies. You ship real features, get code-reviewed, and build 3 months of genuine git history.",
+    title: "Unpaid internship at a partner company — from day one",
+    description: "The moment you join the cohort, you're matched to one of our partner companies. You ship real features, get code-reviewed, and build 3 months of genuine git history — unpaid, but the experience is what gets you hired.",
     outcome: "Real experience",
     highlight: true,
   },

@@ -2,56 +2,69 @@
 
 import { FC, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "../ui";
 import { track } from "@/lib/mixpanel";
 import { WaitlistModal } from "@/components/WaitlistModal";
 
-const SUBSCRIPTION_TIERS = [
+const TIERS = [
   {
     name: "Free",
+    label: null,
     price: "£0",
-    billingNote: null,
-    description: "Try it before you commit",
+    billing: null,
+    description: "Kick the tyres before you commit",
     features: [
-      { text: "3 full mock interviews", bold: true },
-      { text: "Resume-tailored questions", bold: false },
-      { text: "Instant feedback reports", bold: false },
-      { text: "Behavioral & technical question bank", bold: false },
-      { text: "Progress dashboard", bold: false },
+      { text: "3 full mock interviews", strong: true },
+      { text: "Resume-tailored questions" },
+      { text: "Instant feedback reports" },
+      { text: "Behavioral & technical question bank" },
+      { text: "Progress dashboard" },
     ],
     cta: "Start Free",
     href: "/signup",
-    variant: "outline" as const,
-    popular: false,
+    highlight: false,
   },
   {
     name: "Pro",
+    label: "Most popular",
     price: "£13",
-    billingNote: "Billed £39 every 3 months",
+    billing: "Billed £39 every 3 months",
     description: "For engineers actively job hunting",
     features: [
-      { text: "30 full mock interviews per month", bold: true },
-      { text: "Resume-tailored questions", bold: false },
-      { text: "Instant feedback reports", bold: false },
-      { text: "Behavioral & technical question bank", bold: false },
-      { text: "Progress dashboard", bold: false },
-      { text: "Priority support", bold: false },
+      { text: "30 full mock interviews / month", strong: true },
+      { text: "Resume-tailored questions" },
+      { text: "Instant feedback reports" },
+      { text: "Behavioral & technical question bank" },
+      { text: "Progress dashboard" },
+      { text: "Priority support" },
     ],
     cta: "Start Pro Trial",
     href: "/signup",
-    variant: "primary" as const,
-    popular: true,
+    highlight: true,
   },
 ];
 
-const COHORT_FEATURES = [
-  "Everything in Pro",
-  "Placed at a partner company from day one",
-  "3-month real internship — git history, code reviews, deployments",
-  "Individual resume feedback from a specialist",
-  "AI voice interview practice",
-  "Peer mock interviews with cohort members",
+const MAX_FEATURES = [
+  { text: "Everything in Pro" },
+  { text: "3-month unpaid internship at a partner company", strong: true, orange: true },
+  { text: "Real git history, code reviews & deployments" },
+  { text: "1-on-1 resume rewrite from a specialist" },
+  { text: "AI voice interview practice" },
+  { text: "Peer mock interviews with cohort members" },
 ];
+
+const Check: FC<{ bright?: boolean }> = ({ bright }) => (
+  <svg
+    className="w-4 h-4 flex-shrink-0 mt-0.5"
+    fill="none"
+    stroke={bright ? "#2dec29" : "rgba(45,236,41,0.45)"}
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    viewBox="0 0 24 24"
+  >
+    <path d="M20 6L9 17l-5-5" />
+  </svg>
+);
 
 export const PricingSection: FC = () => {
   const router = useRouter();
@@ -62,150 +75,199 @@ export const PricingSection: FC = () => {
       id="pricing"
       aria-labelledby="pricing-heading"
       className="py-24 px-4 sm:px-6 lg:px-8"
-      style={{ background: "linear-gradient(to bottom, #ffffff 0%, #f8fdf8 100%)" }}
+      style={{ background: "linear-gradient(to bottom, #f8fdf8 0%, #ffffff 100%)" }}
     >
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-16">
-          <p className="text-primary font-bold text-sm uppercase tracking-wider mb-3">
+      <div className="max-w-5xl mx-auto">
+
+        {/* Header */}
+        <div className="text-center mb-14">
+          <p className="font-bold text-sm uppercase tracking-wider mb-3" style={{ color: "#2dec29" }}>
             Pricing
           </p>
           <h2
             id="pricing-heading"
-            className="text-5xl font-black mb-6 text-secondary"
+            className="text-4xl md:text-5xl font-black mb-4 text-secondary"
           >
-            Start Free. Interview Smarter.
+            One path. Three entry points.
           </h2>
-          <p className="text-xl text-neutral-600 mb-8">
-            Start with 3 free full mock interviews — resume-tailored, voice-powered, with instant feedback.
+          <p className="text-lg text-neutral-500 max-w-xl mx-auto">
+            Start with free mock interviews. Upgrade when you&apos;re ready to go all in.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 items-center">
+        {/* Cards grid */}
+        <div className="grid md:grid-cols-3 gap-5 items-stretch">
 
-          {/* Subscription tiers */}
-          {SUBSCRIPTION_TIERS.map((tier, index) => (
+          {/* Free + Pro */}
+          {TIERS.map((tier) => (
             <div
-              key={index}
-              className={`relative ${
-                tier.popular
-                  ? "rounded-3xl p-8 shadow-2xl overflow-hidden"
-                  : "bg-white shadow-sm rounded-2xl border border-neutral-200 p-8"
-              }`}
-              style={tier.popular ? {
+              key={tier.name}
+              className="relative flex flex-col rounded-2xl p-7 overflow-hidden"
+              style={tier.highlight ? {
                 background: "linear-gradient(145deg, #071a09 0%, #0d2410 60%, #061508 100%)",
                 border: "1.5px solid rgba(45,236,41,0.35)",
-              } : undefined}
+                boxShadow: "0 0 40px rgba(45,236,41,0.06)",
+              } : {
+                background: "#ffffff",
+                border: "1.5px solid #e5e7eb",
+              }}
             >
-              {/* Popular card ambient glow */}
-              {tier.popular && (
+              {/* Glow */}
+              {tier.highlight && (
                 <div
-                  className="pointer-events-none absolute -top-10 -right-10 w-48 h-48 rounded-full blur-3xl opacity-15"
+                  className="pointer-events-none absolute -top-12 -right-12 w-48 h-48 rounded-full blur-3xl opacity-20"
                   style={{ background: "#2dec29" }}
                 />
               )}
-              <div className="text-center mb-8">
-                <h3 className={`text-2xl font-bold mb-4 ${tier.popular ? "text-white" : "text-secondary"}`}>
-                  {tier.name}
-                </h3>
-                <div className="mb-1">
-                  <span className={`text-6xl font-black ${tier.popular ? "text-white" : "text-secondary"}`}>
-                    {tier.price}
+
+              {/* Label */}
+              <div className="h-6 mb-4">
+                {tier.label && (
+                  <span
+                    className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full"
+                    style={{ background: "rgba(45,236,41,0.14)", color: "#2dec29", border: "1px solid rgba(45,236,41,0.25)" }}
+                  >
+                    {tier.label}
                   </span>
-                  {tier.price !== "£0" && (
-                    <span className={`text-xl ${tier.popular ? "text-white/80" : "text-neutral-600"}`}>
-                      /mo
-                    </span>
-                  )}
-                </div>
-                {tier.billingNote && (
-                  <p className={`text-sm font-medium ${tier.popular ? "text-white/70" : "text-neutral-500"}`}>
-                    {tier.billingNote}
-                  </p>
                 )}
-                <p className={`mt-2 ${tier.popular ? "text-white/80" : "text-neutral-600"}`}>
-                  {tier.description}
-                </p>
               </div>
-              <ul className="space-y-4 mb-8">
-                {tier.features.map((feature, i) => (
-                  <li key={i} className="flex items-start">
-                    <svg
-                      className={`w-6 h-6 mr-3 flex-shrink-0 mt-0.5`}
-                      style={{ color: tier.popular ? "#2dec29" : "#22c55e" }}
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
+
+              {/* Tier name */}
+              <p
+                className="text-sm font-bold uppercase tracking-widest mb-2"
+                style={{ color: tier.highlight ? "rgba(255,255,255,0.45)" : "#9ca3af" }}
+              >
+                {tier.name}
+              </p>
+
+              {/* Price */}
+              <div className="mb-1 flex items-end gap-1">
+                <span
+                  className="text-5xl font-black leading-none"
+                  style={{ color: tier.highlight ? "#ffffff" : "#112715" }}
+                >
+                  {tier.price}
+                </span>
+                {tier.price !== "£0" && (
+                  <span className="text-base mb-1" style={{ color: tier.highlight ? "rgba(255,255,255,0.5)" : "#9ca3af" }}>
+                    /mo
+                  </span>
+                )}
+              </div>
+              {tier.billing && (
+                <p className="text-xs mb-3" style={{ color: tier.highlight ? "rgba(255,255,255,0.35)" : "#9ca3af" }}>
+                  {tier.billing}
+                </p>
+              )}
+              <p
+                className="text-sm mb-6"
+                style={{ color: tier.highlight ? "rgba(255,255,255,0.5)" : "#6b7280" }}
+              >
+                {tier.description}
+              </p>
+
+              {/* Divider */}
+              <div className="h-px mb-6" style={{ background: tier.highlight ? "rgba(255,255,255,0.07)" : "#f3f4f6" }} />
+
+              {/* Features */}
+              <ul className="space-y-3 flex-1 mb-8">
+                {tier.features.map((f, i) => (
+                  <li key={i} className="flex items-start gap-2.5">
+                    <Check bright={tier.highlight} />
+                    <span
+                      className={`text-sm ${f.strong ? "font-semibold" : ""}`}
+                      style={{ color: tier.highlight ? "rgba(255,255,255,0.75)" : "#374151" }}
                     >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <span className={`${tier.popular ? "text-white/85" : "text-neutral-700"} ${feature.bold ? "font-bold" : ""}`}>
-                      {feature.text}
+                      {f.text}
                     </span>
                   </li>
                 ))}
               </ul>
-              <Button
-                variant={tier.variant}
-                className={`w-full py-4 text-lg font-bold ${tier.popular ? "border-0 hover:brightness-110" : ""}`}
-                style={tier.popular ? { background: "#2dec29", color: "#061508" } : undefined}
+
+              {/* CTA */}
+              <button
                 onClick={() => {
                   track("CTA Clicked", { button: tier.cta, location: "pricing", plan: tier.name });
                   router.push(tier.href);
                 }}
+                className="w-full py-3.5 rounded-xl font-bold text-sm transition-all hover:brightness-110 active:scale-[0.99]"
+                style={tier.highlight
+                  ? { background: "#2dec29", color: "#061508" }
+                  : { background: "#112715", color: "#ffffff" }
+                }
               >
                 {tier.cta}
-              </Button>
+              </button>
             </div>
           ))}
 
-          {/* Career Service Cohort card */}
+          {/* Max — career service card */}
           <div
-            className="relative rounded-3xl p-8 shadow-2xl overflow-hidden"
-            style={{ background: "linear-gradient(145deg, #071a09 0%, #0d2410 60%, #061508 100%)", border: "1px solid rgba(45,236,41,0.3)" }}
+            className="relative flex flex-col rounded-2xl p-7 overflow-hidden"
+            style={{
+              background: "linear-gradient(145deg, #071a09 0%, #0d2410 60%, #061508 100%)",
+              border: "1px solid rgba(45,236,41,0.22)",
+            }}
           >
             {/* Ambient glow */}
             <div
-              className="pointer-events-none absolute -top-10 -right-10 w-40 h-40 rounded-full blur-3xl opacity-20"
+              className="pointer-events-none absolute -bottom-10 -left-10 w-40 h-40 rounded-full blur-3xl opacity-15"
               style={{ background: "#2dec29" }}
             />
 
-            <div className="relative z-10">
+            <div className="relative z-10 flex flex-col flex-1">
 
-              <h3 className="text-2xl font-bold text-white mb-6 text-center">Max</h3>
-
-              {/* Pricing */}
-              <div className="mb-6">
-                <div className="flex items-end gap-1 mb-1 justify-center">
-                  <span className="text-5xl font-black text-white text-center">£199</span>
-                  <span className="text-white/60 mb-2 ml-1">upfront</span>
-                </div>
-                <div className="flex items-center gap-2 justify-center">
-                  <span className="text-white/40 text-sm">+</span>
-                  <span className="font-bold text-center" style={{ color: "#2dec29" }}>£499 only when you land the job</span>
-                </div>
-                <p className="text-white/50 text-sm mt-2 text-center">3-month programme</p>
+              {/* Label */}
+              <div className="h-6 mb-4">
+                <span
+                  className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full"
+                  style={{ background: "rgba(45,236,41,0.10)", color: "rgba(45,236,41,0.7)", border: "1px solid rgba(45,236,41,0.18)" }}
+                >
+                  Career Service
+                </span>
               </div>
 
+              {/* Tier name */}
+              <p className="text-sm font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.45)" }}>
+                Max
+              </p>
+
+              {/* Pricing */}
+              <div className="mb-1">
+                <div className="flex items-end gap-1.5">
+                  <span className="text-5xl font-black leading-none text-white">£199</span>
+                  <span className="text-sm mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>upfront</span>
+                </div>
+                <p className="text-sm font-semibold mt-1" style={{ color: "#2dec29" }}>
+                  + £499 only when you land the job
+                </p>
+              </div>
+              <p className="text-xs mb-6" style={{ color: "rgba(255,255,255,0.35)" }}>
+                3-month programme · Pay on placement
+              </p>
+
+              {/* Divider */}
+              <div className="h-px mb-6" style={{ background: "rgba(255,255,255,0.07)" }} />
+
               {/* Features */}
-              <ul className="space-y-3 mb-8">
-                {COHORT_FEATURES.map((feature, i) => (
-                  <li key={i} className="flex items-start gap-3">
-                    <svg
-                      className="w-5 h-5 flex-shrink-0 mt-0.5"
-                      style={{ color: "#2dec29" }}
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
+              <ul className="space-y-3 flex-1 mb-8">
+                {MAX_FEATURES.map((f, i) => (
+                  <li key={i} className="flex items-start gap-2.5">
+                    <Check bright />
+                    <span
+                      className={`text-sm ${f.strong ? "font-semibold" : ""}`}
+                      style={{ color: f.orange ? "#fb923c" : "rgba(255,255,255,0.72)" }}
                     >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <span className="text-white/80 text-sm">{feature}</span>
+                      {f.text}
+                      {f.orange && (
+                        <span
+                          className="ml-2 text-[9px] font-bold px-1.5 py-0.5 rounded align-middle"
+                          style={{ background: "rgba(251,146,60,0.15)", color: "#fb923c", border: "1px solid rgba(251,146,60,0.25)" }}
+                        >
+                          Unpaid
+                        </span>
+                      )}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -216,15 +278,22 @@ export const PricingSection: FC = () => {
                   setModalOpen(true);
                   track("CTA Clicked", { button: "Join the Waitlist", location: "pricing", plan: "cohort" });
                 }}
-                className="w-full py-4 text-base font-black rounded-xl hover:brightness-110 active:brightness-90 transition-all shadow-lg"
+                className="w-full py-3.5 rounded-xl font-bold text-sm transition-all hover:brightness-110 active:scale-[0.99]"
                 style={{ background: "#2dec29", color: "#061508" }}
               >
                 Join the Waitlist
               </button>
+
             </div>
           </div>
 
         </div>
+
+        {/* Bottom trust line */}
+        <p className="text-center text-sm mt-10" style={{ color: "#9ca3af" }}>
+          No credit card required · Cancel anytime · £499 placement fee only on success
+        </p>
+
       </div>
 
       <WaitlistModal open={modalOpen} onClose={() => setModalOpen(false)} />
