@@ -126,6 +126,7 @@ export const CareerServiceHero: FC = () => {
             <div className="hero-stagger-5 flex flex-col sm:flex-row sm:flex-wrap gap-x-6 gap-y-2.5">
               {[
                 "Resume-tailored questions",
+                "Job description-tailored interview",
                 "Instant feedback report",
                 "Practice anytime, no booking",
               ].map((point) => (
