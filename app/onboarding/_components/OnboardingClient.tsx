@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
-import { TECH_ROLES } from "@/lib/practice-data";
 import {
   Check,
   ChevronRight,
@@ -173,41 +172,17 @@ function StepPreferences({
   data: OnboardingData;
   update: <K extends keyof OnboardingData>(k: K, v: OnboardingData[K]) => void;
 }) {
-  const isKnownRole = TECH_ROLES.some((r) => r.value === data.target_role);
-  const [isOther, setIsOther] = useState(!isKnownRole && !!data.target_role);
-
   return (
     <div className="space-y-6 mt-4">
       <div>
         <SectionLabel>Target Role</SectionLabel>
-        <select
-          value={isOther ? "other" : data.target_role}
-          onChange={(e) => {
-            if (e.target.value === "other") {
-              setIsOther(true);
-              update("target_role", "");
-            } else {
-              setIsOther(false);
-              update("target_role", e.target.value);
-            }
-          }}
-          className="w-full px-4 py-2.5 rounded-xl border-2 border-neutral-200 bg-white text-sm text-secondary focus:outline-none focus:border-primary transition appearance-none cursor-pointer"
-        >
-          <option value="" disabled>Select your target role…</option>
-          {TECH_ROLES.map(({ value, label }) => (
-            <option key={value} value={value}>{label}</option>
-          ))}
-        </select>
-        {isOther && (
-          <input
-            type="text"
-            value={data.target_role}
-            onChange={(e) => update("target_role", e.target.value)}
-            placeholder="e.g. Product Manager, UX Engineer…"
-            className="mt-2 w-full px-4 py-2.5 rounded-xl border-2 border-neutral-200 bg-white text-sm text-secondary focus:outline-none focus:border-primary transition placeholder:text-neutral-400"
-            autoFocus
-          />
-        )}
+        <input
+          type="text"
+          value={data.target_role}
+          onChange={(e) => update("target_role", e.target.value)}
+          placeholder="e.g. Software Engineer, Product Manager, Consultant..."
+          className="w-full px-4 py-2.5 rounded-xl border-2 border-neutral-200 bg-white text-sm text-secondary focus:outline-none focus:border-primary transition placeholder:text-neutral-400"
+        />
       </div>
       <div>
         <SectionLabel>Preferred Interview Style</SectionLabel>

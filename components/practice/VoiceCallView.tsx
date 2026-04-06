@@ -29,7 +29,7 @@ interface VoiceCallViewProps {
   level: string;
   role?: string;
   sessionId: string | null;
-  interviewType?: "technical" | "behavioural";
+  interviewType?: "technical" | "behavioural" | "case";
   jobContext?: JobContext;
   resumeText?: string;
   onComplete: (messages: Message[], duration: string) => void;

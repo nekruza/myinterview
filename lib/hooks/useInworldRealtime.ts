@@ -7,7 +7,7 @@ export interface RealtimeConfig {
   instructions: string;
   voice: string;
   model: string;
-  interviewType: "technical" | "behavioural";
+  interviewType: "technical" | "behavioural" | "case";
   hybridMode?: boolean;
 }
 

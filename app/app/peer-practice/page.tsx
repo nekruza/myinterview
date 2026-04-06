@@ -24,7 +24,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { TECH_ROLES } from "@/lib/practice-data";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { usePeerSessions, useJoinPeerSession, useLeavePeerSession, useCreatePeerSession } from "@/lib/queries/peer-sessions";
 import { useProfile } from "@/lib/queries/profile";
@@ -255,15 +254,11 @@ const SessionCard: FC<{
                 {session.interview_type === "behavioral" ? "Behavioral" : "Technical"}
               </span>
             )}
-            {session.developer_type && (() => {
-              const dt = TECH_ROLES.find((d) => d.value === session.developer_type);
-              const label = dt ? dt.label : session.developer_type;
-              return (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-violet-50 text-violet-700">
-                  {label}
-                </span>
-              );
-            })()}
+            {session.developer_type && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-violet-50 text-violet-700">
+                {session.developer_type}
+              </span>
+            )}
           </div>
         )}
 
@@ -407,7 +402,6 @@ const CreateSessionDialog: FC<{
   const [notes, setNotes] = useState("");
   const [maxParticipants, setMaxParticipants] = useState("2");
   const [developerType, setDeveloperType] = useState("");
-  const [customRole, setCustomRole] = useState("");
   const [interviewType, setInterviewType] = useState("");
   const [linkError, setLinkError] = useState("");
 
@@ -451,7 +445,7 @@ const CreateSessionDialog: FC<{
       type: "peer",
       notes: notes.trim() || null,
       max_participants: parseInt(maxParticipants),
-      developer_type: developerType === "other" ? (customRole.trim() || null) : (developerType || null),
+      developer_type: developerType.trim() || null,
       interview_type: interviewType || null,
     };
 
@@ -467,7 +461,6 @@ const CreateSessionDialog: FC<{
         setDuration("45");
         setMaxParticipants("2");
         setDeveloperType("");
-        setCustomRole("");
         setInterviewType("");
       },
       onError: (err: unknown) => {
@@ -506,25 +499,13 @@ const CreateSessionDialog: FC<{
             <label className="block text-xs font-semibold text-neutral-600 mb-1.5 uppercase tracking-wide">
               Developer Type
             </label>
-            <select
+            <input
+              type="text"
               value={developerType}
               onChange={(e) => setDeveloperType(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-secondary bg-neutral-50 focus:outline-none focus:border-[#2dec29] focus:ring-1 focus:ring-[#2dec29] transition appearance-none cursor-pointer"
-            >
-              <option value="">Any / Not specified</option>
-              {TECH_ROLES.map((dt) => (
-                <option key={dt.value} value={dt.value}>{dt.label}</option>
-              ))}
-            </select>
-            {developerType === "other" && (
-              <input
-                type="text"
-                value={customRole}
-                onChange={(e) => setCustomRole(e.target.value)}
-                placeholder="e.g. Game Developer, AR/VR Engineer..."
-                className="mt-3 w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-secondary placeholder:text-neutral-300 focus:outline-none focus:border-[#2dec29] focus:ring-1 focus:ring-[#2dec29] transition"
-              />
-            )}
+              placeholder="e.g. Software Engineer, Product Manager, Consultant..."
+              className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-secondary placeholder:text-neutral-300 focus:outline-none focus:border-[#2dec29] focus:ring-1 focus:ring-[#2dec29] transition"
+            />
           </div>
 
           <div>

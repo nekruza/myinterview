@@ -55,7 +55,7 @@ export const TestimonialsSection: FC = () => {
             className="text-4xl md:text-5xl font-black mb-4"
             style={{ color: "#ffffff" }}
           >
-            Engineers who got hired.
+            People who got hired.
           </h2>
           <p className="text-lg max-w-xl mx-auto" style={{ color: "rgba(255,255,255,0.5)" }}>
             Not just confident — actually employed.

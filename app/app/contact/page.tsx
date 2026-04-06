@@ -22,7 +22,7 @@ const FAQ_SECTIONS = [
       },
       {
         q: "What types of interviews can I practice?",
-        a: "You can practice Behavioral interviews (STAR-method questions like 'Tell me about a time…') and Technical interviews tailored to your developer type — Frontend, Backend, Full-Stack, Data, DevOps, and more.",
+        a: "You can practice Behavioral interviews (STAR-method questions like 'Tell me about a time…'), Technical interviews, and Case interviews. Just type your target role — the AI tailors every question to your specific discipline, whether that's engineering, consulting, finance, product, marketing, or anything else.",
       },
       {
         q: "Why does the AI need my microphone?",

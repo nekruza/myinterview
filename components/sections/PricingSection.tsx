@@ -29,7 +29,7 @@ const TIERS = [
     label: "Most popular",
     price: "£13",
     billing: "Billed £39 every 3 months",
-    description: "For engineers actively job hunting",
+    description: "For professionals actively job hunting",
     features: [
       { text: "30 full mock interviews / month", strong: true },
       { text: "Resume-tailored questions" },
@@ -154,14 +154,15 @@ export const PricingSection: FC = () => {
                   {tier.price}
                 </span>
                 {tier.price !== "£0" && (
-                  <span className="text-base mb-1" style={{ color: "rgba(255,255,255,0.35)" }}>
-                    /mo
-                  </span>
+                  <span className="text-base mb-1" style={{ color: "rgba(255,255,255,0.35)" }}>/mo</span>
                 )}
               </div>
+              {tier.price === "£13" && (
+                <p className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>≈ $18/mo USD</p>
+              )}
               {tier.billing && (
-                <p className="text-xs mb-3" style={{ color: "rgba(255,255,255,0.28)" }}>
-                  {tier.billing}
+                <p className="text-xs mb-3" style={{ color: "rgba(255,255,255,0.35)" }}>
+                  {tier.billing} <span style={{ color: "rgba(255,255,255,0.25)" }}>· ≈ $53 USD</span>
                 </p>
               )}
               <p
@@ -176,8 +177,8 @@ export const PricingSection: FC = () => {
 
               {/* Features */}
               <ul className="space-y-3 flex-1 mb-8">
-                {tier.features.map((f, i) => (
-                  <li key={i} className="flex items-start gap-2.5">
+                {tier.features.map((f, j) => (
+                  <li key={j} className="flex items-start gap-2.5">
                     <Check bright={tier.highlight} />
                     <span
                       className={`text-sm ${f.strong ? "font-semibold" : ""}`}
@@ -255,9 +256,11 @@ export const PricingSection: FC = () => {
                   <span className="text-5xl font-black leading-none text-white">£359</span>
                   <span className="text-sm mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>upfront</span>
                 </div>
+                <p className="text-xs mt-0.5 mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>≈ $486 USD</p>
                 <p className="text-sm font-semibold mt-1" style={{ color: "#2dec29" }}>
                   + £499 only when you land the job
                 </p>
+                <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>≈ $674 USD · charged on placement</p>
               </div>
               <p className="text-xs mb-6" style={{ color: "rgba(255,255,255,0.35)" }}>
                 3-month programme · Pay on placement
@@ -308,7 +311,7 @@ export const PricingSection: FC = () => {
 
         {/* Bottom trust line */}
         <p className="text-center text-sm mt-10" style={{ color: "rgba(255,255,255,0.25)" }}>
-          No credit card required · Cancel anytime · £499 placement fee only on success
+          No credit card required · Cancel anytime · £499 (~$674 USD) placement fee only on success
         </p>
 
       </div>

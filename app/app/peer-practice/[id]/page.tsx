@@ -4,7 +4,6 @@ import { FC, useState, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { usePeerSession, useJoinPeerSession, useLeavePeerSession, useRespondToJoin } from "@/lib/queries/peer-sessions";
-import { TECH_ROLES } from "@/lib/practice-data";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -513,15 +512,11 @@ export default function PeerSessionDetailPage({
                   {session.interview_type === "behavioral" ? "Behavioral" : "Technical"}
                 </span>
               )}
-              {session.developer_type && (() => {
-                const dt = TECH_ROLES.find((d) => d.value === session.developer_type);
-                const label = dt ? dt.label : session.developer_type;
-                return (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-violet-500/20 text-violet-200 border border-violet-400/30">
-                    {label}
-                  </span>
-                );
-              })()}
+              {session.developer_type && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-violet-500/20 text-violet-200 border border-violet-400/30">
+                  {session.developer_type}
+                </span>
+              )}
             </div>
 
             {/* Title */}
@@ -600,15 +595,11 @@ export default function PeerSessionDetailPage({
                   {session.interview_type === "behavioral" ? "Behavioral" : "Technical"}
                 </span>
               )}
-              {session.developer_type && (() => {
-                const dt = TECH_ROLES.find((d) => d.value === session.developer_type);
-                const label = dt ? dt.label : session.developer_type;
-                return (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-violet-50 text-violet-700">
-                    {label}
-                  </span>
-                );
-              })()}
+              {session.developer_type && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-violet-50 text-violet-700">
+                  {session.developer_type}
+                </span>
+              )}
             </div>
           </div>
 

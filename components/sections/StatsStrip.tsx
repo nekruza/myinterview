@@ -3,8 +3,8 @@ import { FC } from "react";
 const STATS = [
   { value: "3", label: "free mock interviews to start" },
   { value: "24/7", label: "available — no scheduling" },
-  { value: "£0", label: "to use the AI practice tool" },
-  { value: "£499", label: "career fee — only when hired" },
+  { value: "£0 / $0", label: "to use the AI practice tool" },
+  { value: "£499 / ~$674", label: "career fee — only when hired" },
 ];
 
 export const StatsStrip: FC = () => (

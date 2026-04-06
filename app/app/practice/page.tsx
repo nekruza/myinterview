@@ -8,6 +8,7 @@ import {
   Sparkles,
   Brain,
   Users,
+  Briefcase,
   FileText,
   Zap,
   MessageSquare,
@@ -15,14 +16,14 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { VoiceCallView } from "@/components/practice/VoiceCallView";
-import { LEVELS, TECH_ROLES } from "@/lib/practice-data";
+import { LEVELS } from "@/lib/practice-data";
 import type { Phase, Message } from "@/lib/practice-data";
 import type { Plan } from "@/lib/session-limits";
 import { createClient } from "@/lib/supabase/client";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { ResumeUpload } from "@/components/ResumeUpload";
 
-type InterviewType = "technical" | "behavioural";
+type InterviewType = "technical" | "behavioural" | "case";
 type JobContextMode = "paste" | "general";
 
 interface DetailedFeedback {
@@ -46,8 +47,7 @@ export default function PracticePage() {
   const [interviewType, setInterviewType] = useState<InterviewType>("technical");
   const [jobContextMode, setJobContextMode] = useState<JobContextMode>("paste");
   const [jobDescription, setJobDescription] = useState("");
-  const [role, setRole] = useState("general");
-  const [customRole, setCustomRole] = useState("");
+  const [role, setRole] = useState("");
   const [level, setLevel] = useState("mid");
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sessionDuration, setSessionDuration] = useState<string>("00:00");
@@ -95,19 +95,12 @@ export default function PracticePage() {
         setLevel(profile.experience_level === "student" ? "junior" : profile.experience_level);
       }
       if (profile?.target_role) {
-        const isKnown = TECH_ROLES.some((r) => r.value === profile.target_role);
-        if (isKnown) {
-          setRole(profile.target_role);
-        } else {
-          setRole("other");
-          setCustomRole(profile.target_role);
-        }
+        setRole(profile.target_role);
       }
       if (profile?.interview_style) {
-        // Map onboarding style values to practice page InterviewType
         if (profile.interview_style === "technical") setInterviewType("technical");
         else if (profile.interview_style === "behavioral") setInterviewType("behavioural");
-        // "mixed" and "case" leave the default
+        else if (profile.interview_style === "case") setInterviewType("case");
       }
     }
     checkProfile();
@@ -190,7 +183,7 @@ export default function PracticePage() {
           messages: msgs,
           interviewType,
           level,
-          role: role === "other" ? customRole.trim() : role,
+          role: role,
           resumeText: resumeText ?? undefined,
           jobContext: getJobContext(),
         }),
@@ -277,10 +270,11 @@ export default function PracticePage() {
               <label className="block text-xs font-semibold text-neutral-500 uppercase tracking-widest mb-3">
                 Interview Type
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {([
                   { value: "technical", icon: Brain, label: "Technical", sub: "System design, coding, architecture" },
                   { value: "behavioural", icon: Users, label: "Behavioural", sub: "Leadership, teamwork, conflict" },
+                  { value: "case", icon: Briefcase, label: "Case", sub: "Business problems, market sizing" },
                 ] as const).map(({ value, icon: Icon, label, sub }) => {
                   const active = interviewType === value;
                   return (
@@ -327,24 +321,13 @@ export default function PracticePage() {
               <label className="block text-xs font-semibold text-neutral-500 uppercase tracking-widest mb-3">
                 Target Role
               </label>
-              <select
+              <input
+                type="text"
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-secondary bg-neutral-50 focus:outline-none focus:border-[#2dec29] focus:ring-1 focus:ring-[#2dec29] transition appearance-none cursor-pointer"
-              >
-                {TECH_ROLES.map(({ value, label }) => (
-                  <option key={value} value={value}>{label}</option>
-                ))}
-              </select>
-              {role === "other" && (
-                <input
-                  type="text"
-                  value={customRole}
-                  onChange={(e) => setCustomRole(e.target.value)}
-                  placeholder="e.g. Game Developer, AR/VR Engineer..."
-                  className="mt-3 w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-secondary placeholder:text-neutral-300 focus:outline-none focus:border-[#2dec29] focus:ring-1 focus:ring-[#2dec29] transition"
-                />
-              )}
+                placeholder="e.g. Software Engineer, Product Manager, Consultant..."
+                className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-secondary placeholder:text-neutral-300 bg-neutral-50 focus:outline-none focus:border-[#2dec29] focus:ring-1 focus:ring-[#2dec29] transition"
+              />
             </div>
 
             {/* Job Context */}
@@ -580,10 +563,10 @@ export default function PracticePage() {
     const jobContext = getJobContext();
     return (
       <VoiceCallView
-        selectedCategory={{ id: interviewType, label: interviewType === "technical" ? "Technical Interview" : "Behavioural Interview", color: interviewType === "technical" ? "#06b6d4" : "#2dec29" }}
+        selectedCategory={{ id: interviewType, label: interviewType === "technical" ? "Technical Interview" : interviewType === "case" ? "Case Interview" : "Behavioural Interview", color: interviewType === "technical" ? "#06b6d4" : interviewType === "case" ? "#f59e0b" : "#2dec29" }}
         selectedQuestion={`${interviewType} interview practice`}
         level={level}
-        role={role === "other" ? customRole.trim() : role}
+        role={role}
         sessionId={sessionId}
         interviewType={interviewType}
         jobContext={jobContext}

@@ -9,7 +9,7 @@ export const CareerServiceHero: FC = () => {
   return (
     <section
       id="hero-section"
-      aria-label="Career Service — Land Your First Engineering Job"
+      aria-label="Career Service — Land Your Dream Job"
       className="relative min-h-screen flex flex-col justify-center overflow-hidden"
       style={{ background: "#080c09" }}
     >

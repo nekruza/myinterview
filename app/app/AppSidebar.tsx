@@ -40,7 +40,7 @@ import { useProfile } from "@/lib/queries/profile";
 const navItems = [
   { href: "/app/dashboard", label: "Home", icon: LayoutDashboard },
   { href: "/app/practice", label: "AI Practice", icon: Sparkles },
-  { href: "/app/peer-practice", label: "Peer Practice", icon: Users },
+  // { href: "/app/peer-practice", label: "Peer Practice", icon: Users },
   { href: "/app/progress", label: "Progress", icon: TrendingUp },
   { href: "/app/resources", label: "Resources", icon: BookOpen },
 ];

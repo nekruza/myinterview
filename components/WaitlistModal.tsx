@@ -232,7 +232,7 @@ export const WaitlistModal: FC<WaitlistModalProps> = ({ open, onClose }) => {
                 </button>
 
                 <p className="text-center text-[10px] mt-1" style={{ color: "rgba(255,255,255,0.22)" }}>
-                  £359 to start · £499 only when you land the job
+                  £359 (~$486) to start · £499 (~$674) only when you land the job
                 </p>
               </form>
             </>

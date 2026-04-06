@@ -9,12 +9,18 @@ const SESSION_START_RE = /^\[SESSION START\]/i;
 
 const FEEDBACK_SYSTEM_PROMPT = (interviewType: string, level: string, role: string, resumeText?: string, jobContext?: { mode: string; value: string }) => {
   const isTechnical = interviewType === "technical";
+  const isCase = interviewType === "case";
 
   const categoryDefinitions = isTechnical
     ? `1. Technical Depth — accuracy of concepts, depth of explanations, knowledge of fundamentals
 2. System Design — architecture decisions, scalability thinking, component decomposition
 3. Problem Solving — structured approach, breaking down ambiguity, considering alternatives
 4. Communication — clarity, conciseness, ability to explain technical concepts`
+    : isCase
+    ? `1. Problem Structuring — did they break down the problem logically before diving in?
+2. Hypothesis-Driven Thinking — did they form and test hypotheses rather than exploring randomly?
+3. Quantitative Reasoning — did they handle numbers accurately and confidently?
+4. Recommendation Clarity — did they deliver a clear, actionable conclusion?`
     : `1. Communication — clarity, structure, signposting transitions, conciseness
 2. Problem Solving — breaking down ambiguous problems, structured thinking, trade-off analysis
 3. Confidence — tone, handling pressure, pushing back on follow-ups with conviction
@@ -64,7 +70,7 @@ Return ONLY this JSON (no markdown fences, no explanation):
 {
   "company": "<company name from JD, or General Practice>",
   "role": "${role}",
-  "interviewType": "${isTechnical ? "Technical" : "Behavioral"}",
+  "interviewType": "${isTechnical ? "Technical" : isCase ? "Case" : "Behavioral"}",
   "verdict": "<Strong Pass | Lean Pass | Needs Work | Unlikely to Pass>",
   "score": <number 0-10 with one decimal>,
   "summary": "<2-3 sentence overall assessment>",
@@ -137,6 +143,7 @@ export async function POST(req: NextRequest) {
     } = await req.json();
 
     const isTechnical = interviewType === "technical";
+    const isCase = interviewType === "case";
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json(NO_RESPONSE_RESULT);
@@ -224,7 +231,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       company: String(parsed.company ?? "General Practice"),
       role: String(parsed.role ?? role),
-      interviewType: String(parsed.interviewType ?? (isTechnical ? "Technical" : "Behavioral")),
+      interviewType: String(parsed.interviewType ?? (isTechnical ? "Technical" : isCase ? "Case" : "Behavioral")),
       verdict,
       score,
       summary: String(parsed.summary ?? ""),
