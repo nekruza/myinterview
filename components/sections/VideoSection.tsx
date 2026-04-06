@@ -46,8 +46,10 @@ export const VideoSection: FC = () => {
           <video
             className="w-full h-full object-cover"
             controls
+            autoPlay
+            loop
             playsInline
-            preload="metadata"
+            preload="auto"
             aria-label="MyInterview platform demo"
           >
             <source src={VIDEO_URL} type="video/mp4" />
