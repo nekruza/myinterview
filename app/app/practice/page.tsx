@@ -277,7 +277,7 @@ export default function PracticePage() {
               <label className="block text-xs font-semibold text-neutral-500 uppercase tracking-widest mb-3">
                 Interview Type
               </label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {([
                   { value: "technical", icon: Brain, label: "Technical", sub: "System design, coding, architecture" },
                   { value: "behavioural", icon: Users, label: "Behavioural", sub: "Leadership, teamwork, conflict" },
