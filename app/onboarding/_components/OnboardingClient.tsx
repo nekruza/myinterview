@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
@@ -9,9 +9,7 @@ import {
   Check,
   ChevronRight,
   ChevronLeft,
-  Upload,
   CheckCircle,
-  AlertTriangle,
   Sparkles,
 } from "lucide-react";
 
@@ -28,14 +26,11 @@ type OnboardingData = {
   heard_from: string;
 };
 
-type ResumeState = "idle" | "uploading" | "success" | "warning" | "error";
-
-const TOTAL_STEPS = 4;
-const STEP_TITLES = ["About You", "Your Preferences", "Your Resume", "One last thing"];
+const TOTAL_STEPS = 3;
+const STEP_TITLES = ["About You", "Your Preferences", "One last thing"];
 const STEP_SUBTITLES = [
   "Tell us a bit about yourself so we can tailor your experience from day one.",
   "Helps us generate the right questions for your target role and interview style — the more specific, the better.",
-  "We use your resume to generate questions based on your actual experience. Skipping this means generic questions instead of personalised ones.",
   "Takes one second and helps us grow the right way.",
 ];
 
@@ -254,138 +249,7 @@ function StepPreferences({
   );
 }
 
-// ─── Step 3: Resume Upload ────────────────────────────────────────────────────
-
-function StepResume({
-  resumeState,
-  resumeFileName,
-  resumeWarning,
-  onFileSelect,
-  onReset,
-}: {
-  resumeState: ResumeState;
-  resumeFileName: string | null;
-  resumeWarning: string | null;
-  onFileSelect: (file: File) => void;
-  onReset: () => void;
-}) {
-  const [dragOver, setDragOver] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    const file = e.dataTransfer.files[0];
-    if (file) onFileSelect(file);
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) onFileSelect(file);
-    // Reset input so re-selecting same file triggers onChange
-    if (inputRef.current) inputRef.current.value = "";
-  };
-
-  const uploaded = resumeState === "success" || resumeState === "warning";
-
-  return (
-    <div className="mt-4 space-y-4">
-      {uploaded ? (
-        <div
-          className={cn(
-            "rounded-xl border-2 p-4 flex items-start gap-3",
-            resumeState === "success"
-              ? "border-green-300 bg-green-50"
-              : "border-yellow-300 bg-yellow-50"
-          )}
-        >
-          {resumeState === "success" ? (
-            <CheckCircle className="text-green-600 flex-shrink-0 mt-0.5" size={18} />
-          ) : (
-            <AlertTriangle className="text-yellow-600 flex-shrink-0 mt-0.5" size={18} />
-          )}
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-secondary truncate">{resumeFileName}</p>
-            {resumeState === "success" && (
-              <p className="text-xs text-green-700 mt-0.5">Text extracted successfully ✓</p>
-            )}
-            {resumeWarning && (
-              <p className="text-xs text-yellow-700 mt-0.5">{resumeWarning}</p>
-            )}
-          </div>
-          <button
-            onClick={onReset}
-            className="text-xs text-neutral-400 hover:text-neutral-600 transition-colors flex-shrink-0"
-          >
-            Replace
-          </button>
-        </div>
-      ) : (
-        <label
-          onDragOver={(e) => {
-            e.preventDefault();
-            setDragOver(true);
-          }}
-          onDragLeave={() => setDragOver(false)}
-          onDrop={handleDrop}
-          className={cn(
-            "block border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors",
-            dragOver
-              ? "border-secondary bg-neutral-100"
-              : "border-neutral-300 bg-neutral-50 hover:border-neutral-400",
-            resumeState === "uploading" && "pointer-events-none opacity-60"
-          )}
-        >
-          <input
-            ref={inputRef}
-            type="file"
-            accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            className="sr-only"
-            onChange={handleChange}
-            disabled={resumeState === "uploading"}
-          />
-          {resumeState === "uploading" ? (
-            <>
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3"
-                style={{ background: "rgba(45,236,41,0.08)", border: "1px solid rgba(45,236,41,0.18)" }}
-              >
-                <Upload size={18} className="animate-bounce" style={{ color: "#2dec29" }} />
-              </div>
-              <p className="text-sm font-semibold text-secondary">Uploading &amp; extracting…</p>
-              <p className="text-xs text-neutral-400 mt-1">This takes a few seconds</p>
-            </>
-          ) : (
-            <>
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3"
-                style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}
-              >
-                <Upload size={18} style={{ color: "#16a34a" }} />
-              </div>
-              <p className="text-sm font-semibold text-secondary">Drop your resume here</p>
-              <p className="text-xs text-neutral-400 mt-1">PDF or DOCX · Max 5MB</p>
-              <div
-                className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold"
-                style={{ background: "#2dec29", color: "#071a09" }}
-              >
-                <Upload size={12} /> Browse files
-              </div>
-            </>
-          )}
-        </label>
-      )}
-
-      {resumeState === "error" && (
-        <p className="text-xs text-red-500">
-          {resumeWarning ?? "Upload failed. Please try again."}
-        </p>
-      )}
-    </div>
-  );
-}
-
-// ─── Step 4: Where did you hear about us? ────────────────────────────────────
+// ─── Step 3: Where did you hear about us? ────────────────────────────────────
 
 function StepHeardFrom({
   data,
@@ -476,77 +340,9 @@ export default function OnboardingClient() {
     target_role: "",
     heard_from: "",
   });
-  const [resumeState, setResumeState] = useState<ResumeState>("idle");
-  const [resumeFileName, setResumeFileName] = useState<string | null>(null);
-  const [resumeWarning, setResumeWarning] = useState<string | null>(null);
 
   const update = <K extends keyof OnboardingData>(key: K, val: OnboardingData[K]) =>
     setData((prev) => ({ ...prev, [key]: val }));
-
-  const stepValid = () => {
-    if (step === 1) return !!data.full_name.trim() && !!data.age && !!data.experience_level;
-    if (step === 2) return !!data.target_role.trim() && !!data.interview_style && !!data.interview_duration;
-    if (step === 3) return resumeState === "success" || resumeState === "warning";
-    if (step === 4) return !!data.heard_from;
-    return false;
-  };
-
-  const handleFileSelect = async (file: File) => {
-    if (file.size > 5 * 1024 * 1024) {
-      setResumeState("error");
-      setResumeWarning("File too large. Please upload a PDF or DOCX under 5MB.");
-      return;
-    }
-    const allowedTypes = [
-      "application/pdf",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ];
-    if (!allowedTypes.includes(file.type)) {
-      setResumeState("error");
-      setResumeWarning("Please upload a PDF or DOCX file.");
-      return;
-    }
-
-    setResumeState("uploading");
-    setResumeFileName(file.name);
-    setResumeWarning(null);
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const res = await fetch("/api/resume/extract", {
-        method: "POST",
-        body: formData,
-      });
-      const json = await res.json();
-
-      if (!res.ok) {
-        setResumeState("error");
-        setResumeWarning(json.error ?? "Upload failed. Please try again.");
-        return;
-      }
-
-      if (json.resume_text === null) {
-        setResumeState("warning");
-        const reason = json.extract_error ? ` (${json.extract_error})` : " (it may be image-based)";
-        setResumeWarning(
-          `We couldn't extract text from this file${reason}. Your resume was saved but personalisation may be limited.`
-        );
-      } else {
-        setResumeState("success");
-      }
-    } catch {
-      setResumeState("error");
-      setResumeWarning("Upload failed. Please try again.");
-    }
-  };
-
-  const resetResume = () => {
-    setResumeState("idle");
-    setResumeFileName(null);
-    setResumeWarning(null);
-  };
 
   const saveAndFinish = async () => {
     setSaving(true);
@@ -562,20 +358,18 @@ export default function OnboardingClient() {
         return;
       }
 
-      // Use upsert + select so we can verify the write actually committed.
-      // A plain .update() returns no error even when RLS blocks it (0 rows affected).
       const { data: saved, error: upsertError } = await supabase
         .from("profiles")
         .upsert({
           id: user.id,
-          full_name: data.full_name.trim(),
+          full_name: data.full_name.trim() || null,
           age: data.age ? parseInt(data.age, 10) : null,
-          experience_level: data.experience_level,
-          interview_style: data.interview_style,
-          interview_duration: data.interview_duration,
+          experience_level: data.experience_level || null,
+          interview_style: data.interview_style || null,
+          interview_duration: data.interview_duration || null,
           practice_partner: data.practice_partner,
-          target_role: data.target_role.trim(),
-          heard_from: data.heard_from,
+          target_role: data.target_role.trim() || null,
+          heard_from: data.heard_from || null,
           onboarding_complete: true,
         })
         .select("onboarding_complete")
@@ -595,9 +389,6 @@ export default function OnboardingClient() {
     }
   };
 
-  // Redirect to dashboard 1.5s after showing the done screen.
-  // Use a hard navigation so the server re-fetches the profile with
-  // onboarding_complete=true, bypassing Next.js's router cache.
   useEffect(() => {
     if (!done) return;
     const t = setTimeout(() => {
@@ -608,7 +399,6 @@ export default function OnboardingClient() {
 
   if (done) return <StepDone />;
 
-  const isValid = stepValid();
   const progress = (step / TOTAL_STEPS) * 100;
 
   return (
@@ -718,20 +508,11 @@ export default function OnboardingClient() {
           {/* Divider */}
           <div className="h-px bg-neutral-200 mb-6" />
 
-          {/* Form content — full width, no card box */}
+          {/* Form content */}
           <div className="flex-1 overflow-y-auto">
             {step === 1 && <StepAboutYou data={data} update={update} />}
             {step === 2 && <StepPreferences data={data} update={update} />}
-            {step === 3 && (
-              <StepResume
-                resumeState={resumeState}
-                resumeFileName={resumeFileName}
-                resumeWarning={resumeWarning}
-                onFileSelect={handleFileSelect}
-                onReset={resetResume}
-              />
-            )}
-            {step === 4 && <StepHeardFrom data={data} update={update} />}
+            {step === 3 && <StepHeardFrom data={data} update={update} />}
           </div>
 
           {/* Mobile hint */}
@@ -751,32 +532,21 @@ export default function OnboardingClient() {
           {/* Footer nav */}
           <div className="flex flex-col gap-2 mt-8 pt-4 border-t border-neutral-200">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                {step > 1 && (
-                  <button
-                    onClick={() => setStep((s) => s - 1)}
-                    className="flex items-center gap-1 text-sm font-semibold text-neutral-400 hover:text-secondary transition-colors"
-                  >
-                    <ChevronLeft size={16} />
-                    Back
-                  </button>
-                )}
-                {step === 3 && (
-                  <button
-                    onClick={() => setStep(4)}
-                    className="text-xs text-neutral-400 hover:text-neutral-600 transition-colors underline underline-offset-2"
-                  >
-                    Skip for now
-                  </button>
-                )}
-              </div>
+              {step > 1 ? (
+                <button
+                  onClick={() => setStep((s) => s - 1)}
+                  className="flex items-center gap-1 text-sm font-semibold text-neutral-400 hover:text-secondary transition-colors"
+                >
+                  <ChevronLeft size={16} />
+                  Back
+                </button>
+              ) : <div />}
 
               {step < TOTAL_STEPS ? (
                 <Button
                   size="sm"
-                  disabled={!isValid}
-                  onClick={() => isValid && setStep((s) => s + 1)}
-                  className={cn("gap-1.5", !isValid && "opacity-40 cursor-not-allowed")}
+                  onClick={() => setStep((s) => s + 1)}
+                  className="gap-1.5"
                 >
                   Next
                   <ChevronRight size={15} />
@@ -784,9 +554,8 @@ export default function OnboardingClient() {
               ) : (
                 <Button
                   size="sm"
-                  disabled={!isValid || saving}
+                  disabled={saving}
                   onClick={saveAndFinish}
-                  className={cn(!isValid && "opacity-40 cursor-not-allowed")}
                 >
                   {saving ? "Saving…" : "Get Started!"}
                 </Button>
