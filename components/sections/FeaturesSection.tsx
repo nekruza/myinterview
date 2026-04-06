@@ -33,15 +33,6 @@ const FEATURE_PILLS = [
     title: "Instant feedback reports",
     desc: "After each session, see exactly what landed, what didn't, and what to fix next.",
   },
-  {
-    icon: (
-      <svg width="14" height="14" fill="none" stroke="#2dec29" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
-      </svg>
-    ),
-    title: "Practice any time",
-    desc: "No booking, no waiting. Start a full mock session in under 60 seconds.",
-  },
 ];
 
 export const FeaturesSection: FC = () => {
