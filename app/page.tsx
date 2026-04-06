@@ -5,15 +5,10 @@ import { SmoothScroll } from "@/components/SmoothScroll";
 import { LandingPageWrapper } from "@/components/LandingPageWrapper";
 import {
   CareerServiceHero,
-  StatsStrip,
   CareerSolutionSection,
-  ProblemStatement,
-  VideoSection,
   FeaturesSection,
-  TestimonialsSection,
   PricingSection,
   FAQSection,
-  JoinTeamSection,
 } from "@/components/sections";
 import {
   OrganizationSchema,
@@ -50,16 +45,10 @@ export default function Home() {
         <Navigation />
         <main id="main-content" className="bg-white text-neutral-900 font-sans antialiased mx-auto">
           <CareerServiceHero />
-<ProblemStatement />
-          <CareerSolutionSection />
-          <div className="hidden">
-            <VideoSection />
-          </div>
           <FeaturesSection />
-          {/* <TestimonialsSection /> */}
           <PricingSection />
+          <CareerSolutionSection />
           <FAQSection />
-          {/* <JoinTeamSection /> */}
         </main>
         <Footer />
       </LandingPageWrapper>

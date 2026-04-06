@@ -1,13 +1,11 @@
 "use client";
 
-import { FC, useState } from "react";
+import { FC } from "react";
+import Link from "next/link";
 import { track } from "@/lib/mixpanel";
-import { WaitlistModal } from "@/components/WaitlistModal";
 
 /* ─── Hero ───────────────────────────────────────────────────────────────── */
 export const CareerServiceHero: FC = () => {
-  const [modalOpen, setModalOpen] = useState(false);
-
   return (
     <section
       id="hero-section"
@@ -73,7 +71,7 @@ export const CareerServiceHero: FC = () => {
                 className="text-xs font-bold uppercase tracking-[0.18em]"
                 style={{ color: "rgba(255,255,255,0.55)" }}
               >
-                Now Enrolling &mdash; Cohort 1
+                AI Mock Interviews &middot; Available Now
               </span>
             </div>
 
@@ -82,7 +80,7 @@ export const CareerServiceHero: FC = () => {
               className="hero-stagger-2 font-black leading-[1.05] tracking-tight mb-6"
               style={{ fontSize: "clamp(2.8rem, 6vw, 4.5rem)", color: "rgba(255,255,255,0.95)" }}
             >
-              Land your first
+              Ace your next
               <br />
               <span
                 style={{
@@ -95,7 +93,7 @@ export const CareerServiceHero: FC = () => {
                 engineering
               </span>
               <br />
-              job.
+              interview.
             </h1>
 
             {/* Sub-headline */}
@@ -103,36 +101,33 @@ export const CareerServiceHero: FC = () => {
               className="hero-stagger-3 text-lg leading-relaxed mb-9"
               style={{ color: "rgba(255,255,255,0.48)", maxWidth: 460 }}
             >
-              A complete programme for graduates who can code but can&apos;t get hired.
-              Resume review, AI mock interviews, and a{" "}
+              Practice interviews with an AI that knows your CV. Get scored, get better,{" "}
               <strong style={{ color: "rgba(255,255,255,0.75)", fontWeight: 600 }}>
-                real internship on your CV.
+                get hired.
               </strong>
             </p>
 
             {/* CTAs */}
             <div className="hero-stagger-4 flex flex-wrap items-center gap-3 mb-10">
-              <button
-                onClick={() => {
-                  track("CTA Clicked", { button: "Join the Waitlist", location: "hero" });
-                  setModalOpen(true);
-                }}
+              <Link
+                href="/app/practice"
+                onClick={() => track("CTA Clicked", { button: "Start free session", location: "hero" })}
                 className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 hover:brightness-110 active:scale-[0.98]"
                 style={{ background: "#2dec29", color: "#071a09" }}
               >
-                Join the Waitlist
+                Start free session
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                 </svg>
-              </button>
+              </Link>
             </div>
 
             {/* Trust bullets */}
             <div className="hero-stagger-5 flex flex-col sm:flex-row sm:flex-wrap gap-x-6 gap-y-2.5">
               {[
-                "Real internship on your CV",
-                "AI-powered mock interviews",
-                "Community support",
+                "Resume-tailored questions",
+                "Instant feedback report",
+                "Practice anytime, no booking",
               ].map((point) => (
                 <div key={point} className="flex items-center gap-2">
                   <svg
@@ -166,12 +161,42 @@ export const CareerServiceHero: FC = () => {
               }}
             >
               <video
-                src="/avatar-hero.mp4"
+                src="/avatar_video.mp4"
                 loop
                 playsInline
                 controls
                 className="absolute inset-0 w-full h-full object-cover object-top"
               />
+              {/* Annotation */}
+              <div
+                className="absolute z-20 pointer-events-none flex-col items-end gap-1 hidden lg:flex"
+                style={{ top: "4%", right: "6%" }}
+              >
+                <span
+                  style={{
+                    fontFamily: "Georgia, 'Times New Roman', serif",
+                    fontSize: "1rem",
+                    fontStyle: "italic",
+                    fontWeight: 700,
+                    transform: "rotate(-2deg)",
+                    display: "inline-block",
+                    color: "rgba(255,255,255,0.95)",
+                    background: "rgba(255,255,255,0.12)",
+                    border: "1px solid rgba(255,255,255,0.28)",
+                    padding: "8px 16px",
+                    borderRadius: "10px",
+                    whiteSpace: "nowrap",
+                    backdropFilter: "blur(8px)",
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
+                  }}
+                >
+                  you&apos;ll be practicing with him
+                </span>
+                <svg width="36" height="36" viewBox="0 0 36 36" fill="none" style={{ opacity: 0.65, marginRight: "2rem" }}>
+                  <path d="M28 6 Q10 10 8 28" stroke="white" strokeWidth="1.8" strokeLinecap="round" fill="none"/>
+                  <path d="M8 28 L6 22 M8 28 L14 26" stroke="white" strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
+              </div>
             </div>
           </div>
 
@@ -186,7 +211,6 @@ export const CareerServiceHero: FC = () => {
         }}
       />
 
-      <WaitlistModal open={modalOpen} onClose={() => setModalOpen(false)} />
     </section>
   );
 };
