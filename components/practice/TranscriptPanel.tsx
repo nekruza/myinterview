@@ -30,7 +30,7 @@ export const TranscriptPanel: FC<TranscriptPanelProps> = ({
   if (!isVisible) return null;
 
   return (
-    <div className="w-80 shrink-0 flex flex-col rounded-2xl bg-black/30 backdrop-blur-md border border-white/5 overflow-hidden">
+    <div className="hidden md:flex w-80 shrink-0 flex-col rounded-2xl bg-black/30 backdrop-blur-md border border-white/5 overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5">
         <MessageSquare className="w-3.5 h-3.5 text-white/40" />

@@ -51,7 +51,7 @@ const ControlButton: FC<ControlButtonProps> = ({
   <button
     onClick={onClick}
     disabled={disabled}
-    className="group relative flex items-center justify-center w-12 h-12 rounded-full transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-40 disabled:hover:scale-100"
+    className="group relative flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-40 disabled:hover:scale-100"
     style={{
       background: danger
         ? "rgba(239, 68, 68, 0.9)"
@@ -84,15 +84,15 @@ export const ControlBar: FC<ControlBarProps> = ({
   onInterrupt,
   isAISpeaking,
 }) => (
-  <div className="flex items-center justify-center gap-3 px-6 py-3 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10">
+  <div className="flex items-center justify-center gap-2 md:gap-3 px-4 md:px-6 py-2 md:py-3 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10">
     <ControlButton
-      icon={<FileText className="w-5 h-5 text-white/80" />}
+      icon={<FileText className="w-4 h-4 md:w-5 md:h-5 text-white/80" />}
       label="Notes"
       onClick={onToggleNotes}
       active={notesOpen}
     />
     <ControlButton
-      icon={<Subtitles className="w-5 h-5 text-white/80" />}
+      icon={<Subtitles className="w-4 h-4 md:w-5 md:h-5 text-white/80" />}
       label="Captions"
       onClick={onToggleCaptions}
       active={captionsOn}
@@ -100,7 +100,7 @@ export const ControlBar: FC<ControlBarProps> = ({
     <ControlButton
       icon={
         <Lightbulb
-          className="w-5 h-5"
+          className="w-4 h-4 md:w-5 md:h-5"
           style={{ color: hintLoading ? "#2dec29" : "rgba(255,255,255,0.8)" }}
         />
       }
@@ -111,9 +111,9 @@ export const ControlBar: FC<ControlBarProps> = ({
     <ControlButton
       icon={
         cameraOn ? (
-          <Video className="w-5 h-5 text-white/80" />
+          <Video className="w-4 h-4 md:w-5 md:h-5 text-white/80" />
         ) : (
-          <VideoOff className="w-5 h-5 text-white/80" />
+          <VideoOff className="w-4 h-4 md:w-5 md:h-5 text-white/80" />
         )
       }
       label={cameraOn ? "Camera On" : "Camera Off"}
@@ -121,13 +121,13 @@ export const ControlBar: FC<ControlBarProps> = ({
       active={cameraOn}
     />
     <ControlButton
-      icon={<SkipForward className="w-5 h-5 text-white/80" />}
+      icon={<SkipForward className="w-4 h-4 md:w-5 md:h-5 text-white/80" />}
       label="Skip"
       onClick={onSkip}
     />
     {isAISpeaking && onInterrupt && (
       <ControlButton
-        icon={<StopCircle className="w-5 h-5 text-white" />}
+        icon={<StopCircle className="w-4 h-4 md:w-5 md:h-5 text-white" />}
         label="Interrupt"
         onClick={onInterrupt}
         danger
@@ -136,16 +136,16 @@ export const ControlBar: FC<ControlBarProps> = ({
     <ControlButton
       icon={
         isPaused ? (
-          <Play className="w-5 h-5 text-white/80" />
+          <Play className="w-4 h-4 md:w-5 md:h-5 text-white/80" />
         ) : (
-          <Pause className="w-5 h-5 text-white/80" />
+          <Pause className="w-4 h-4 md:w-5 md:h-5 text-white/80" />
         )
       }
       label={isPaused ? "Resume" : "Pause"}
       onClick={onPause}
     />
     <ControlButton
-      icon={<Square className="w-5 h-5 text-white" />}
+      icon={<Square className="w-4 h-4 md:w-5 md:h-5 text-white" />}
       label="End Session"
       onClick={onStop}
       danger

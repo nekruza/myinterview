@@ -43,7 +43,7 @@ export const VideoArea: FC<VideoAreaProps> = ({
     .slice(0, 2);
 
   return (
-    <div className="relative w-full flex-1 rounded-3xl overflow-hidden bg-gradient-to-br from-[#0a1f0e] to-[#112715]">
+    <div className="relative w-full flex-1 min-h-0 max-h-[65vh] md:max-h-none rounded-3xl overflow-hidden bg-gradient-to-br from-[#0a1f0e] to-[#112715]">
       {/* Vignette overlay */}
       <div
         className="absolute inset-0 z-10 pointer-events-none rounded-3xl"

@@ -725,9 +725,9 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
       </div>
 
       {/* Main content area */}
-      <div className="flex-1 flex gap-4 px-6 pb-4 min-h-0 relative">
+      <div className="flex-1 flex gap-4 px-4 md:px-6 pb-4 min-h-0 relative" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
         {/* Video + controls column */}
-        <div className="flex-1 flex flex-col gap-4 min-w-0 relative">
+        <div className="flex-1 flex flex-col gap-4 min-w-0 min-h-0 relative">
           {/* Inline mic permission banner */}
           {micPermission === false && (
             <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/15 border border-red-500/25 mb-1">

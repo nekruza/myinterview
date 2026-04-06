@@ -15,6 +15,7 @@ const TIERS = [
     features: [
       { text: "3 full mock interviews", strong: true },
       { text: "Resume-tailored questions" },
+      { text: "Job description-tailored interview" },
       { text: "Instant feedback reports" },
       { text: "Behavioral & technical question bank" },
       { text: "Progress dashboard" },
@@ -32,6 +33,7 @@ const TIERS = [
     features: [
       { text: "30 full mock interviews / month", strong: true },
       { text: "Resume-tailored questions" },
+      { text: "Job description-tailored interview" },
       { text: "Instant feedback reports" },
       { text: "Behavioral & technical question bank" },
       { text: "Progress dashboard" },

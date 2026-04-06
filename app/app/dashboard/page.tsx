@@ -402,7 +402,7 @@ export default async function DashboardPage() {
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
 
 
-      <div className="grid gap-3" style={{ gridTemplateColumns: "3fr 2fr" }}>
+      <div className="grid gap-3 grid-cols-1 md:grid-cols-[3fr_2fr]">
         {/* ── AI Practice card */}
         <Link
           href="/app/practice"
