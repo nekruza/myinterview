@@ -83,13 +83,13 @@ export const FeaturesSection: FC = () => {
 
             {/* Annotation */}
             <div
-              className="absolute z-20 pointer-events-none flex-col items-end gap-1 hidden lg:flex"
+              className="absolute z-20 pointer-events-none flex flex-col items-end gap-1"
               style={{ top: "10%", left: "28%" }}
             >
               <span
                 style={{
                   fontFamily: "Georgia, 'Times New Roman', serif",
-                  fontSize: "0.85rem",
+                  fontSize: "clamp(0.65rem, 2.2vw, 0.85rem)",
                   fontStyle: "italic",
                   fontWeight: 400,
                   transform: "rotate(-2deg)",

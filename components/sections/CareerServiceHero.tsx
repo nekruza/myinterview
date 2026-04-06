@@ -90,7 +90,7 @@ export const CareerServiceHero: FC = () => {
                   backgroundImage: "linear-gradient(90deg, #2dec29 0%, #86efac 100%)",
                 }}
               >
-                engineering
+                dream
               </span>
               <br />
               interview.
@@ -169,13 +169,13 @@ export const CareerServiceHero: FC = () => {
               />
               {/* Annotation */}
               <div
-                className="absolute z-20 pointer-events-none flex-col items-end gap-1 hidden lg:flex"
+                className="absolute z-20 pointer-events-none flex flex-col items-end gap-1"
                 style={{ top: "4%", right: "6%" }}
               >
                 <span
                   style={{
                     fontFamily: "Georgia, 'Times New Roman', serif",
-                    fontSize: "1rem",
+                    fontSize: "clamp(0.75rem, 2.5vw, 1rem)",
                     fontStyle: "italic",
                     fontWeight: 700,
                     transform: "rotate(-2deg)",
