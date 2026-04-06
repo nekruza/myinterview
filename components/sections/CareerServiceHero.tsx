@@ -165,6 +165,7 @@ export const CareerServiceHero: FC = () => {
                 loop
                 playsInline
                 controls
+                poster="/avatar_image.png"
                 className="absolute inset-0 w-full h-full object-cover object-top"
               />
               {/* Annotation */}

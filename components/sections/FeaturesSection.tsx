@@ -76,6 +76,7 @@ export const FeaturesSection: FC = () => {
                 loop
                 playsInline
                 controls
+                poster="/avatar_image.png"
                 className="absolute inset-0 w-full h-full object-cover object-top"
               />
               <div className="absolute inset-y-0 right-0 w-48 pointer-events-none hidden lg:block" style={{ background: "linear-gradient(to left, #071a09 0%, rgba(7,26,9,0.8) 40%, transparent 100%)" }} />
