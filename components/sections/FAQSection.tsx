@@ -6,28 +6,28 @@ import { track } from "@/lib/mixpanel";
 
 const FAQS = [
   {
-    q: "Why is the internship unpaid?",
-    a: "Real companies can't pay someone with no track record to contribute to their codebase. Paid internships go to people who already have experience — which is the catch-22 you're trying to escape. The unpaid placement is the mechanism that breaks that cycle: you ship real work, get code-reviewed by engineers, and build 3 months of genuine git history. That's worth infinitely more than another side project no one verifies.",
+    q: "How does the AI mock interview work?",
+    a: "You join a voice session with our AI interviewer, which asks you real interview questions and follows up based on your answers — just like a human interviewer would. After each session you get a detailed breakdown of your performance: communication, structure, content, and areas to improve.",
   },
   {
-    q: "How does the £359 + £499 pricing work?",
-    a: "£359 covers your place in the cohort and everything that comes with it — the internship placement, the CV rewrite, and the mock interview sessions. The £499 placement fee is charged only after you accept a paid job offer. If you don't land a job, you don't pay the £499. We only win when you win.",
+    q: "What kinds of interviews can I practice?",
+    a: "Behavioral (competency-based), situational, and role-specific interviews across any industry. Whether you're going for a product manager role, a finance position, a sales job, or a tech role, the AI adapts its questions to the role and level you're targeting.",
   },
   {
-    q: "What if I don't get a job at the end?",
-    a: "You keep everything: the internship on your CV, the code you shipped, the improved resume, and all the practice sessions. The £499 success fee simply doesn't apply. We take the same risk you do — we don't get paid unless we deliver the outcome.",
+    q: "How is this different from practicing in front of a mirror?",
+    a: "The AI asks follow-up questions, pushes back on vague answers, and scores your responses in real time. It replicates the pressure of a real interview rather than letting you rehearse a script. You can't bluff your way through a follow-up.",
   },
   {
-    q: "How much time do I need to commit?",
-    a: "It is very flexible. You can work around your existing commitments. Up to 10 hours per week is recommended.",
+    q: "How realistic is the AI interviewer?",
+    a: "It's trained on thousands of real interview transcripts and follows the same structured question frameworks used by hiring managers at top companies. Most users say the first session feels surprisingly close to the real thing.",
   },
   {
-    q: "Do I need to be a CS graduate?",
-    a: "No. The only requirement is that you can code. Bootcamp graduates, self-taught developers, and CS graduates all qualify. If you can build things and you can reason about code, you're eligible for Cohort 1.",
+    q: "How many sessions do I get?",
+    a: "That depends on your plan — details are in the pricing section above. You can practice as many times as you want within your plan, and each session is logged so you can track your improvement over time.",
   },
   {
-    q: "When does Cohort 1 start?",
-    a: "We're forming the cohort now. Places are limited to keep the quality of placement and support high. Join the waitlist to lock your spot — you'll be contacted when the start date is confirmed.",
+    q: "When will I see results?",
+    a: "Most users report noticeably more confident and structured answers within 3–5 sessions. The feedback after each session pinpoints exactly what to work on, so improvement is targeted rather than random.",
   },
 ];
 
@@ -59,7 +59,7 @@ export const FAQSection: FC = () => {
             </h2>
           </div>
           <p className="text-sm max-w-xs" style={{ color: "rgba(255,255,255,0.35)" }}>
-            The unpaid internship and pay-on-placement model are intentional — here&apos;s exactly how they work.
+            Everything you need to know about how AI mock interviews work and what to expect.
           </p>
         </div>
 
@@ -145,7 +145,7 @@ export const FAQSection: FC = () => {
           <div>
             <p className="font-bold text-white text-base mb-1">Still have a question?</p>
             <p className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>
-              Join the waitlist and we&apos;ll answer anything before you commit.
+              Join the waitlist and we&apos;ll answer anything before your first session.
             </p>
           </div>
           <button
