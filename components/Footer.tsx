@@ -111,7 +111,7 @@ export const Footer: FC = () => {
               className="text-sm leading-relaxed mb-6 max-w-[240px]"
               style={{ color: "rgba(255,255,255,0.38)" }}
             >
-              Helping graduates land their first engineering job — real internship experience, AI mock interviews, and a career service that only wins when you do.
+              Helping people land their dream job — AI mock interviews, real feedback, and a career service that only wins when you do.
             </p>
             <Link
               href="https://www.linkedin.com/company/myinterview-me/"
@@ -196,7 +196,7 @@ export const Footer: FC = () => {
             &copy; 2026 MyInterview. All rights reserved.
           </p>
           <p className="text-sm" style={{ color: "rgba(255,255,255,0.25)" }}>
-            Built for engineers who deserve better
+            Built for people who deserve better
           </p>
         </div>
       </div>
