@@ -117,7 +117,7 @@ function SignupForm() {
         <p className="text-sm" style={{ color: "rgba(255,255,255,0.42)" }}>
           {plan
             ? `Start your ${plan} plan — 3 free sessions included`
-            : "3 free AI mock interviews — no card needed"}
+            : "Start practising in 60 seconds — 3 free sessions, no card needed"}
         </p>
       </div>
 

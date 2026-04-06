@@ -62,12 +62,12 @@ export default function AuthLayout({
                   className="text-[10px] font-bold uppercase tracking-widest"
                   style={{ color: "rgba(45,236,41,0.65)" }}
                 >
-                  Cohort 1 · Now Forming
+                  AI Mock Interviews · Available Now
                 </span>
               </div>
 
               <h2 className="text-[2.2rem] font-black leading-[1.1] mb-4 text-white">
-                From graduate
+                Practice interviews.
                 <br />
                 <span
                   style={{
@@ -77,15 +77,14 @@ export default function AuthLayout({
                     backgroundClip: "text",
                   }}
                 >
-                  to hired.
+                  Get hired.
                 </span>
               </h2>
               <p
                 className="text-sm leading-relaxed max-w-[290px]"
                 style={{ color: "rgba(255,255,255,0.42)" }}
               >
-                Start with 3 free AI mock interviews — no card needed. Join the
-                waitlist for the full career programme when you&apos;re ready.
+                An AI that knows your CV asks the real questions. Get scored after every session — no card needed.
               </p>
             </div>
 
@@ -124,7 +123,7 @@ export default function AuthLayout({
               </div>
             </div>
 
-            {/* Career service teaser */}
+            {/* How it works */}
             <div
               className="rounded-2xl p-5"
               style={{
@@ -133,16 +132,21 @@ export default function AuthLayout({
               }}
             >
               <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: "rgba(255,255,255,0.28)" }}>
-                Full career programme
+                How it works
               </p>
               <div className="space-y-2">
                 {[
-                  { icon: "🏢", text: "3-month internship at a partner company" },
-                  { icon: "📄", text: "1-on-1 CV rewrite from a specialist" },
-                  { icon: "💼", text: "£499 placement fee — only on success" },
+                  { step: "1", text: "Upload your CV and target role" },
+                  { step: "2", text: "Practice out loud with a voice AI" },
+                  { step: "3", text: "Read your scored feedback report" },
                 ].map((item) => (
-                  <div key={item.text} className="flex items-center gap-2.5">
-                    <span className="text-sm">{item.icon}</span>
+                  <div key={item.step} className="flex items-center gap-2.5">
+                    <span
+                      className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black flex-shrink-0"
+                      style={{ background: "rgba(45,236,41,0.15)", color: "#2dec29" }}
+                    >
+                      {item.step}
+                    </span>
                     <span className="text-xs" style={{ color: "rgba(255,255,255,0.42)" }}>{item.text}</span>
                   </div>
                 ))}
@@ -150,42 +154,6 @@ export default function AuthLayout({
             </div>
           </div>
 
-          {/* Testimonial */}
-          <div
-            className="rounded-2xl p-5"
-            style={{
-              background: "rgba(255,255,255,0.025)",
-              border: "1px solid rgba(255,255,255,0.06)",
-            }}
-          >
-            <p
-              className="text-sm leading-relaxed italic mb-3"
-              style={{ color: "rgba(255,255,255,0.5)" }}
-            >
-              &ldquo;I&apos;d been rejected 14 times before this. Having 3 months of
-              real internship work to talk about changed everything.&rdquo;
-            </p>
-            <div className="flex items-center gap-2.5">
-              <div
-                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
-                style={{
-                  background: "rgba(45,236,41,0.2)",
-                  border: "1px solid rgba(45,236,41,0.3)",
-                  color: "#2dec29",
-                }}
-              >
-                M
-              </div>
-              <div>
-                <div className="text-xs font-semibold" style={{ color: "rgba(255,255,255,0.75)" }}>
-                  Marcus T.
-                </div>
-                <div className="text-[10px]" style={{ color: "rgba(255,255,255,0.3)" }}>
-                  Hired in 2 weeks · Junior Developer
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
