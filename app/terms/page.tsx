@@ -84,9 +84,9 @@ export default function TermsPage() {
 
             <Section title="4. Subscriptions and Payments">
               <p><strong className="text-secondary">Free plan.</strong> MyInterview offers a free tier with limited features. No payment is required to access the free tier.</p>
-              <p><strong className="text-secondary">Paid plans.</strong> The Pro subscription is billed quarterly. All payments are processed by Stripe and are subject to Stripe&apos;s terms.</p>
-              <p><strong className="text-secondary">Cancellation.</strong> You may cancel your subscription at any time. Cancellation takes effect at the end of the current billing period. We do not offer refunds for partial billing periods, except where required by applicable law.</p>
-              <p><strong className="text-secondary">Price changes.</strong> We reserve the right to change subscription prices. We will provide at least 30 days&apos; notice before any price increase takes effect for existing subscribers.</p>
+              <p><strong className="text-secondary">Session credits.</strong> Sessions are purchased as one-time payments — there is no recurring subscription. Available packs: 5 sessions for £5, 20 for £14, or 50 for £29. All payments are processed by Stripe and are subject to Stripe&apos;s terms.</p>
+              <p><strong className="text-secondary">Refunds.</strong> Session credits are non-refundable once purchased, except where required by applicable law. Unused credits do not expire.</p>
+              <p><strong className="text-secondary">Price changes.</strong> We reserve the right to change session credit prices. Any price changes will apply only to future purchases.</p>
             </Section>
 
             <Section title="5. Peer Sessions and Community">

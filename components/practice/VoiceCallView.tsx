@@ -59,7 +59,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
   const [messages, setMessages] = useState<Message[]>([]);
   const [convState, setConvState] = useState<ConversationState>("initializing");
   const [webcamStream, setWebcamStream] = useState<MediaStream | null>(null);
-  const [showCaptions, setShowCaptions] = useState(true);
+  const [showCaptions, setShowCaptions] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
   const [currentHint, setCurrentHint] = useState<string | null>(null);
   const [hintLoading, setHintLoading] = useState(false);
@@ -632,6 +632,18 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ── Compute caption for video overlay ──
+  const captionMessages = useRealtime ? realtime.messages : messages;
+  const captionLastMsg = captionMessages[captionMessages.length - 1];
+  const captionInterim = convState === "listening"
+    ? (speech.finalTranscript + speech.transcript).trim()
+    : "";
+  const videoCaption = captionInterim
+    ? { text: captionInterim, role: "user" as const }
+    : captionLastMsg
+    ? { text: captionLastMsg.content, role: captionLastMsg.role as "user" | "assistant" }
+    : null;
+
   // ── Browser not supported ──
   if (!useRealtime && !speech.isSupported) {
     return (
@@ -755,6 +767,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
             isAISpeaking={convState === "ai_speaking"}
             isUserSpeaking={convState === "listening" && speech.isListening}
             analyserData={visualizer.analyserData}
+            caption={videoCaption}
           />
 
           {/* Hint overlay (positioned inside video area) */}

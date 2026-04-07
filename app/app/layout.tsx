@@ -38,7 +38,7 @@ export default async function AppLayout({
           background: "radial-gradient(ellipse 50% 60% at 0% 50%, rgba(180,200,220,0.08) 0%, transparent 70%)",
         }}
       />
-      <AppLayoutClient userEmail={user.email ?? ""} avatarUrl={profile?.avatar_url ?? null}>
+      <AppLayoutClient userId={user.id} userEmail={user.email ?? ""} avatarUrl={profile?.avatar_url ?? null}>
         {children}
       </AppLayoutClient>
     </div>

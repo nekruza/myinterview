@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
-import type { Plan } from "@/lib/session-limits";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2026-02-25.clover",
@@ -13,17 +12,28 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-function planFromPriceId(_priceId: string): "pro" {
-  return "pro";
-}
-
-async function setPlan(userId: string, plan: Plan) {
-  const { error } = await supabaseAdmin
-    .from("subscriptions")
-    .update({ plan })
-    .eq("user_id", userId);
-  if (error) console.error("[webhook] subscriptions update error:", error);
-  else console.log("[webhook] subscriptions plan set to", plan, "for", userId);
+async function addSessionCredits(userId: string, sessions: number) {
+  const { error } = await supabaseAdmin.rpc("increment_session_credits", {
+    p_user_id: userId,
+    p_amount: sessions,
+  });
+  if (error) {
+    // Fallback: manual increment if RPC not available
+    const { data } = await supabaseAdmin
+      .from("profiles")
+      .select("session_credits")
+      .eq("id", userId)
+      .single();
+    const current = data?.session_credits ?? 0;
+    const { error: updateErr } = await supabaseAdmin
+      .from("profiles")
+      .update({ session_credits: current + sessions })
+      .eq("id", userId);
+    if (updateErr) console.error("[webhook] session_credits update error:", updateErr);
+    else console.log("[webhook] added", sessions, "session credits to", userId);
+  } else {
+    console.log("[webhook] added", sessions, "session credits to", userId, "via RPC");
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -52,10 +62,14 @@ export async function POST(req: NextRequest) {
       console.log("[webhook] checkout.session.completed userId:", userId);
       if (!userId) { console.error("[webhook] No client_reference_id"); break; }
 
-      const plan: "pro" = "pro";
-      await setPlan(userId, plan);
+      const sessionsStr = session.metadata?.sessions;
+      const sessions = sessionsStr ? parseInt(sessionsStr, 10) : 0;
 
-      // Store stripe_customer_id on profile
+      if (sessions > 0) {
+        await addSessionCredits(userId, sessions);
+      }
+
+      // Store stripe_customer_id on profile if present
       if (session.customer) {
         const { error: profErr } = await supabaseAdmin
           .from("profiles")
@@ -66,63 +80,11 @@ export async function POST(req: NextRequest) {
       break;
     }
 
-    case "customer.subscription.updated": {
-      const sub = event.data.object as Stripe.Subscription;
-      const customerId = sub.customer as string;
-
-      const { data: profileRow } = await supabaseAdmin
-        .from("profiles")
-        .select("id")
-        .eq("stripe_customer_id", customerId)
-        .single();
-
-      if (!profileRow) { console.error("[webhook] no profile for customer", customerId); break; }
-
-      const isActive = sub.status === "active" || sub.status === "trialing";
-      const priceId = (sub as any).items?.data?.[0]?.price?.id as string | undefined;
-      const activePlan: Plan = isActive
-        ? (priceId ? planFromPriceId(priceId) : "pro")
-        : "free";
-      await setPlan(profileRow.id, activePlan);
-
-      // Store cancellation details — newer Stripe API uses `cancel_at` (Unix ts)
-      // instead of cancel_at_period_end boolean for portal cancellations.
-      // Also, current_period_end lives inside items.data[0] in this API version.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const subAny = sub as any;
-      const cancelAt: number | null = subAny.cancel_at ?? null;
-      const periodEndFromItems: number | null =
-        subAny.items?.data?.[0]?.current_period_end ?? null;
-      const periodEndTopLevel: number | null = subAny.current_period_end ?? null;
-      const periodEndTs = cancelAt ?? periodEndFromItems ?? periodEndTopLevel;
-      const isCancelling = subAny.cancel_at_period_end === true || cancelAt !== null;
-      const periodEnd = periodEndTs ? new Date(periodEndTs * 1000).toISOString() : null;
-
-      console.log("[webhook] cancel_at:", cancelAt, "cancel_at_period_end:", subAny.cancel_at_period_end, "isCancelling:", isCancelling, "periodEnd:", periodEnd);
-
-      const { error: updateErr } = await supabaseAdmin
-        .from("subscriptions")
-        .update({ cancel_at_period_end: isCancelling, current_period_end: periodEnd })
-        .eq("user_id", profileRow.id);
-      if (updateErr) console.error("[webhook] update cancel details error:", updateErr);
+    // Legacy subscription events — no-op for existing subscribers
+    case "customer.subscription.updated":
+    case "customer.subscription.deleted":
+      console.log("[webhook] legacy subscription event ignored:", event.type);
       break;
-    }
-
-    case "customer.subscription.deleted": {
-      const sub = event.data.object as Stripe.Subscription;
-      const customerId = sub.customer as string;
-
-      const { data: profileRow } = await supabaseAdmin
-        .from("profiles")
-        .select("id")
-        .eq("stripe_customer_id", customerId)
-        .single();
-
-      if (!profileRow) { console.error("[webhook] no profile for customer", customerId); break; }
-
-      await setPlan(profileRow.id, "free");
-      break;
-    }
   }
 
   return NextResponse.json({ received: true });

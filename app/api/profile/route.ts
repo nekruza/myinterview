@@ -29,7 +29,7 @@ export async function GET() {
     supabase
       .from("profiles")
       .select(
-        "id, full_name, avatar_url, resume_url, experience_level, target_role, interview_timeline, target_companies, email_notifications, match_alerts, created_at, practice_sessions_used, peer_sessions_joined, isAdmin"
+        "id, full_name, avatar_url, resume_url, experience_level, target_role, interview_timeline, target_companies, email_notifications, match_alerts, created_at, practice_sessions_used, peer_sessions_joined, isAdmin, session_credits"
       )
       .eq("id", user.id)
       .single(),
@@ -210,6 +210,8 @@ export async function GET() {
     },
 
     plan: (subscription?.plan as Plan) ?? "free",
+
+    session_credits: profile?.session_credits ?? 0,
 
     practice_sessions_used: profile?.practice_sessions_used ?? 0,
     peer_sessions_joined: profile?.peer_sessions_joined ?? 0,

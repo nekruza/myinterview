@@ -19,3 +19,16 @@ export function track(event: string, properties?: Record<string, unknown>) {
   if (!initialized) return;
   mixpanel.track(event, properties);
 }
+
+export function identify(userId: string, email: string) {
+  if (typeof window === "undefined") return;
+  if (!initialized) return;
+  mixpanel.identify(userId);
+  mixpanel.people.set({ $email: email });
+}
+
+export function resetMixpanel() {
+  if (typeof window === "undefined") return;
+  if (!initialized) return;
+  mixpanel.reset();
+}

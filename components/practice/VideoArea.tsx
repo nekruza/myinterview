@@ -11,6 +11,11 @@ const INTERVIEWER = {
   title: "VP of Engineering",
 };
 
+interface CaptionData {
+  text: string;
+  role: "user" | "assistant";
+}
+
 interface VideoAreaProps {
   webcamStream: MediaStream | null;
   isAISpeaking: boolean;
@@ -18,6 +23,7 @@ interface VideoAreaProps {
   analyserData: Uint8Array;
   userName?: string;
   avatarUrl?: string | null;
+  caption?: CaptionData | null;
 }
 
 export const VideoArea: FC<VideoAreaProps> = ({
@@ -27,6 +33,7 @@ export const VideoArea: FC<VideoAreaProps> = ({
   analyserData,
   userName = "You",
   avatarUrl,
+  caption,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
@@ -90,6 +97,26 @@ export const VideoArea: FC<VideoAreaProps> = ({
       {/* Speaking ring overlay on webcam */}
       {webcamStream && isUserSpeaking && (
         <div className="absolute inset-0 z-10 pointer-events-none rounded-3xl animate-speaking-ring" />
+      )}
+
+      {/* Caption overlay */}
+      {caption?.text && (
+        <div className="absolute bottom-14 left-5 right-5 z-20 flex justify-center pointer-events-none">
+          <div
+            className="max-w-2xl w-full px-5 py-3 rounded-2xl text-center"
+            style={{ background: "rgba(0,0,0,0.58)", backdropFilter: "blur(14px)" }}
+          >
+            <p
+              className="text-[9px] font-bold uppercase tracking-widest mb-1.5"
+              style={{ color: caption.role === "user" ? "#2dec29" : "rgba(255,255,255,0.38)" }}
+            >
+              {caption.role === "user" ? "You" : INTERVIEWER.name.split(" ")[0]}
+            </p>
+            <p className="text-sm text-white/95 leading-relaxed line-clamp-3">
+              {caption.text}
+            </p>
+          </div>
+        </div>
       )}
 
       {/* User name tag */}

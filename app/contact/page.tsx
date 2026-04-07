@@ -31,7 +31,7 @@ const faqs = [
   },
   {
     q: "Is there a free plan?",
-    a: "Yes! The free plan includes 3 AI practice sessions and up to 3 peer session joins per month. No credit card required to get started. Pro is £13/month billed quarterly for 30 sessions.",
+    a: "Yes! You get 3 free AI practice sessions to try the platform — no credit card required. After that, you buy session packs: 5 for £5, 20 for £14, or 50 for £29. Credits never expire and there's no subscription.",
   },
   {
     q: "How quickly will you respond to my message?",

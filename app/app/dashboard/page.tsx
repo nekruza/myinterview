@@ -1,9 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
-import type { Plan } from "@/lib/session-limits";
-import { ChevronRight, PlayCircle, User, Sparkles, Zap } from "lucide-react";
+import { ChevronRight, PlayCircle, Sparkles } from "lucide-react";
 import { FreeBanner } from "@/components/FreeBanner";
-import { FeedbackCard } from "@/components/FeedbackCard";
 import Image from "next/image";
 import Link from "next/link";
 import { posts } from "@/lib/blog";
@@ -144,6 +142,40 @@ function SparklineChart({
   );
 }
 
+/** Weekly bar chart (7 bars Mon–Sun) — server-renderable SVG, nulls render as ghost bars */
+function BarChart({
+  data,
+  stroke = "white",
+  className = "",
+}: {
+  data: (number | null)[];
+  stroke?: string;
+  className?: string;
+}) {
+  const W = 200;
+  const H = 56;
+  const count = data.length;
+  const gap = 4;
+  const barW = (W - gap * (count - 1)) / count;
+  const maxVal = 100;
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className={className} aria-hidden="true" preserveAspectRatio="none">
+      {data.map((v, i) => {
+        const x = parseFloat((i * (barW + gap)).toFixed(2));
+        const w = parseFloat(barW.toFixed(2));
+        if (v === null) {
+          // Ghost bar — short placeholder at the bottom
+          return <rect key={i} x={x} y={H - 4} width={w} height={4} rx="2" fill={stroke} fillOpacity="0.15" />;
+        }
+        const barH = Math.max(4, (v / maxVal) * H * 0.9);
+        const y = parseFloat((H - barH).toFixed(2));
+        return <rect key={i} x={x} y={y} width={w} height={parseFloat(barH.toFixed(2))} rx="2" fill={stroke} fillOpacity="0.8" />;
+      })}
+    </svg>
+  );
+}
+
 /** Circular arc progress toward the next streak milestone — server-renderable SVG */
 function StreakRing({ streak, size = 72 }: { streak: number; size?: number }) {
   const milestone = streak < 7 ? 7 : streak < 14 ? 14 : streak < 30 ? 30 : 100;
@@ -182,7 +214,7 @@ export default async function DashboardPage() {
     "there";
   const firstName = displayName.split(" ")[0];
 
-  const [{ data: sessions }, { data: subRow }, { data: profileRow }] = await Promise.all([
+  const [{ data: sessions }, { data: profileRow }] = await Promise.all([
     supabase
       .from("interview_sessions")
       .select("id, status, started_at, completed_at, score")
@@ -191,19 +223,13 @@ export default async function DashboardPage() {
       .order("started_at", { ascending: false })
       .limit(50),
     supabase
-      .from("subscriptions")
-      .select("plan")
-      .eq("user_id", user!.id)
-      .maybeSingle(),
-    supabase
       .from("profiles")
-      .select("practice_sessions_used")
+      .select("session_credits")
       .eq("id", user!.id)
       .maybeSingle(),
   ]);
 
-  const plan = (subRow?.plan ?? "free") as Plan;
-  const practiceUsed = profileRow?.practice_sessions_used ?? 0;
+  const sessionCredits = profileRow?.session_credits ?? 0;
 
   const sessionList = sessions ?? [];
   const completed = sessionList.filter((s) => s.status === "completed");
@@ -250,166 +276,20 @@ export default async function DashboardPage() {
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       {/* 2 ▸ FREE TIER USAGE BANNER (free users only)                          */}
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      {plan === "free" && (
-        <FreeBanner
-          practiceLeft={Math.max(0, 3 - practiceUsed)}
-        />
-      )}
+      <FreeBanner sessionCredits={sessionCredits} />
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      {/* 3 ▸ STREAK HERO (Duolingo-style)                                      */}
+      {/* 3 ▸ MAIN GRID — Practice Now (left) + Day Streak (right)             */}
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      {streak > 0 ? (
-        <Link
-          href="/app/progress"
-          className="relative rounded-2xl overflow-hidden block hover:opacity-95 transition-opacity"
-          style={{ background: "linear-gradient(135deg, #f97316 0%, #fb923c 35%, #fbbf24 100%)" }}
-        >
-          {/* Decorative blob */}
-          <div className="pointer-events-none absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/15" />
-
-          {/* Top: left streak info + right sparkline */}
-          <div className="relative z-10 flex items-stretch gap-0 p-4 h-auto sm:h-[200px] justify-between">
-
-            {/* Left: streak info — shrink-0 so it doesn't eat all flex space */}
-            <div className="shrink-0 flex flex-col gap-2.5 pr-4">
-              <div className="flex items-center gap-3 mb-4">
-                {/* Circular milestone ring with flame inside */}
-                <div className="relative shrink-0 flex flex-col items-center gap-0.5">
-                  <div className="relative" style={{ width: 68, height: 68 }}>
-                    <StreakRing streak={streak} size={68} />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-[26px] leading-none">🔥</span>
-                    </div>
-                  </div>
-                  <span className="text-[9px] font-bold text-white/40 tabular-nums">
-                    of&nbsp;{streak < 7 ? 7 : streak < 14 ? 14 : streak < 30 ? 30 : 100}d
-                  </span>
-                </div>
-                {/* Count + label + message */}
-                <div className="flex flex-col gap-0.5">
-                  <div className="text-4xl font-black text-white leading-none tabular-nums">{streak}</div>
-                  <div className="text-white/80 font-bold text-sm leading-tight">Day Streak</div>
-                  <p className="text-white/55 text-[12px] leading-snug mt-1">
-                    {streak >= 14
-                      ? "Legendary! 🏆"
-                      : streak >= 7
-                      ? "One full week! 🔥"
-                      : streak >= 3
-                      ? "Building momentum!"
-                      : "Great start!"}
-                  </p>
-                </div>
-              </div>
-              {/* Week activity dots */}
-              <div className="flex items-center gap-0.5 sm:gap-1 m-2">
-                {weekActivity.map((day, i) => (
-                  <div key={i} className="flex flex-col items-center gap-0.5">
-                    <div
-                      className={cn(
-                        "w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-[9px] font-black border",
-                        day.active
-                          ? "bg-white text-orange-500 border-white shadow-sm"
-                          : day.isToday
-                          ? "bg-white/20 text-white/70 border-white/30"
-                          : "bg-white/10 border-transparent"
-                      )}
-                    >
-                      {day.active ? "✓" : ""}
-                    </div>
-                    <span className="text-[12px] font-bold text-white/40">{day.label}</span>
-                  </div>
-                ))}
-              </div>
-
-            </div>
-
-            {/* Right: sparkline chart — hidden on small screens */}
-            <div className="hidden sm:flex flex-1 min-w-0 mx-4 flex-col border-l border-white/20 pl-4 max-w-[700px] justify-end">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Score trend</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-semibold text-white/40">{weekRangeLabel}</span>
-                  <span className="text-[10px] font-bold text-white/70 flex items-center gap-0.5">
-                    Progress <ChevronRight className="w-3 h-3" />
-                  </span>
-                </div>
-              </div>
-              {scoreHistory.filter(Boolean).length >= 2 ? (
-                <>
-                  <SparklineChart data={scoreHistory} stroke="white" className="w-full h-14 flex-1" />
-                  <div className="flex justify-between mt-1.5">
-                    {weekActivity.map((day, i) => (
-                      <span key={i} className="text-[12px] font-bold text-white/30">{day.label}</span>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <div className="flex-1 flex flex-col items-center justify-center gap-1.5 py-2">
-                  <span className="text-xl">📈</span>
-                  <span className="text-[9px] text-white/40 text-center leading-tight">
-                    Practice more<br />to see trends
-                  </span>
-                </div>
-              )}
-            </div>
-
-          </div>
-        </Link>
-      ) : (
-        /* Zero-streak state */
-        <div className="glass-card relative rounded-2xl overflow-hidden hover:shadow-md transition-shadow">
-          <div className="pointer-events-none absolute -right-4 -top-4 w-28 h-28 rounded-full bg-primary/5" />
-          <div className="relative z-10 p-5">
-            <div className="flex items-center gap-4 mb-4">
-              <span className="text-3xl">🌱</span>
-              <div>
-                <h2 className="font-bold text-secondary text-base">
-                  {completed.length > 0 ? "Keep your streak going" : "Start your streak today"}
-                </h2>
-                <p className="text-neutral-500 text-xs mt-0.5">Practice daily to build interview confidence.</p>
-              </div>
-            </div>
-            <Link
-              href="/app/practice"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-all hover:brightness-110 active:scale-[0.98] mb-4"
-              style={{ background: "#2dec29", color: "#112715" }}
-            >
-              <PlayCircle className="w-4 h-4" />
-              {completed.length > 0 ? "Continue practicing" : "Begin your first session"}
-            </Link>
-          </div>
-
-          <Link href="/app/progress" className="block border-t border-neutral-100">
-            <div className="grid grid-cols-2 divide-x divide-neutral-100 px-2 py-3">
-              <div className="flex flex-col items-center gap-0.5 px-3">
-                <span className="text-lg font-black text-secondary tabular-nums leading-none">{completed.length}</span>
-                <span className="text-[10px] font-semibold text-neutral-400 mt-0.5">Sessions</span>
-              </div>
-              <div className="flex flex-col items-center gap-0.5 px-3">
-                <span className="text-lg font-black text-secondary tabular-nums leading-none">
-                  {avgScore !== null ? `${avgScore}%` : "—"}
-                </span>
-                <span className="text-[10px] font-semibold text-neutral-400 mt-0.5">Avg score</span>
-              </div>
-            </div>
-          </Link>
-        </div>
-      )}
-
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      {/* 6 ▸ ACTION CARDS — AI + Peer                                         */}
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-
-
       <div className="grid gap-3 grid-cols-1 md:grid-cols-[3fr_2fr]">
-        {/* ── AI Practice card */}
+
+        {/* ── LEFT: AI Practice card */}
         <Link
           href="/app/practice"
           className="group relative rounded-2xl overflow-hidden flex flex-col justify-between p-7 transition-all duration-300 hover:scale-[1.005] hover:shadow-2xl"
           style={{
             background: "linear-gradient(160deg, #071a09 0%, #112914 50%, #0a2010 100%)",
-            minHeight: "288px",
+            minHeight: "380px",
           }}
         >
           {/* ── Glows */}
@@ -418,7 +298,6 @@ export default async function DashboardPage() {
 
           {/* ── Avatar — right side, full bleed */}
           <div className="absolute inset-y-0 right-0 w-[48%] pointer-events-none select-none">
-            {/* mix-blend-mode:multiply on dark bg makes white pixels invisible */}
             <img
               src="/image.png"
               alt="AI Coach"
@@ -477,8 +356,129 @@ export default async function DashboardPage() {
           </div>
         </Link>
 
-        {/* ── Feedback card */}
-        <FeedbackCard />
+        {/* ── RIGHT: Day Streak card */}
+        {streak > 0 ? (
+          <Link
+            href="/app/progress"
+            className="relative rounded-2xl overflow-hidden flex flex-col hover:opacity-95 transition-opacity"
+            style={{ background: "linear-gradient(135deg, #f97316 0%, #fb923c 35%, #fbbf24 100%)", minHeight: "380px" }}
+          >
+            {/* Decorative blob */}
+            <div className="pointer-events-none absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/15" />
+
+            <div className="relative z-10 flex flex-col p-5 flex-1 justify-between gap-4">
+
+              {/* Top: streak ring + number */}
+              <div className="flex items-center gap-3">
+                <div className="relative shrink-0 flex flex-col items-center gap-0.5">
+                  <div className="relative" style={{ width: 68, height: 68 }}>
+                    <StreakRing streak={streak} size={68} />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-[26px] leading-none">🔥</span>
+                    </div>
+                  </div>
+                  <span className="text-[9px] font-bold text-white/40 tabular-nums">
+                    of&nbsp;{streak < 7 ? 7 : streak < 14 ? 14 : streak < 30 ? 30 : 100}d
+                  </span>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <div className="text-4xl font-black text-white leading-none tabular-nums">{streak}</div>
+                  <div className="text-white/80 font-bold text-sm leading-tight">Day Streak</div>
+                  <p className="text-white/55 text-[12px] leading-snug mt-1">
+                    {streak >= 14
+                      ? "Legendary! 🏆"
+                      : streak >= 7
+                      ? "One full week! 🔥"
+                      : streak >= 3
+                      ? "Building momentum!"
+                      : "Great start!"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Middle: session score bars */}
+              <div className="flex flex-col flex-1 border-t border-white/20 pt-4">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Score trend</span>
+                  <span className="text-[10px] font-bold text-white/70 flex items-center gap-0.5">
+                    Progress <ChevronRight className="w-3 h-3" />
+                  </span>
+                </div>
+                {scoreHistory.some((v) => v !== null) ? (
+                  <BarChart data={scoreHistory} stroke="white" className="w-full flex-1 min-h-[48px]" />
+                ) : (
+                  <div className="flex-1 flex flex-col items-center justify-center gap-1.5 py-2">
+                    <span className="text-xl">📊</span>
+                    <span className="text-[9px] text-white/40 text-center leading-tight">
+                      Complete a session<br />to see your scores
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Bottom: week activity dots */}
+              <div className="flex items-center gap-1 border-t border-white/20 pt-4">
+                {weekActivity.map((day, i) => (
+                  <div key={i} className="flex flex-col items-center gap-0.5 flex-1">
+                    <div
+                      className={cn(
+                        "w-8 h-8 rounded-full flex items-center justify-center text-[9px] font-black border",
+                        day.active
+                          ? "bg-white text-orange-500 border-white shadow-sm"
+                          : day.isToday
+                          ? "bg-white/20 text-white/70 border-white/30"
+                          : "bg-white/10 border-transparent"
+                      )}
+                    >
+                      {day.active ? "✓" : ""}
+                    </div>
+                    <span className="text-[12px] font-bold text-white/40">{day.label}</span>
+                  </div>
+                ))}
+              </div>
+
+            </div>
+          </Link>
+        ) : (
+          /* Zero-streak state */
+          <div className="glass-card relative rounded-2xl overflow-hidden hover:shadow-md transition-shadow" style={{ minHeight: "380px" }}>
+            <div className="pointer-events-none absolute -right-4 -top-4 w-28 h-28 rounded-full bg-primary/5" />
+            <div className="relative z-10 p-5">
+              <div className="flex items-center gap-4 mb-4">
+                <span className="text-3xl">🌱</span>
+                <div>
+                  <h2 className="font-bold text-secondary text-base">
+                    {completed.length > 0 ? "Keep your streak going" : "Start your streak today"}
+                  </h2>
+                  <p className="text-neutral-500 text-xs mt-0.5">Practice daily to build interview confidence.</p>
+                </div>
+              </div>
+              <Link
+                href="/app/practice"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-all hover:brightness-110 active:scale-[0.98] mb-4"
+                style={{ background: "#2dec29", color: "#112715" }}
+              >
+                <PlayCircle className="w-4 h-4" />
+                {completed.length > 0 ? "Continue practicing" : "Begin your first session"}
+              </Link>
+            </div>
+
+            <Link href="/app/progress" className="block border-t border-neutral-100">
+              <div className="grid grid-cols-2 divide-x divide-neutral-100 px-2 py-3">
+                <div className="flex flex-col items-center gap-0.5 px-3">
+                  <span className="text-lg font-black text-secondary tabular-nums leading-none">{completed.length}</span>
+                  <span className="text-[10px] font-semibold text-neutral-400 mt-0.5">Sessions</span>
+                </div>
+                <div className="flex flex-col items-center gap-0.5 px-3">
+                  <span className="text-lg font-black text-secondary tabular-nums leading-none">
+                    {avgScore !== null ? `${avgScore}%` : "—"}
+                  </span>
+                  <span className="text-[10px] font-semibold text-neutral-400 mt-0.5">Avg score</span>
+                </div>
+              </div>
+            </Link>
+          </div>
+        )}
 
       </div>
 
@@ -530,45 +530,6 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      {/* 8 ▸ QUICK LINKS ROW                                                   */}
-      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      <div className="grid grid-cols-2 gap-3">
-        <Link
-          href="/app/progress"
-          className="glass-card group flex items-center gap-3 rounded-2xl px-4 py-3.5 hover:shadow-sm transition-shadow"
-        >
-          <div
-            className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-            style={{ background: "#2dec2915" }}
-          >
-            <Zap className="w-4 h-4" style={{ color: "#2dec29" }} />
-          </div>
-          <div className="min-w-0">
-            <p className="font-semibold text-secondary text-sm truncate">Progress</p>
-            <p className="text-[12px] text-neutral-400 truncate">
-              {completed.length > 0
-                ? `${completed.length} sessions done`
-                : "Track your growth"}
-            </p>
-          </div>
-          <ChevronRight className="w-3.5 h-3.5 text-neutral-300 ml-auto shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" />
-        </Link>
-
-        <Link
-          href="/app/settings"
-          className="glass-card group flex items-center gap-3 rounded-2xl px-4 py-3.5 hover:shadow-sm transition-shadow"
-        >
-          <div className="w-8 h-8 rounded-xl bg-neutral-100 flex items-center justify-center shrink-0">
-            <User className="w-4 h-4 text-neutral-500" />
-          </div>
-          <div className="min-w-0">
-            <p className="font-semibold text-secondary text-sm truncate">Profile</p>
-            <p className="text-[12px] text-neutral-400 truncate">Set your goals</p>
-          </div>
-          <ChevronRight className="w-3.5 h-3.5 text-neutral-300 ml-auto shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" />
-        </Link>
-      </div>
 
     </div>
   );

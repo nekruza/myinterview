@@ -18,7 +18,6 @@ import Link from "next/link";
 import { VoiceCallView } from "@/components/practice/VoiceCallView";
 import { LEVELS } from "@/lib/practice-data";
 import type { Phase, Message } from "@/lib/practice-data";
-import type { Plan } from "@/lib/session-limits";
 import { createClient } from "@/lib/supabase/client";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { ResumeUpload } from "@/components/ResumeUpload";
@@ -63,9 +62,7 @@ export default function PracticePage() {
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
 
-  // Usage / plan
-  const [plan, setPlan] = useState<Plan>("free");
-  const [sessionsUsed, setSessionsUsed] = useState(0);
+  const [sessionCredits, setSessionCredits] = useState(0);
   const [showUpgrade, setShowUpgrade] = useState(false);
 
   // Resume
@@ -79,15 +76,15 @@ export default function PracticePage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const [{ data: profile }, { data: subscription }] = await Promise.all([
-        supabase.from("profiles").select("resume_url, resume_text, practice_sessions_used, experience_level, interview_style, target_role").eq("id", user.id).single(),
-        supabase.from("subscriptions").select("plan").eq("user_id", user.id).single(),
-      ]);
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("resume_url, resume_text, session_credits, experience_level, interview_style, target_role")
+        .eq("id", user.id)
+        .single();
 
       setHasResume(!!profile?.resume_url);
       setResumeText(profile?.resume_text ?? null);
-      setSessionsUsed(profile?.practice_sessions_used ?? 0);
-      setPlan((subscription?.plan as Plan) ?? "free");
+      setSessionCredits(profile?.session_credits ?? 0);
 
       // Preset from onboarding preferences
       if (profile?.experience_level) {
@@ -133,7 +130,7 @@ export default function PracticePage() {
   };
 
   const startSession = async () => {
-    if (plan === "free" && sessionsUsed >= 3) {
+    if (sessionCredits <= 0) {
       setShowUpgrade(true);
       return;
     }
@@ -157,7 +154,7 @@ export default function PracticePage() {
         return;
       }
       if (!res.ok) throw new Error(data.error);
-      setSessionsUsed((prev) => prev + 1);
+      setSessionCredits((prev) => Math.max(0, prev - 1));
       setSessionId(data.sessionId);
       setPhase("chat");
     } catch {
@@ -530,12 +527,12 @@ export default function PracticePage() {
 
       {/* ── Sticky Start Button ── */}
       <div className="sticky bottom-16 md:bottom-0 -mx-4 sm:-mx-6 md:-mb-8 px-4 sm:px-6 py-4 mt-6 border-t border-neutral-100" style={{ background: "rgba(250,249,246,0.97)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}>
-        {plan === "free" && (
+        {sessionCredits <= 5 && (
           <p className="text-center text-xs text-neutral-400 mb-2">
-            {sessionsUsed >= 3 ? (
-              <span className="text-amber-600 font-medium">Free limit reached — upgrade for 30 sessions per month</span>
+            {sessionCredits <= 0 ? (
+              <span className="text-amber-600 font-medium">No sessions remaining — buy more to continue</span>
             ) : (
-              <span>{3 - sessionsUsed} free session{3 - sessionsUsed !== 1 ? "s" : ""} remaining</span>
+              <span>{sessionCredits} session{sessionCredits !== 1 ? "s" : ""} remaining</span>
             )}
           </p>
         )}
@@ -545,7 +542,7 @@ export default function PracticePage() {
           style={{ background: "#2dec29", color: "#112715" }}
         >
           <Sparkles className="w-4 h-4" />
-          {plan === "free" && sessionsUsed >= 3 ? "Upgrade to Continue" : "Start Voice Practice"}
+          {sessionCredits <= 0 ? "Buy Sessions to Continue" : "Start Voice Practice"}
         </button>
       </div>
 
@@ -596,7 +593,7 @@ export default function PracticePage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto py-12 space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
       {/* ── Score Hero ── */}
       {feedbackLoading ? (
         <div
@@ -660,13 +657,13 @@ export default function PracticePage() {
                   className="text-7xl font-black leading-none tabular-nums"
                   style={{ color: verdict.color }}
                 >
-                  {feedbackData.score.toFixed(1)}
+                  {Math.round(feedbackData.score * 10)}
                 </span>
                 <span
                   className="text-2xl font-bold mb-2"
                   style={{ color: "rgba(255,255,255,0.18)" }}
                 >
-                  /10
+                  %
                 </span>
               </div>
 
@@ -686,7 +683,7 @@ export default function PracticePage() {
 
               {/* Scale */}
               <div className="flex justify-between">
-                {["0", "2", "4", "6", "8", "10"].map((v) => (
+                {["0%", "20%", "40%", "60%", "80%", "100%"].map((v) => (
                   <span
                     key={v}
                     className="text-[9px] tabular-nums"
@@ -699,7 +696,7 @@ export default function PracticePage() {
 
               {/* Threshold legend */}
               <p className="text-[10px] mt-3" style={{ color: "rgba(255,255,255,0.22)" }}>
-                8–10 Strong pass &middot; 6–8 Lean pass &middot; 4–6 Needs work &middot; &lt;4 Unlikely to pass
+                80–100% Strong pass &middot; 60–80% Lean pass &middot; 40–60% Needs work &middot; &lt;40% Unlikely to pass
               </p>
             </div>
           </div>
@@ -765,7 +762,7 @@ export default function PracticePage() {
                         color: barColor,
                       }}
                     >
-                      {cat.score.toFixed(0)}/10
+                      {Math.round(cat.score * 10)}%
                     </span>
                   </div>
                   <div className="h-[4px] rounded-full overflow-hidden mb-2" style={{ background: "#f3f4f6" }}>
@@ -896,7 +893,7 @@ export default function PracticePage() {
                       color: getCategoryBarColor(q.score),
                     }}
                   >
-                    {q.score.toFixed(0)}/10
+                    {Math.round(q.score * 10)}%
                   </span>
                 </div>
                 <div

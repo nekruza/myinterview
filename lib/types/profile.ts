@@ -58,6 +58,9 @@ export interface UserProfile {
   // Subscription
   plan: Plan;
 
+  // Session credits (session-based billing)
+  session_credits: number;
+
   // Usage tracking (lifetime)
   practice_sessions_used: number;
   peer_sessions_joined: number;

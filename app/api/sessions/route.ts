@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import type { Plan } from "@/lib/session-limits";
-import { SESSION_LIMITS } from "@/lib/session-limits";
 
 // Create a new AI practice session
 export async function POST(req: NextRequest) {
@@ -23,16 +21,16 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Enforce free tier limit of 3 practice sessions
-  const [{ data: subscription }, { data: profileUsage }] = await Promise.all([
-    supabase.from("subscriptions").select("plan").eq("user_id", user.id).single(),
-    supabase.from("profiles").select("practice_sessions_used").eq("id", user.id).single(),
-  ]);
+  // Check session credits
+  const { data: profileUsage } = await supabase
+    .from("profiles")
+    .select("session_credits, practice_sessions_used")
+    .eq("id", user.id)
+    .single();
 
-  const plan = (subscription?.plan as Plan) ?? "free";
-  const sessionsUsed = profileUsage?.practice_sessions_used ?? 0;
+  const credits = profileUsage?.session_credits ?? 0;
 
-  if (sessionsUsed >= SESSION_LIMITS[plan]) {
+  if (credits <= 0) {
     return NextResponse.json(
       { error: "limit_reached", type: "practice" },
       { status: 403 }
@@ -57,10 +55,14 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Increment usage counter for free users (fire-and-forget)
+  // Decrement session credit and increment usage counter
+  const sessionsUsed = profileUsage?.practice_sessions_used ?? 0;
   await supabase
     .from("profiles")
-    .update({ practice_sessions_used: sessionsUsed + 1 })
+    .update({
+      session_credits: credits - 1,
+      practice_sessions_used: sessionsUsed + 1,
+    })
     .eq("id", user.id);
 
   return NextResponse.json({ sessionId: data.id });

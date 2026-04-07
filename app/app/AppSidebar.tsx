@@ -19,7 +19,9 @@ import {
   UserX,
   BookOpen,
   LifeBuoy,
-  Zap,
+  MessageSquare,
+  Star,
+  CheckCircle,
 } from "lucide-react";
 import {
   Popover,
@@ -94,14 +96,50 @@ export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
   const router = useRouter();
   const [popoverOpen, setPopoverOpen] = useState(false);
 
+  // Feedback dialog state
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [feedbackCategory, setFeedbackCategory] = useState<"bug" | "suggestion" | "other">("suggestion");
+  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+
+  function openFeedback() {
+    setFeedbackSubmitted(false);
+    setFeedbackRating(0);
+    setFeedbackMessage("");
+    setFeedbackCategory("suggestion");
+    setFeedbackOpen(true);
+  }
+
+  async function submitFeedback() {
+    if (!feedbackMessage.trim() && feedbackRating === 0) return;
+    setFeedbackSubmitting(true);
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      await supabase.from("user_feedback").insert({
+        user_id: user?.id ?? null,
+        session_id: null,
+        rating: feedbackRating || null,
+        message: feedbackMessage.trim() || null,
+        category: feedbackCategory,
+      });
+      setFeedbackSubmitted(true);
+    } catch {
+      // silent fail — toast not available here, but error won't break UI
+    } finally {
+      setFeedbackSubmitting(false);
+    }
+  }
+
   const { data: notificationsData } = useNotifications();
   const { data: profileData } = useProfile();
   const markRead = useMarkNotificationsRead();
   const markAllRead = useMarkAllNotificationsRead();
 
   const notifications = notificationsData ?? [];
-  const plan = profileData?.plan ?? null;
-  const practiceUsed = profileData?.practice_sessions_used ?? 0;
+  const sessionCredits = profileData?.session_credits ?? 0;
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   function handleMarkAllRead() {
@@ -262,8 +300,30 @@ export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
           </Tooltip>
         </div>
 
-        {/* ── Free tier usage indicator (free users only) ──────── */}
-        {plan === "free" && (
+        {/* ── Give Feedback ─────────────────────────────────── */}
+        <div className="relative z-10 w-full px-2 shrink-0">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={openFeedback}
+                className="flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 mx-auto"
+                style={{ color: "rgba(0,0,0,0.45)", border: "1px solid transparent" }}
+                onMouseEnter={(e) => Object.assign((e.currentTarget as HTMLElement).style, glassHoverPill)}
+                onMouseLeave={(e) => {
+                  const el = e.currentTarget as HTMLElement;
+                  el.style.background = "";
+                  el.style.boxShadow = "";
+                }}
+              >
+                <MessageSquare className="w-5 h-5" style={{ filter: "drop-shadow(0 1px 1.5px rgba(0,0,0,0.12))" }} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">Give Feedback</TooltipContent>
+          </Tooltip>
+        </div>
+
+        {/* ── Session credit warning indicator ──────────────────── */}
+        {sessionCredits <= 5 && (
           <div className="relative z-10 w-full px-2 shrink-0">
             <Tooltip>
               <TooltipTrigger asChild>
@@ -271,7 +331,7 @@ export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
                   href="/app/settings"
                   className="flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 mx-auto relative"
                   style={{
-                    color: practiceUsed >= 3
+                    color: sessionCredits <= 0
                       ? "#f59e0b"
                       : "rgba(0,0,0,0.45)",
                     border: "1px solid transparent",
@@ -285,11 +345,17 @@ export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
                     el.style.boxShadow = "";
                   }}
                 >
-                  <Zap
-                    className="w-5 h-5"
-                    style={{ filter: "drop-shadow(0 1px 1.5px rgba(0,0,0,0.12))" }}
-                  />
-                  {practiceUsed >= 3 && (
+                  {/* Numeric credit badge */}
+                  <span
+                    className="text-[11px] font-black tabular-nums leading-none flex items-center justify-center w-6 h-6 rounded-lg"
+                    style={{
+                      background: sessionCredits <= 0 ? "rgba(245,158,11,0.18)" : "rgba(0,0,0,0.08)",
+                      color: sessionCredits <= 0 ? "#f59e0b" : "inherit",
+                    }}
+                  >
+                    {sessionCredits}
+                  </span>
+                  {sessionCredits <= 0 && (
                     <span
                       className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full animate-pulse"
                       style={{ background: "#f59e0b" }}
@@ -298,9 +364,8 @@ export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
                 </Link>
               </TooltipTrigger>
               <TooltipContent side="right" className="max-w-[200px]">
-                <p className="font-semibold text-xs mb-1">Free Plan</p>
-                <p className="text-xs">{Math.max(0, 3 - practiceUsed)}/3 AI sessions left</p>
-                <p className="text-xs mt-1 opacity-70">Click to upgrade →</p>
+                <p className="font-semibold text-xs mb-1">Sessions</p>
+                <p className="text-xs">{sessionCredits} session{sessionCredits !== 1 ? "s" : ""} remaining</p>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -565,8 +630,133 @@ export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
             </Link>
           );
         })}
+        <button
+          onClick={openFeedback}
+          className="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl min-w-[44px] transition-all duration-200"
+          style={{ color: "rgba(0,0,0,0.4)" }}
+        >
+          <MessageSquare className="w-5 h-5" />
+          <span className="text-[9px] font-semibold leading-none mt-0.5">Feedback</span>
+        </button>
       </div>
     </nav>
+      {/* ── Feedback dialog ────────────────────────────────────── */}
+      {feedbackOpen && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.45)" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setFeedbackOpen(false); }}
+        >
+          <div
+            className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl"
+            style={{ border: "1px solid rgba(0,0,0,0.06)" }}
+          >
+            {feedbackSubmitted ? (
+              <div className="text-center py-6 space-y-3">
+                <div
+                  className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto"
+                  style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}
+                >
+                  <CheckCircle className="w-6 h-6" style={{ color: "#2dec29" }} />
+                </div>
+                <p className="font-bold text-secondary text-lg">Thanks for your feedback!</p>
+                <p className="text-sm text-neutral-500">We read every submission and use it to improve.</p>
+                <button
+                  onClick={() => setFeedbackOpen(false)}
+                  className="mt-2 px-5 py-2 rounded-xl text-sm font-semibold border border-neutral-200 text-secondary hover:bg-neutral-50 transition"
+                >
+                  Close
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="text-base font-bold text-secondary">Share your feedback</h2>
+                  <button
+                    onClick={() => setFeedbackOpen(false)}
+                    className="text-neutral-300 hover:text-neutral-500 transition text-xl leading-none w-7 h-7 flex items-center justify-center rounded-lg hover:bg-neutral-100"
+                  >
+                    &times;
+                  </button>
+                </div>
+
+                {/* Rating */}
+                <div className="mb-4">
+                  <p className="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-2">
+                    How&apos;s the app?
+                  </p>
+                  <div className="flex gap-1.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        onClick={() => setFeedbackRating(star)}
+                        className="transition-transform hover:scale-110 active:scale-95"
+                      >
+                        <Star
+                          className="w-7 h-7 transition-colors"
+                          style={{
+                            color: star <= feedbackRating ? "#f59e0b" : "#e5e7eb",
+                            fill: star <= feedbackRating ? "#f59e0b" : "none",
+                          }}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Category */}
+                <div className="mb-4">
+                  <p className="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-2">
+                    Type
+                  </p>
+                  <div className="flex gap-2">
+                    {(["suggestion", "bug", "other"] as const).map((c) => (
+                      <button
+                        key={c}
+                        onClick={() => setFeedbackCategory(c)}
+                        className="px-3 py-1.5 rounded-lg text-xs font-medium transition capitalize"
+                        style={{
+                          border: feedbackCategory === c ? "1.5px solid #2dec29" : "1.5px solid transparent",
+                          background: feedbackCategory === c
+                            ? "linear-gradient(135deg, #f0fdf4, #dcfce7)"
+                            : "#f9fafb",
+                          color: feedbackCategory === c ? "#112715" : "#6b7280",
+                          boxShadow: feedbackCategory === c ? "0 0 0 3px rgba(45,236,41,0.08)" : "none",
+                        }}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Message */}
+                <div className="mb-5">
+                  <p className="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-2">
+                    Message
+                  </p>
+                  <textarea
+                    value={feedbackMessage}
+                    onChange={(e) => setFeedbackMessage(e.target.value)}
+                    placeholder="Tell us what you think, what's broken, or what you'd love to see..."
+                    rows={4}
+                    className="w-full px-4 py-3 rounded-xl border border-neutral-200 text-sm text-secondary placeholder:text-neutral-300 focus:outline-none focus:border-[#2dec29] focus:ring-1 focus:ring-[#2dec29] transition resize-none"
+                  />
+                </div>
+
+                <button
+                  onClick={submitFeedback}
+                  disabled={feedbackSubmitting || (!feedbackMessage.trim() && feedbackRating === 0)}
+                  className="w-full py-2.5 rounded-xl font-bold text-sm transition-all hover:brightness-110 disabled:opacity-40"
+                  style={{ background: "#2dec29", color: "#071a09" }}
+                >
+                  {feedbackSubmitting ? "Submitting…" : "Submit Feedback"}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 };

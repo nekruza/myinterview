@@ -26,11 +26,11 @@ export function OrganizationSchema() {
       },
       {
         "@type": "Offer",
-        name: "Pro Plan",
-        price: "13",
+        name: "Session Credits",
+        price: "5",
         priceCurrency: "GBP",
         description:
-          "30 AI mock interview sessions per month with resume-tailored questions, billed £39 every 3 months.",
+          "Buy AI mock interview session packs as you need them. 5 sessions for £5, 20 for £14, or 50 for £29. Credits never expire and no subscription is required.",
         availability: "https://schema.org/InStock",
       },
       {

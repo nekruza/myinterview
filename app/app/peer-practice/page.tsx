@@ -702,10 +702,6 @@ const PeerPracticeContent: FC = () => {
   const joinsUsed = profileData?.peer_sessions_joined ?? 0;
 
   async function handleJoin(sessionId: string) {
-    if (plan === "free" && joinsUsed >= 3) {
-      setShowUpgrade(true);
-      return;
-    }
     setJoiningId(sessionId);
     joinMutation.mutate(sessionId, {
       onSuccess: () => {
@@ -952,16 +948,6 @@ const PeerPracticeContent: FC = () => {
         </div>
       )}
 
-      {/* Free tier join usage */}
-      {plan === "free" && (
-        <p className="text-xs text-neutral-400 text-center">
-          {joinsUsed >= 3 ? (
-            <span className="text-amber-600 font-medium">Free join limit reached — upgrade for 30 peer sessions per month</span>
-          ) : (
-            <span>{3 - joinsUsed} free peer join{3 - joinsUsed !== 1 ? "s" : ""} remaining</span>
-          )}
-        </p>
-      )}
 
       {/* Create dialog */}
       <CreateSessionDialog

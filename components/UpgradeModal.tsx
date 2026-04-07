@@ -2,38 +2,29 @@
 
 import { useState } from "react";
 import { fireConversion } from "@/lib/conversion";
-import { Sparkles, X, Zap, Infinity } from "lucide-react";
+import { Sparkles, X, Zap } from "lucide-react";
 import {
   Dialog,
   DialogContent,
 } from "@/components/ui/dialog";
+import { SESSION_PACKS } from "@/lib/session-limits";
+import type { PackSize } from "@/lib/session-limits";
 
 type Reason = "practice_limit" | "peer_limit" | "pro_required";
 
-const CONTENT: Record<Reason, { title: string; description: string; features: string[] }> = {
+const CONTENT: Record<Reason, { title: string; description: string }> = {
   practice_limit: {
-    title: "You've used all 3 free sessions",
-    description: "Upgrade to keep practicing with AI interview sessions.",
-    features: ["30 AI practice sessions per month", "30 peer session joins per month", "Create & host peer meetings"],
+    title: "You've used all your sessions",
+    description: "Buy a session pack to keep practising.",
   },
   peer_limit: {
-    title: "You've used all 3 free peer joins",
-    description: "Upgrade to join more peer practice sessions.",
-    features: ["30 AI practice sessions per month", "30 peer session joins per month", "Create & host peer meetings"],
+    title: "No sessions remaining",
+    description: "Buy a session pack to continue.",
   },
   pro_required: {
-    title: "Pro plan required",
-    description: "Creating and hosting peer practice sessions is a Pro feature.",
-    features: ["Host peer meetings", "30 AI practice sessions per month", "30 peer session joins per month"],
+    title: "Sessions required",
+    description: "You need sessions to use this feature.",
   },
-};
-
-const PLAN = {
-  key: "pro" as const,
-  label: "Pro",
-  price: "£13",
-  billingNote: "Billed £39 every 3 months",
-  sessions: "30 sessions/mo",
 };
 
 export function UpgradeModal({
@@ -46,18 +37,16 @@ export function UpgradeModal({
   reason: Reason;
 }) {
   const [loading, setLoading] = useState(false);
+  const [selected, setSelected] = useState<PackSize>(20);
   const content = CONTENT[reason];
 
-  async function handleUpgrade() {
+  async function handleBuy() {
     setLoading(true);
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          plan: "pro",
-          interval: "quarter",
-        }),
+        body: JSON.stringify({ sessions: selected }),
       });
       if (!res.ok) throw new Error("Checkout failed");
       const data = await res.json();
@@ -71,6 +60,8 @@ export function UpgradeModal({
       setLoading(false);
     }
   }
+
+  const selectedPack = SESSION_PACKS.find((p) => p.sessions === selected)!;
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -101,9 +92,41 @@ export function UpgradeModal({
 
         {/* Body */}
         <div className="px-6 py-5 space-y-4">
+          {/* Pack selector */}
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Choose a pack</p>
+            <div className="grid grid-cols-3 gap-2">
+              {SESSION_PACKS.map((pack) => {
+                const perSession = (pack.priceGbp / pack.sessions).toFixed(2);
+                const isSelected = selected === pack.sessions;
+                return (
+                  <button
+                    key={pack.sessions}
+                    onClick={() => setSelected(pack.sessions)}
+                    className="flex flex-col items-center rounded-xl px-2 py-3 border transition-all"
+                    style={{
+                      background: isSelected ? "#f4fdf3" : "transparent",
+                      borderColor: isSelected ? "#2dec29" : "#e5e7eb",
+                    }}
+                  >
+                    <span className="text-lg font-black text-secondary">{pack.sessions}</span>
+                    <span className="text-[10px] text-neutral-500 leading-tight">sessions</span>
+                    <span className="text-sm font-bold text-secondary mt-1">£{pack.priceGbp}</span>
+                    <span className="text-[10px] text-neutral-400">£{perSession}/ea</span>
+                    {pack.label && (
+                      <span className="text-[9px] font-bold mt-1 px-1.5 py-0.5 rounded-full" style={{ background: "#2dec29", color: "#112715" }}>
+                        {pack.label}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Features */}
-          <ul className="space-y-2.5">
-            {content.features.map((f) => (
+          <ul className="space-y-2">
+            {["Resume-tailored questions", "Instant AI feedback reports", "Credits never expire"].map((f) => (
               <li key={f} className="flex items-center gap-2.5 text-sm text-secondary">
                 <span
                   className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
@@ -114,37 +137,26 @@ export function UpgradeModal({
                 {f}
               </li>
             ))}
-            <li className="flex items-center gap-2.5 text-sm text-secondary">
-              <span
-                className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
-                style={{ background: "#f4fdf3" }}
-              >
-                <Infinity className="w-3 h-3" style={{ color: "#2dec29" }} />
-              </span>
-              And much more
-            </li>
           </ul>
 
-          {/* Plan info */}
+          {/* Pricing note */}
           <div className="rounded-xl px-4 py-3 border border-[#2dec29] bg-[#f4fdf3]">
-            <p className="text-xs text-neutral-500 font-medium">{PLAN.label}</p>
+            <p className="text-xs text-neutral-500 font-medium">One-time payment · no subscription</p>
             <p className="text-secondary font-bold text-sm">
-              {PLAN.price}/mo
+              {selected} sessions — £{selectedPack.priceGbp}
             </p>
-            <p className="text-xs text-neutral-400">{PLAN.billingNote} · {PLAN.sessions}</p>
+            <p className="text-xs text-neutral-400">≈ ${selectedPack.priceUsd} USD</p>
           </div>
 
           {/* CTA */}
           <button
-            onClick={handleUpgrade}
+            onClick={handleBuy}
             disabled={loading}
             className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-sm transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A] disabled:opacity-60 disabled:shadow-none disabled:translate-y-0"
             style={{ background: "#2dec29", color: "#112715" }}
           >
             <Sparkles className="w-4 h-4" />
-            {loading
-              ? "Redirecting…"
-              : `Upgrade to Pro — ${PLAN.price}/mo`}
+            {loading ? "Redirecting…" : `Buy ${selected} sessions — £${selectedPack.priceGbp}`}
           </button>
 
           <button

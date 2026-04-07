@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useState, useRef, useEffect, useCallback } from "react";
+import { FC, useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
@@ -24,10 +24,8 @@ import {
 } from "lucide-react";
 import { ResumeUpload } from "@/components/ResumeUpload";
 import { useSettingsProfile } from "@/lib/queries/profile";
-import { useSubscription } from "@/lib/queries/subscription";
 import { useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/lib/queries/keys";
-import type { Plan } from "@/lib/session-limits";
 
 const EXPERIENCE_LEVELS = [
   { value: "junior", label: "Junior (0-2 years)" },
@@ -148,43 +146,35 @@ const SettingsPage: FC<SettingsProps> = () => {
   const [feedbackPreference, setFeedbackPreference] = useState("");
   const [wantsTips, setWantsTips] = useState<boolean | null>(null);
 
-  // Subscription
-  const [plan, setPlan] = useState<Plan>("free");
-  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
-  const [currentPeriodEnd, setCurrentPeriodEnd] = useState<string | null>(null);
-  const [upgradingPlan, setUpgradingPlan] = useState(false);
+  const [sessionCredits, setSessionCredits] = useState<number | null>(null);
+  const [buyingSessions, setBuyingSessions] = useState(false);
 
   // Edit modes
   const [editingProfile, setEditingProfile] = useState(false);
   const [editingPrefs, setEditingPrefs] = useState(false);
 
   // React Query hooks
-  const { data: settingsProfile } = useSettingsProfile();
-  const { data: subscriptionData, refetch: refetchSubscription } = useSubscription();
+  const { data: settingsProfile, refetch: refetchSettingsProfile } = useSettingsProfile();
   const queryClient = useQueryClient();
 
-  // Returns the fetched plan so callers can act on it directly
-  const loadPlan = useCallback(async (): Promise<Plan> => {
-    const result = await refetchSubscription();
-    return (result.data?.plan as Plan) ?? "free";
-  }, [refetchSubscription]);
-
   useEffect(() => {
-    if (searchParams?.get("upgraded") !== "true") return;
+    const purchased = searchParams?.get("purchased");
+    if (!purchased) return;
 
-    toast.success("Upgrade successful! Setting up your account…");
+    const sessions = parseInt(purchased, 10);
+    toast.success(`Payment successful! ${sessions} sessions added to your account.`);
+    fireConversion();
 
+    // Poll until session_credits reflects the purchase
     let cancelled = false;
-    const delays = [2000, 4000, 6000, 8000, 10000, 12000, 15000, 20000];
+    const delays = [2000, 4000, 6000, 8000, 10000, 12000, 15000];
     let timeoutId: ReturnType<typeof setTimeout>;
 
     const poll = async (attemptIndex: number) => {
       if (cancelled) return;
-      const fetched = await loadPlan();
+      const result = await refetchSettingsProfile();
       if (cancelled) return;
-      if (fetched === "pro") {
-        toast.success("You're now on Pro! Enjoy 30 sessions per month.");
-        fireConversion();
+      if ((result.data?.session_credits ?? 0) > (sessionCredits ?? 0)) {
         router.replace("/app/settings");
         return;
       }
@@ -194,11 +184,7 @@ const SettingsPage: FC<SettingsProps> = () => {
     };
 
     timeoutId = setTimeout(() => poll(0), delays[0]);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(timeoutId);
-    };
+    return () => { cancelled = true; clearTimeout(timeoutId); };
   }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Effect 1: Sync auth user (email + userId)
@@ -238,13 +224,12 @@ const SettingsPage: FC<SettingsProps> = () => {
     setResumeLoaded(true);
   }, [settingsProfile]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Effect 3: Sync subscription into plan state
+  // Effect 3: Sync session_credits from profile
   useEffect(() => {
-    if (!subscriptionData) return;
-    setPlan((subscriptionData.plan as Plan) ?? "free");
-    setCancelAtPeriodEnd(subscriptionData.cancel_at_period_end ?? false);
-    setCurrentPeriodEnd(subscriptionData.current_period_end ?? null);
-  }, [subscriptionData]);
+    if (settingsProfile?.session_credits != null) {
+      setSessionCredits(settingsProfile.session_credits);
+    }
+  }, [settingsProfile]);
 
   async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -332,37 +317,22 @@ const SettingsPage: FC<SettingsProps> = () => {
     setTargetCompanies((prev) => prev.filter((c) => c !== company));
   }
 
-  async function handleUpgrade() {
-    setUpgradingPlan(true);
+  async function handleBuySessions(sessions = 5) {
+    setBuyingSessions(true);
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: "pro", interval: "quarter" }),
+        body: JSON.stringify({ sessions }),
       });
       const data = await res.json();
       if (data.url) {
-        fireConversion();
         window.location.href = data.url;
       }
     } catch {
       toast.error("Could not start checkout. Please try again.");
     } finally {
-      setUpgradingPlan(false);
-    }
-  }
-
-  async function handleManageSubscription() {
-    setUpgradingPlan(true);
-    try {
-      const res = await fetch("/api/stripe/portal", { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Could not open billing portal");
-      if (data.url) window.location.href = data.url;
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not open billing portal. Please try again.");
-    } finally {
-      setUpgradingPlan(false);
+      setBuyingSessions(false);
     }
   }
 
@@ -621,52 +591,29 @@ const SettingsPage: FC<SettingsProps> = () => {
             <div>
               <div className="flex items-center gap-2">
                 <p className="text-sm font-semibold text-secondary">
-                  {plan === "pro" ? "Pro Plan" : "Free Plan"}
+                  {sessionCredits ?? "—"} session{sessionCredits !== 1 ? "s" : ""} remaining
                 </p>
-                {plan === "pro" && !cancelAtPeriodEnd && (
-                  <span
-                    className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                    style={{ background: "#f4fdf3", color: "#112715" }}
-                  >
-                    Active
-                  </span>
-                )}
-                {cancelAtPeriodEnd && (
+                {sessionCredits !== null && sessionCredits <= 0 && (
                   <span
                     className="text-[10px] font-bold px-2 py-0.5 rounded-full"
                     style={{ background: "#fff7ed", color: "#c2410c" }}
                   >
-                    Cancels {currentPeriodEnd ? new Date(currentPeriodEnd).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "soon"}
+                    Empty
                   </span>
                 )}
               </div>
               <p className="text-xs text-neutral-400 mt-0.5">
-                {cancelAtPeriodEnd
-                  ? `Your Pro access continues until ${currentPeriodEnd ? new Date(currentPeriodEnd).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "the end of your billing period"}, then reverts to Free.`
-                  : plan === "pro"
-                  ? "30 interviews per month, 30 peer session joins, and the ability to create meetings."
-                  : "3 free interviews to get started · 3 peer session joins · Upgrade for 30 interviews/month."}
+                5 for £5 · 20 for £14 · 50 for £29 · credits never expire
               </p>
             </div>
-            {plan === "pro" ? (
-              <button
-                onClick={handleManageSubscription}
-                disabled={upgradingPlan}
-                className="self-start sm:self-auto px-4 py-2 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-60"
-                style={{ background: "#112715", color: "#fff" }}
-              >
-                {upgradingPlan ? "Loading…" : "Manage Subscription"}
-              </button>
-            ) : (
-              <button
-                onClick={handleUpgrade}
-                disabled={upgradingPlan}
-                className="self-start sm:self-auto px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A] disabled:opacity-60 disabled:shadow-none disabled:translate-y-0"
-                style={{ background: "#2dec29", color: "#112715" }}
-              >
-                {upgradingPlan ? "Loading…" : "Upgrade to Pro — £13/mo"}
-              </button>
-            )}
+            <button
+              onClick={() => handleBuySessions(5)}
+              disabled={buyingSessions}
+              className="self-start sm:self-auto px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A] disabled:opacity-60 disabled:shadow-none disabled:translate-y-0"
+              style={{ background: "#2dec29", color: "#112715" }}
+            >
+              {buyingSessions ? "Loading…" : "Buy 5 sessions — £5"}
+            </button>
           </div>
         </section>
 

@@ -1,22 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { Zap, ChevronRight } from "lucide-react";
+import { Zap } from "lucide-react";
 
 interface FreeBannerProps {
-  practiceLeft: number;
+  sessionCredits: number;
 }
 
-export function FreeBanner({ practiceLeft }: FreeBannerProps) {
+export function FreeBanner({ sessionCredits }: FreeBannerProps) {
   const [loading, setLoading] = useState(false);
 
-  async function handleUpgrade() {
+  async function handleBuy() {
     setLoading(true);
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: "pro", interval: "quarter" }),
+        body: JSON.stringify({ sessions: 5 }),
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
@@ -25,17 +25,18 @@ export function FreeBanner({ practiceLeft }: FreeBannerProps) {
     }
   }
 
-  const isExhausted = practiceLeft === 0;
+  const isExhausted = sessionCredits === 0;
+  const isLow = sessionCredits <= 2 && sessionCredits > 0;
+
+  if (sessionCredits > 5) return null;
 
   return (
     <button
-      onClick={handleUpgrade}
+      onClick={handleBuy}
       disabled={loading}
       className="w-full flex items-center gap-4 rounded-2xl px-5 py-4 text-left transition-all duration-200 group"
       style={{
-        background: isExhausted
-          ? "linear-gradient(135deg, #071a09 0%, #0d2410 100%)"
-          : "linear-gradient(135deg, #071a09 0%, #0d2410 100%)",
+        background: "linear-gradient(135deg, #071a09 0%, #0d2410 100%)",
         border: isExhausted
           ? "1px solid rgba(45,236,41,0.35)"
           : "1px solid rgba(45,236,41,0.18)",
@@ -52,14 +53,14 @@ export function FreeBanner({ practiceLeft }: FreeBannerProps) {
         e.currentTarget.style.boxShadow = isExhausted ? "0 0 24px rgba(45,236,41,0.06)" : "none";
       }}
     >
-      {/* Sessions remaining pills */}
+      {/* Session credit pills */}
       <div className="flex gap-1 shrink-0">
         {[0, 1, 2].map((i) => (
           <div
             key={i}
             className="w-2 h-6 rounded-full transition-all"
             style={{
-              background: i < practiceLeft
+              background: i < Math.min(sessionCredits, 3)
                 ? "#2dec29"
                 : "rgba(255,255,255,0.1)",
             }}
@@ -69,10 +70,14 @@ export function FreeBanner({ practiceLeft }: FreeBannerProps) {
 
       <div className="flex-1 min-w-0">
         <p className="text-xs font-bold leading-tight" style={{ color: "rgba(255,255,255,0.85)" }}>
-          {isExhausted ? "Free sessions used up" : `${practiceLeft} of 3 free sessions left`}
+          {isExhausted
+            ? "No sessions remaining"
+            : `${sessionCredits} session${sessionCredits === 1 ? "" : "s"} remaining`}
         </p>
         <p className="text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
-          {isExhausted ? "Upgrade to keep practicing" : "Upgrade for unlimited AI practice"}
+          {isExhausted || isLow
+            ? "Packs from £5 · 20 for £14 · 50 for £29"
+            : "Top up anytime · packs from £5"}
         </p>
       </div>
 
@@ -80,7 +85,7 @@ export function FreeBanner({ practiceLeft }: FreeBannerProps) {
         className="flex items-center gap-1.5 text-xs font-bold shrink-0 px-3 py-1.5 rounded-lg transition-all"
         style={{ background: "#2dec29", color: "#071a09" }}
       >
-        {loading ? "…" : <><Zap className="w-3 h-3" /><span>Upgrade</span></>}
+        {loading ? "…" : <><Zap className="w-3 h-3" /><span>Buy sessions</span></>}
       </div>
     </button>
   );

@@ -36,6 +36,7 @@ export interface SettingsProfile {
   interview_platform: string | null;
   feedback_preference: string | null;
   wants_tips: boolean | null;
+  session_credits: number | null;
 }
 
 async function fetchSettingsProfile(): Promise<SettingsProfile | null> {
@@ -45,7 +46,7 @@ async function fetchSettingsProfile(): Promise<SettingsProfile | null> {
   const { data, error } = await supabase
     .from("profiles")
     .select(
-      "full_name, avatar_url, resume_url, experience_level, interview_timeline, target_companies, email_notifications, match_alerts, interview_style, interview_duration, practice_partner, interview_language, interview_platform, feedback_preference, wants_tips"
+      "full_name, avatar_url, resume_url, experience_level, interview_timeline, target_companies, email_notifications, match_alerts, interview_style, interview_duration, practice_partner, interview_language, interview_platform, feedback_preference, wants_tips, session_credits"
     )
     .eq("id", user.id)
     .single();

@@ -1,21 +1,21 @@
 import { MetadataRoute } from "next";
-import { getAllSlugs } from "@/lib/blog";
+import { posts } from "@/lib/blog";
 
 const BASE_URL = "https://myinterview.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const blogSlugs = getAllSlugs();
+  const now = new Date();
 
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: BASE_URL,
-      lastModified: new Date("2026-02-15"),
+      lastModified: now,
       changeFrequency: "weekly",
       priority: 1.0,
     },
     {
       url: `${BASE_URL}/blog`,
-      lastModified: new Date("2026-02-15"),
+      lastModified: now,
       changeFrequency: "weekly",
       priority: 0.9,
     },
@@ -39,9 +39,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  const blogPages: MetadataRoute.Sitemap = blogSlugs.map((slug) => ({
-    url: `${BASE_URL}/blog/${slug}`,
-    lastModified: new Date("2026-02-15"),
+  const blogPages: MetadataRoute.Sitemap = posts.map((post) => ({
+    url: `${BASE_URL}/blog/${post.slug}`,
+    lastModified: new Date(post.date),
     changeFrequency: "monthly" as const,
     priority: 0.8,
   }));

@@ -1,16 +1,23 @@
 "use client";
 
+import { useEffect } from "react";
 import { QueryProvider } from "@/components/QueryProvider";
 import { AppSidebar } from "./AppSidebar";
 import { Toaster } from "@/components/ui/sonner";
+import { identify } from "@/lib/mixpanel";
 
 interface AppLayoutClientProps {
   children: React.ReactNode;
+  userId: string;
   userEmail: string;
   avatarUrl: string | null;
 }
 
-export function AppLayoutClient({ children, userEmail, avatarUrl }: AppLayoutClientProps) {
+export function AppLayoutClient({ children, userId, userEmail, avatarUrl }: AppLayoutClientProps) {
+  useEffect(() => {
+    identify(userId, userEmail);
+  }, [userId, userEmail]);
+
   return (
     <QueryProvider>
       <AppSidebar userEmail={userEmail} avatarUrl={avatarUrl} />
