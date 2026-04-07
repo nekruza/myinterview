@@ -7,6 +7,46 @@ interface FreeBannerProps {
   sessionCredits: number;
 }
 
+export function FreeBannerInline({ sessionCredits }: FreeBannerProps) {
+  const [loading, setLoading] = useState(false);
+
+  async function handleBuy() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessions: 5 }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div
+      className="flex items-center gap-3 px-4 py-2.5 rounded-xl shrink-0"
+      style={{ background: "rgba(0,0,0,0.05)", border: "1px solid rgba(0,0,0,0.08)" }}
+    >
+      <Zap className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+      <div className="flex items-baseline gap-1">
+        <span className="text-sm font-bold text-neutral-700 tabular-nums">{sessionCredits}</span>
+        <span className="text-xs text-neutral-400">sessions left</span>
+      </div>
+      <button
+        onClick={handleBuy}
+        disabled={loading}
+        className="text-[11px] font-semibold px-2.5 py-1 rounded-lg transition-all hover:opacity-80"
+        style={{ background: "#2dec29", color: "#071a09" }}
+      >
+        {loading ? "…" : "Top up"}
+      </button>
+    </div>
+  );
+}
+
 export function FreeBanner({ sessionCredits }: FreeBannerProps) {
   const [loading, setLoading] = useState(false);
 

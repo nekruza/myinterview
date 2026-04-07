@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 import { ChevronRight, PlayCircle, Sparkles } from "lucide-react";
-import { FreeBanner } from "@/components/FreeBanner";
+import { FreeBanner, FreeBannerInline } from "@/components/FreeBanner";
 import Image from "next/image";
 import Link from "next/link";
 import { posts } from "@/lib/blog";
@@ -271,6 +271,7 @@ export default async function DashboardPage() {
             Your daily interview workout is ready.
           </p>
         </div>
+        <FreeBannerInline sessionCredits={sessionCredits} />
       </div>
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
@@ -499,7 +500,7 @@ export default async function DashboardPage() {
 
         <div className="overflow-x-auto pb-2 -mx-4 sm:-mx-6 px-4 sm:px-6">
           <div className="flex gap-3 w-max">
-            {posts.slice(0, 3).map((post) => (
+            {posts.slice(0, 5).map((post) => (
               <Link
                 key={post.slug}
                 href={`/blog/${post.slug}`}

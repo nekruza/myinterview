@@ -101,7 +101,7 @@ export const VideoArea: FC<VideoAreaProps> = ({
 
       {/* Caption overlay */}
       {caption?.text && (
-        <div className="absolute bottom-14 left-5 right-5 z-20 flex justify-center pointer-events-none">
+        <div className="absolute bottom-4 left-5 right-16 z-20 flex justify-center pointer-events-none">
           <div
             className="max-w-2xl w-full px-5 py-3 rounded-2xl text-center"
             style={{ background: "rgba(0,0,0,0.58)", backdropFilter: "blur(14px)" }}
