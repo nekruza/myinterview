@@ -31,7 +31,7 @@ export function FreeBannerInline({ sessionCredits }: FreeBannerProps) {
       style={{ background: "rgba(0,0,0,0.05)", border: "1px solid rgba(0,0,0,0.08)" }}
     >
       <Zap className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-      <div className="flex items-baseline gap-1">
+      <div className="flex items-baseline gap-1 flex-1">
         <span className="text-sm font-bold text-neutral-700 tabular-nums">{sessionCredits}</span>
         <span className="text-xs text-neutral-400">sessions left</span>
       </div>
