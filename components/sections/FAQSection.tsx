@@ -145,22 +145,19 @@ export const FAQSection: FC = () => {
           <div>
             <p className="font-bold text-white text-base mb-1">Still have a question?</p>
             <p className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>
-              Join the waitlist and we&apos;ll answer anything before your first session.
+              Reach out and we&apos;ll answer anything before your first session.
             </p>
           </div>
-          <button
-            onClick={() => {
-              setModalOpen(true);
-              track("CTA Clicked", { button: "Join the Waitlist", location: "faq_section" });
-            }}
+          <a
+            href="/contact"
             className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all hover:brightness-110 active:scale-[0.98]"
             style={{ background: "#2dec29", color: "#071a09" }}
           >
-            Join the Waitlist
+            Contact Us
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
             </svg>
-          </button>
+          </a>
         </div>
 
       </div>

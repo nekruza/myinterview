@@ -42,56 +42,6 @@ export const Footer: FC = () => {
 
       {/* ── Pre-footer CTA ── */}
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
-        <div
-          className="rounded-3xl px-8 py-12 text-center relative overflow-hidden mb-20"
-          style={{
-            background: "rgba(45,236,41,0.04)",
-            border: "1px solid rgba(45,236,41,0.12)",
-          }}
-        >
-          {/* inner glow */}
-          <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-32 rounded-full blur-3xl pointer-events-none"
-            style={{ background: "rgba(45,236,41,0.06)" }}
-          />
-          <div className="relative z-10">
-            <p
-              className="text-xs font-bold uppercase tracking-widest mb-4"
-              style={{ color: "rgba(45,236,41,0.6)" }}
-            >
-              Cohort 1 · Now Forming
-            </p>
-            <h2 className="text-4xl sm:text-5xl font-black text-white mb-4 leading-tight">
-              Stop getting rejected.{" "}
-              <span
-                style={{
-                  background: "linear-gradient(90deg, #2dec29 0%, #86efac 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                Start getting hired.
-              </span>
-            </h2>
-            <p
-              className="text-base mb-8 max-w-md mx-auto leading-relaxed"
-              style={{ color: "rgba(255,255,255,0.45)" }}
-            >
-              Real internship. Real CV line. Real offer. £359 to start — £499 only when you land the job.
-            </p>
-            <Link
-              href="#hero-section"
-              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl font-bold text-sm transition-all hover:brightness-110 hover:gap-3"
-              style={{ background: "#2dec29", color: "#071a09" }}
-            >
-              Join the Waitlist
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-          </div>
-        </div>
 
         {/* ── Footer links ── */}
         <div className="grid md:grid-cols-3 gap-10 mb-14">
