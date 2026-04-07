@@ -129,6 +129,7 @@ export function ResumeUpload({
     <div className={cn("space-y-2", className)}>
       <input
         ref={inputRef}
+        id="resume-file-input"
         type="file"
         accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         className="sr-only"
@@ -181,6 +182,7 @@ export function ResumeUpload({
       ) : (
         /* ── Upload area ── */
         <label
+          htmlFor="resume-file-input"
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
