@@ -9,7 +9,8 @@ import {
   FeaturesSection,
   PricingSection,
   FAQSection,
-} from "@/components/sections";
+  VideoSection,
+  } from "@/components/sections";
 import {
   OrganizationSchema,
   WebsiteSchema,
@@ -45,6 +46,7 @@ export default function Home() {
         <Navigation />
         <main id="main-content" className="bg-white text-neutral-900 font-sans antialiased mx-auto">
           <CareerServiceHero />
+          <VideoSection />
           <FeaturesSection />
           <PricingSection />
           <CareerSolutionSection />

@@ -70,7 +70,7 @@ export const FeaturesSection: FC = () => {
             <div className="pointer-events-none absolute bottom-0 right-1/3 w-64 h-64 rounded-full blur-3xl opacity-[0.04]" style={{ background: "#2dec29" }} />
 
             {/* Video — left side */}
-            <div className="relative h-72 md:h-80 select-none lg:absolute lg:inset-y-0 lg:left-0 lg:right-[56%] lg:h-auto overflow-hidden rounded-l-3xl rounded-r-3xl lg:rounded-r-none">
+            <div className="relative h-72 md:h-80 select-none lg:absolute lg:inset-y-0 lg:left-0 lg:right-[56%] lg:h-auto overflow-hidden rounded-t-3xl rounded-b-none lg:rounded-l-3xl lg:rounded-r-none lg:rounded-b-3xl">
               <video
                 src="/avatar_video.mp4"
                 loop
@@ -84,28 +84,28 @@ export const FeaturesSection: FC = () => {
 
             {/* Annotation */}
             <div
-              className="absolute z-20 pointer-events-none flex flex-col items-end gap-1"
-              style={{ top: "10%", left: "28%" }}
+              className="absolute z-20 pointer-events-none flex flex-col items-end gap-1 top-3 right-3 lg:top-[10%] lg:left-[28%] lg:right-auto"
             >
               <span
                 style={{
                   fontFamily: "Georgia, 'Times New Roman', serif",
-                  fontSize: "clamp(0.65rem, 2.2vw, 0.85rem)",
+                  fontSize: "clamp(0.75rem, 2.2vw, 0.95rem)",
                   fontStyle: "italic",
-                  fontWeight: 400,
+                  fontWeight: 700,
                   transform: "rotate(-2deg)",
                   display: "inline-block",
-                  color: "rgba(255,255,255,0.75)",
-                  background: "rgba(255,255,255,0.06)",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  padding: "6px 12px",
+                  color: "rgba(255,255,255,0.95)",
+                  background: "rgba(255,255,255,0.12)",
+                  border: "1px solid rgba(255,255,255,0.28)",
+                  backdropFilter: "blur(8px)",
+                  padding: "7px 14px",
                   borderRadius: "8px",
                   whiteSpace: "nowrap",
                 }}
               >
                 you&apos;ll be practicing with him
               </span>
-              <CornerDownLeft className="w-12 h-12 opacity-50 mr-8 font-thin relative -left-12" style={{ color: "white" }} />
+              <CornerDownLeft className="w-12 h-12 opacity-50 mr-8 font-thin relative -left-12 hidden lg:block" style={{ color: "white" }} />
             </div>
 
             {/* Floating question types card */}
