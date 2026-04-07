@@ -358,128 +358,89 @@ export default async function DashboardPage() {
         </Link>
 
         {/* ── RIGHT: Day Streak card */}
-        {streak > 0 ? (
-          <Link
-            href="/app/progress"
-            className="relative rounded-2xl overflow-hidden flex flex-col hover:opacity-95 transition-opacity"
-            style={{ background: "linear-gradient(135deg, #f97316 0%, #fb923c 35%, #fbbf24 100%)", minHeight: "380px" }}
-          >
-            {/* Decorative blob */}
-            <div className="pointer-events-none absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/15" />
+        <Link
+          href="/app/progress"
+          className="relative rounded-2xl overflow-hidden flex flex-col hover:opacity-95 transition-opacity"
+          style={{ background: "linear-gradient(135deg, #f97316 0%, #fb923c 35%, #fbbf24 100%)", minHeight: "380px" }}
+        >
+          {/* Decorative blob */}
+          <div className="pointer-events-none absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/15" />
 
-            <div className="relative z-10 flex flex-col p-5 flex-1 justify-between gap-4">
+          <div className="relative z-10 flex flex-col p-5 flex-1 justify-between gap-4">
 
-              {/* Top: streak ring + number */}
-              <div className="flex items-center gap-3">
-                <div className="relative shrink-0 flex flex-col items-center gap-0.5">
-                  <div className="relative" style={{ width: 68, height: 68 }}>
-                    <StreakRing streak={streak} size={68} />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-[26px] leading-none">🔥</span>
-                    </div>
+            {/* Top: streak ring + number */}
+            <div className="flex items-center gap-3">
+              <div className="relative shrink-0 flex flex-col items-center gap-0.5">
+                <div className="relative" style={{ width: 68, height: 68 }}>
+                  <StreakRing streak={streak} size={68} />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-[26px] leading-none">🔥</span>
                   </div>
-                  <span className="text-[9px] font-bold text-white/40 tabular-nums">
-                    of&nbsp;{streak < 7 ? 7 : streak < 14 ? 14 : streak < 30 ? 30 : 100}d
-                  </span>
                 </div>
-                <div className="flex flex-col gap-0.5">
-                  <div className="text-4xl font-black text-white leading-none tabular-nums">{streak}</div>
-                  <div className="text-white/80 font-bold text-sm leading-tight">Day Streak</div>
-                  <p className="text-white/55 text-[12px] leading-snug mt-1">
-                    {streak >= 14
-                      ? "Legendary! 🏆"
-                      : streak >= 7
-                      ? "One full week! 🔥"
-                      : streak >= 3
-                      ? "Building momentum!"
-                      : "Great start!"}
-                  </p>
-                </div>
+                <span className="text-[9px] font-bold text-white/40 tabular-nums">
+                  of&nbsp;{streak < 7 ? 7 : streak < 14 ? 14 : streak < 30 ? 30 : 100}d
+                </span>
               </div>
-
-              {/* Middle: session score bars */}
-              <div className="flex flex-col flex-1 border-t border-white/20 pt-4">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Score trend</span>
-                  <span className="text-[10px] font-bold text-white/70 flex items-center gap-0.5">
-                    Progress <ChevronRight className="w-3 h-3" />
-                  </span>
-                </div>
-                {scoreHistory.some((v) => v !== null) ? (
-                  <BarChart data={scoreHistory} stroke="white" className="w-full flex-1 min-h-[48px]" />
-                ) : (
-                  <div className="flex-1 flex flex-col items-center justify-center gap-1.5 py-2">
-                    <span className="text-xl">📊</span>
-                    <span className="text-[9px] text-white/40 text-center leading-tight">
-                      Complete a session<br />to see your scores
-                    </span>
-                  </div>
-                )}
+              <div className="flex flex-col gap-0.5">
+                <div className="text-4xl font-black text-white leading-none tabular-nums">{streak}</div>
+                <div className="text-white/80 font-bold text-sm leading-tight">Day Streak</div>
+                <p className="text-white/55 text-[12px] leading-snug mt-1">
+                  {streak >= 14
+                    ? "Legendary! 🏆"
+                    : streak >= 7
+                    ? "One full week! 🔥"
+                    : streak >= 3
+                    ? "Building momentum!"
+                    : streak > 0
+                    ? "Great start!"
+                    : "Start your streak today!"}
+                </p>
               </div>
-
-              {/* Bottom: week activity dots */}
-              <div className="flex items-center gap-1 border-t border-white/20 pt-4">
-                {weekActivity.map((day, i) => (
-                  <div key={i} className="flex flex-col items-center gap-0.5 flex-1">
-                    <div
-                      className={cn(
-                        "w-8 h-8 rounded-full flex items-center justify-center text-[9px] font-black border",
-                        day.active
-                          ? "bg-white text-orange-500 border-white shadow-sm"
-                          : day.isToday
-                          ? "bg-white/20 text-white/70 border-white/30"
-                          : "bg-white/10 border-transparent"
-                      )}
-                    >
-                      {day.active ? "✓" : ""}
-                    </div>
-                    <span className="text-[12px] font-bold text-white/40">{day.label}</span>
-                  </div>
-                ))}
-              </div>
-
-            </div>
-          </Link>
-        ) : (
-          /* Zero-streak state */
-          <div className="glass-card relative rounded-2xl overflow-hidden hover:shadow-md transition-shadow" style={{ minHeight: "380px" }}>
-            <div className="pointer-events-none absolute -right-4 -top-4 w-28 h-28 rounded-full bg-primary/5" />
-            <div className="relative z-10 p-5">
-              <div className="flex items-center gap-4 mb-4">
-                <span className="text-3xl">🌱</span>
-                <div>
-                  <h2 className="font-bold text-secondary text-base">
-                    {completed.length > 0 ? "Keep your streak going" : "Start your streak today"}
-                  </h2>
-                  <p className="text-neutral-500 text-xs mt-0.5">Practice daily to build interview confidence.</p>
-                </div>
-              </div>
-              <Link
-                href="/app/practice"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-all hover:brightness-110 active:scale-[0.98] mb-4"
-                style={{ background: "#2dec29", color: "#112715" }}
-              >
-                <PlayCircle className="w-4 h-4" />
-                {completed.length > 0 ? "Continue practicing" : "Begin your first session"}
-              </Link>
             </div>
 
-            <Link href="/app/progress" className="block border-t border-neutral-100">
-              <div className="grid grid-cols-2 divide-x divide-neutral-100 px-2 py-3">
-                <div className="flex flex-col items-center gap-0.5 px-3">
-                  <span className="text-lg font-black text-secondary tabular-nums leading-none">{completed.length}</span>
-                  <span className="text-[10px] font-semibold text-neutral-400 mt-0.5">Sessions</span>
-                </div>
-                <div className="flex flex-col items-center gap-0.5 px-3">
-                  <span className="text-lg font-black text-secondary tabular-nums leading-none">
-                    {avgScore !== null ? `${avgScore}%` : "—"}
-                  </span>
-                  <span className="text-[10px] font-semibold text-neutral-400 mt-0.5">Avg score</span>
-                </div>
+            {/* Middle: session score bars */}
+            <div className="flex flex-col flex-1 border-t border-white/20 pt-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Score trend</span>
+                <span className="text-[10px] font-bold text-white/70 flex items-center gap-0.5">
+                  Progress <ChevronRight className="w-3 h-3" />
+                </span>
               </div>
-            </Link>
+              {scoreHistory.some((v) => v !== null) ? (
+                <BarChart data={scoreHistory} stroke="white" className="w-full flex-1 min-h-[48px]" />
+              ) : (
+                <div className="flex-1 flex flex-col items-center justify-center gap-1.5 py-2">
+                  <span className="text-xl">📊</span>
+                  <span className="text-[9px] text-white/40 text-center leading-tight">
+                    Complete a session<br />to see your scores
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Bottom: week activity dots */}
+            <div className="flex items-center gap-1 border-t border-white/20 pt-4">
+              {weekActivity.map((day, i) => (
+                <div key={i} className="flex flex-col items-center gap-0.5 flex-1">
+                  <div
+                    className={cn(
+                      "w-8 h-8 rounded-full flex items-center justify-center text-[9px] font-black border",
+                      day.active
+                        ? "bg-white text-orange-500 border-white shadow-sm"
+                        : day.isToday
+                        ? "bg-white/20 text-white/70 border-white/30"
+                        : "bg-white/10 border-transparent"
+                    )}
+                  >
+                    {day.active ? "✓" : ""}
+                  </div>
+                  <span className="text-[12px] font-bold text-white/40">{day.label}</span>
+                </div>
+              ))}
+            </div>
+
           </div>
-        )}
+        </Link>
 
       </div>
 
