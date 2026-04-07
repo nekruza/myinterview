@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
       full_name: profile?.full_name ?? "",
       sessions: String(sessions),
     },
-    success_url: `${origin}/app/settings?purchased=${sessions}`,
+    success_url: `${origin}/api/stripe/verify-purchase?session_id={CHECKOUT_SESSION_ID}&sessions=${sessions}`,
     cancel_url: `${origin}/app/settings`,
   });
 

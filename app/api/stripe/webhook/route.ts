@@ -12,28 +12,27 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-async function addSessionCredits(userId: string, sessions: number) {
-  const { error } = await supabaseAdmin.rpc("increment_session_credits", {
-    p_user_id: userId,
-    p_amount: sessions,
-  });
-  if (error) {
-    // Fallback: manual increment if RPC not available
-    const { data } = await supabaseAdmin
-      .from("profiles")
-      .select("session_credits")
-      .eq("id", userId)
-      .single();
-    const current = data?.session_credits ?? 0;
-    const { error: updateErr } = await supabaseAdmin
-      .from("profiles")
-      .update({ session_credits: current + sessions })
-      .eq("id", userId);
-    if (updateErr) console.error("[webhook] session_credits update error:", updateErr);
-    else console.log("[webhook] added", sessions, "session credits to", userId);
-  } else {
-    console.log("[webhook] added", sessions, "session credits to", userId, "via RPC");
+async function addSessionCredits(userId: string, sessions: number, stripeSessionId: string) {
+  // Check idempotency — verify-purchase redirect may have already credited this session
+  const { data: profile } = await supabaseAdmin
+    .from("profiles")
+    .select("session_credits, last_stripe_session_id")
+    .eq("id", userId)
+    .single();
+
+  if (profile?.last_stripe_session_id === stripeSessionId) {
+    console.log("[webhook] already credited session", stripeSessionId, "— skipping");
+    return;
   }
+
+  const current = profile?.session_credits ?? 0;
+  const { error } = await supabaseAdmin
+    .from("profiles")
+    .update({ session_credits: current + sessions, last_stripe_session_id: stripeSessionId })
+    .eq("id", userId);
+
+  if (error) console.error("[webhook] session_credits update error:", error);
+  else console.log("[webhook] added", sessions, "session credits to", userId);
 }
 
 export async function POST(req: NextRequest) {
@@ -66,7 +65,7 @@ export async function POST(req: NextRequest) {
       const sessions = sessionsStr ? parseInt(sessionsStr, 10) : 0;
 
       if (sessions > 0) {
-        await addSessionCredits(userId, sessions);
+        await addSessionCredits(userId, sessions, session.id);
       }
 
       // Store stripe_customer_id on profile if present
