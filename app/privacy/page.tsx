@@ -36,7 +36,7 @@ export default function PrivacyPage() {
           <div className="max-w-3xl mx-auto">
             <p className="text-primary font-bold text-sm uppercase tracking-wider mb-3">Legal</p>
             <h1 className="text-4xl md:text-5xl font-black text-secondary mb-4">Privacy Policy</h1>
-            <p className="text-neutral-500 text-sm">Last updated: February 15, 2026</p>
+            <p className="text-neutral-500 text-sm">Last updated: April 7, 2026</p>
           </div>
         </section>
 
@@ -51,11 +51,13 @@ export default function PrivacyPage() {
             </p>
 
             <Section title="1. Information We Collect">
-              <p><strong className="text-secondary">Account information.</strong> When you register, we collect your name, email address, and password. You may optionally provide your LinkedIn profile URL, job title, and target companies.</p>
-              <p><strong className="text-secondary">Practice session data.</strong> We record and store your AI practice sessions and peer session feedback to generate progress tracking and improvement insights. Audio and video data from peer sessions is deleted within 30 days unless you explicitly save a recording.</p>
+              <p><strong className="text-secondary">Account information.</strong> When you register, we collect your name and email address. Authentication (sign-in, password management) is handled securely by Supabase — we do not store your password on our servers.</p>
+              <p><strong className="text-secondary">Profile and preferences.</strong> During onboarding and in settings you may provide: your age, experience level, target role, preferred interview style and duration, preferred interview language and platform, target companies, and how you heard about us. This information is used to personalise your practice sessions.</p>
+              <p><strong className="text-secondary">Practice session data.</strong> When you complete an AI practice session we store a score (0–10), a written feedback summary, and per-competency scores for progress tracking. We do not store raw audio recordings from AI sessions. For peer sessions, session details (title, schedule, meeting link, notes) are stored and visible to matched participants.</p>
+              <p><strong className="text-secondary">Resume data.</strong> If you upload a resume, we store the file and its extracted text content. This is used to personalise AI interview questions and feedback to your actual experience.</p>
               <p><strong className="text-secondary">Usage data.</strong> We automatically collect information about how you interact with the platform: pages visited, features used, session duration, and device/browser information.</p>
-              <p><strong className="text-secondary">Resume and application data.</strong> If you upload a resume or apply for a role through our platform, we store that data to process your application.</p>
-              <p><strong className="text-secondary">Payment information.</strong> Billing details are collected and processed by Stripe. We do not store full credit card numbers on our servers.</p>
+              <p><strong className="text-secondary">Payment information.</strong> Billing is processed by Stripe. We store only a Stripe customer reference ID — we do not store card numbers or full payment details on our servers.</p>
+              <p><strong className="text-secondary">Contact and waitlist data.</strong> If you contact us or join the waitlist, we store your name, email, and message content.</p>
             </Section>
 
             <Section title="2. How We Use Your Information">
@@ -81,7 +83,7 @@ export default function PrivacyPage() {
             <Section title="3. Sharing Your Information">
               <p>We do not sell your personal data. We may share information with:</p>
               <p><strong className="text-secondary">Service providers.</strong> Trusted third parties who assist in operating our platform (e.g. cloud hosting, email delivery, analytics, payment processing). These parties are bound by confidentiality agreements.</p>
-              <p><strong className="text-secondary">Practice partners.</strong> When you participate in a peer session, your name, job title, and session feedback are visible to your matched partner.</p>
+              <p><strong className="text-secondary">Practice partners.</strong> When you participate in a peer session, your name and session details (title, schedule, notes) are visible to your matched partner.</p>
               <p><strong className="text-secondary">Legal requirements.</strong> We may disclose your information if required by law or in response to valid legal requests from public authorities.</p>
               <p><strong className="text-secondary">Business transfers.</strong> In the event of a merger, acquisition, or sale of assets, your information may be transferred. We will notify you before your data becomes subject to a different privacy policy.</p>
             </Section>
