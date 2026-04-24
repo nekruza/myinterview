@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { track } from "@/lib/mixpanel";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import {
@@ -355,6 +356,13 @@ export default function OnboardingClient() {
         setSaving(false);
         return;
       }
+
+      track("Onboarding Completed", {
+        experience_level: data.experience_level || null,
+        interview_style: data.interview_style || null,
+        target_role: data.target_role.trim() || null,
+        heard_from: data.heard_from || null,
+      });
 
       setDone(true);
     } catch {

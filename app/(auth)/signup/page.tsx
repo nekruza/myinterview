@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { fireSignupConversion } from "@/lib/conversion";
+import { track, aliasUser } from "@/lib/mixpanel";
 
 export default function SignupPage() {
   return (
@@ -30,6 +31,7 @@ function SignupForm() {
   async function handleGoogleSignIn() {
     setGoogleLoading(true);
     setError(null);
+    track("Sign Up Started", { method: "google" });
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -53,7 +55,7 @@ function SignupForm() {
       return;
     }
 
-    const { error: signUpError } = await supabase.auth.signUp({
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -66,6 +68,11 @@ function SignupForm() {
       setError(signUpError.message);
       setLoading(false);
       return;
+    }
+
+    if (signUpData.user) {
+      aliasUser(signUpData.user.id);
+      track("Sign Up Completed", { method: "email", plan: plan ?? "free" });
     }
 
     fireSignupConversion();

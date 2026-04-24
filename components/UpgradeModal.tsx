@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { fireConversion } from "@/lib/conversion";
+import { track } from "@/lib/mixpanel";
 import { Sparkles, X, Zap } from "lucide-react";
 import {
   Dialog,
@@ -39,9 +40,15 @@ export function UpgradeModal({
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<PackSize>(20);
   const content = CONTENT[reason];
+  const selectedPack = SESSION_PACKS.find((p) => p.sessions === selected)!;
 
   async function handleBuy() {
     setLoading(true);
+    track("Checkout Started", {
+      sessions: selected,
+      price_gbp: selectedPack.priceGbp,
+      reason,
+    });
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
@@ -57,11 +64,10 @@ export function UpgradeModal({
         setLoading(false);
       }
     } catch {
+      track("Checkout Failed", { sessions: selected, reason });
       setLoading(false);
     }
   }
-
-  const selectedPack = SESSION_PACKS.find((p) => p.sessions === selected)!;
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>

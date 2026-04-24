@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { CheckCircle, AlertTriangle, Upload, Trash2, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { track } from "@/lib/mixpanel";
 
 type UploadState = "idle" | "uploading" | "success" | "warning" | "error";
 
@@ -62,6 +63,7 @@ export function ResumeUpload({
       if (!res.ok) {
         setState("error");
         setWarning(json.error ?? "Upload failed. Please try again.");
+        track("Resume Upload Failed", { reason: json.error ?? "api_error", file_type: file.type });
         return;
       }
 
@@ -71,15 +73,18 @@ export function ResumeUpload({
         setWarning(
           `Text extraction failed${reason}. Your resume was saved but personalisation may be limited.`
         );
+        track("Resume Uploaded", { text_extracted: false, file_type: file.type, file_size_kb: Math.round(file.size / 1024) });
       } else {
         setState("success");
         setWarning(null);
+        track("Resume Uploaded", { text_extracted: true, file_type: file.type, file_size_kb: Math.round(file.size / 1024) });
       }
 
       onUploadSuccess?.(json.resume_text);
     } catch {
       setState("error");
       setWarning("Upload failed. Please try again.");
+      track("Resume Upload Failed", { reason: "network_error", file_type: file.type });
     }
   }
 
@@ -117,6 +122,7 @@ export function ResumeUpload({
       setState("idle");
       setFileName(null);
       setWarning(null);
+      track("Resume Deleted");
       onDeleteSuccess?.();
     } catch {
       // silently fail — user can retry

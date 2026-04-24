@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { track } from "@/lib/mixpanel";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -17,6 +18,7 @@ export default function LoginPage() {
   async function handleGoogleSignIn() {
     setGoogleLoading(true);
     setError(null);
+    track("Login Started", { method: "google" });
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -45,6 +47,7 @@ export default function LoginPage() {
       return;
     }
 
+    track("User Logged In", { method: "email" });
     router.push("/app/dashboard");
     router.refresh();
   }

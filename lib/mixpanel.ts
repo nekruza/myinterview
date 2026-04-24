@@ -27,6 +27,20 @@ export function identify(userId: string, email: string) {
   mixpanel.people.set({ $email: email });
 }
 
+/**
+ * Call once at signup to permanently link the anonymous device ID
+ * to the authenticated user ID. Must be called BEFORE identify().
+ */
+export function aliasUser(userId: string) {
+  if (typeof window === "undefined") return;
+  if (!initialized) return;
+  try {
+    mixpanel.alias(userId);
+  } catch {
+    // alias throws if called more than once for the same user; swallow silently
+  }
+}
+
 export function resetMixpanel() {
   if (typeof window === "undefined") return;
   if (!initialized) return;

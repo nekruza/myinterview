@@ -46,7 +46,6 @@ export const VideoSection: FC = () => {
           <video
             className="w-full h-full object-cover"
             controls
-            autoPlay
             loop
             playsInline
             preload="auto"

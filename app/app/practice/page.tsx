@@ -21,6 +21,7 @@ import type { Phase, Message } from "@/lib/practice-data";
 import { createClient } from "@/lib/supabase/client";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { ResumeUpload } from "@/components/ResumeUpload";
+import { track } from "@/lib/mixpanel";
 
 type InterviewType = "technical" | "behavioural" | "case";
 type JobContextMode = "paste" | "general";
@@ -116,6 +117,11 @@ export default function PracticePage() {
         message: feedbackMessage.trim() || null,
         category: feedbackCategory,
       });
+      track("User Feedback Submitted", {
+        rating: feedbackRating || null,
+        category: feedbackCategory,
+        has_message: feedbackMessage.trim().length > 0,
+      });
       setFeedbackSubmitted(true);
     } catch {
       toast.error("Could not submit feedback. Please try again.");
@@ -132,6 +138,7 @@ export default function PracticePage() {
   const startSession = async () => {
     if (sessionCredits <= 0) {
       setShowUpgrade(true);
+      track("Upgrade Modal Shown", { reason: "no_credits", source: "start_session" });
       return;
     }
 
@@ -151,24 +158,46 @@ export default function PracticePage() {
       const data = await res.json();
       if (res.status === 403 && data.error === "limit_reached") {
         setShowUpgrade(true);
+        track("Upgrade Modal Shown", { reason: "limit_reached", source: "start_session" });
         return;
       }
       if (!res.ok) throw new Error(data.error);
       setSessionCredits((prev) => Math.max(0, prev - 1));
       setSessionId(data.sessionId);
       setPhase("chat");
+      track("Session Started", {
+        interview_type: interviewType,
+        level,
+        role: role || null,
+        has_job_context: jobContext.mode === "paste",
+        has_resume: hasResume ?? false,
+        credits_remaining: Math.max(0, sessionCredits - 1),
+      });
     } catch {
       toast.error("Could not start session. Please try again.");
+      track("Session Start Failed", { interview_type: interviewType });
     }
   };
 
   const completeSession = async (msgs: Message[], duration: string) => {
     if (!sessionId) return;
 
+    const questionCount = msgs.filter((m) => m.role === "assistant").length;
+
     // Show complete screen immediately
     setSessionDuration(duration);
-    setSessionQuestionCount(msgs.filter((m) => m.role === "assistant").length);
+    setSessionQuestionCount(questionCount);
     setPhase("complete");
+
+    track("Session Completed", {
+      interview_type: interviewType,
+      level,
+      role: role || null,
+      duration,
+      question_count: questionCount,
+      has_job_context: getJobContext().mode === "paste",
+      has_resume: hasResume ?? false,
+    });
 
     // Fetch AI feedback in background
     setFeedbackLoading(true);
@@ -188,6 +217,13 @@ export default function PracticePage() {
       const data: DetailedFeedback = await res.json();
       setFeedbackData(data);
 
+      track("AI Feedback Received", {
+        interview_type: interviewType,
+        score: Math.round(data.score * 10),
+        verdict: data.verdict,
+        category_count: data.categories.length,
+      });
+
       // Store: score as 0-100, feedback as JSON, per-category progress scores
       await fetch("/api/sessions", {
         method: "PATCH",
@@ -204,6 +240,7 @@ export default function PracticePage() {
       });
       toast.success("Session saved!");
     } catch {
+      track("AI Feedback Failed", { interview_type: interviewType });
       await fetch("/api/sessions", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -570,6 +607,7 @@ export default function PracticePage() {
         resumeText={resumeText ?? undefined}
         onComplete={(msgs, duration) => completeSession(msgs, duration)}
         onReset={() => {
+          track("Session Abandoned", { interview_type: interviewType, level, role: role || null });
           setPhase("setup");
           setSessionId(null);
         }}
