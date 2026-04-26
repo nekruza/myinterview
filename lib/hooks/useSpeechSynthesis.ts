@@ -115,7 +115,7 @@ export function useSpeechSynthesis() {
   // ── Kokoro primary + Web Speech fallback ────────────────────────────────────
 
   const speakAsync = useCallback(
-    async (text: string): Promise<void> => {
+    async (text: string, voiceId?: string): Promise<void> => {
       if (typeof window === "undefined") return;
 
       isCancelledRef.current = false;
@@ -126,7 +126,7 @@ export function useSpeechSynthesis() {
         const res = await fetch("/api/tts", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text }),
+          body: JSON.stringify({ text, voiceId }),
         });
 
         if (res.ok) {

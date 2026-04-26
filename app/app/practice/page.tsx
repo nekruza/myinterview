@@ -15,6 +15,7 @@ import {
   Star,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { VoiceCallView } from "@/components/practice/VoiceCallView";
 import { LEVELS } from "@/lib/practice-data";
@@ -23,6 +24,12 @@ import { createClient } from "@/lib/supabase/client";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { ResumeUpload } from "@/components/ResumeUpload";
 import { track } from "@/lib/mixpanel";
+import {
+  INTERVIEWERS,
+  getDefaultInterviewerForSpecialty,
+  getInterviewerById,
+  type InterviewerSpecialty,
+} from "@/lib/interviewers";
 
 type InterviewType = "technical" | "behavioural" | "case";
 type JobContextMode = "paste" | "general";
@@ -46,6 +53,9 @@ interface DetailedFeedback {
 export default function PracticePage() {
   const [phase, setPhase] = useState<Phase>("setup");
   const [interviewType, setInterviewType] = useState<InterviewType>("technical");
+  const [interviewerId, setInterviewerId] = useState<string>(
+    getDefaultInterviewerForSpecialty("technical").id
+  );
   const [jobContextMode, setJobContextMode] = useState<JobContextMode>("paste");
   const [jobDescription, setJobDescription] = useState("");
   const [role, setRole] = useState("");
@@ -111,9 +121,14 @@ export default function PracticePage() {
         setRole(profile.target_role);
       }
       if (profile?.interview_style) {
-        if (profile.interview_style === "technical") setInterviewType("technical");
-        else if (profile.interview_style === "behavioral") setInterviewType("behavioural");
-        else if (profile.interview_style === "case") setInterviewType("case");
+        let nextType: InterviewType | null = null;
+        if (profile.interview_style === "technical") nextType = "technical";
+        else if (profile.interview_style === "behavioral") nextType = "behavioural";
+        else if (profile.interview_style === "case") nextType = "case";
+        if (nextType) {
+          setInterviewType(nextType);
+          setInterviewerId(getDefaultInterviewerForSpecialty(nextType).id);
+        }
       }
     }
     checkProfile();
@@ -207,6 +222,7 @@ export default function PracticePage() {
       setPhase("chat");
       track("Session Started", {
         interview_type: interviewType,
+        interviewer_id: interviewerId,
         level,
         role: role || null,
         has_job_context: jobContext.mode === "paste",
@@ -356,7 +372,12 @@ export default function PracticePage() {
                   return (
                     <button
                       key={value}
-                      onClick={() => setInterviewType(value)}
+                      onClick={() => {
+                        setInterviewType(value);
+                        setInterviewerId(
+                          getDefaultInterviewerForSpecialty(value as InterviewerSpecialty).id
+                        );
+                      }}
                       className="flex items-center gap-3 p-4 rounded-xl transition-all duration-150 text-left"
                       style={{
                         border: active ? "1.5px solid #2dec29" : "1.5px solid transparent",
@@ -386,6 +407,74 @@ export default function PracticePage() {
                         </span>
                         <span className="text-xs text-neutral-400">{sub}</span>
                       </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Choose Your Interviewer */}
+            <div className="glass-card rounded-2xl p-6">
+              <label className="block text-xs font-semibold text-neutral-500 uppercase tracking-widest mb-3">
+                Your Interviewer
+              </label>
+              <div className="grid grid-cols-3 gap-3">
+                {INTERVIEWERS.map((p) => {
+                  const active = interviewerId === p.id;
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => {
+                        setInterviewerId(p.id);
+                        setInterviewType(p.specialty);
+                      }}
+                      className="relative rounded-xl overflow-hidden transition-all duration-150 text-left"
+                      style={{
+                        border: active ? `1.5px solid ${p.accent}` : "1.5px solid transparent",
+                        background: active
+                          ? "linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)"
+                          : "#f9fafb",
+                        boxShadow: active ? `0 0 0 3px ${p.accent}1a` : "none",
+                      }}
+                    >
+                      <div className="relative aspect-[4/5] overflow-hidden bg-neutral-200">
+                        <Image
+                          src={p.image}
+                          alt={p.name}
+                          fill
+                          sizes="(min-width: 640px) 200px, 33vw"
+                          className="object-cover"
+                        />
+                        <div
+                          className="pointer-events-none absolute inset-0"
+                          style={{
+                            background:
+                              "linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(0,0,0,0.78) 100%)",
+                          }}
+                        />
+                        <span
+                          className="absolute top-2 left-2 text-[9px] font-bold uppercase tracking-[0.16em] px-2 py-0.5 rounded-full"
+                          style={{
+                            background: `${p.accent}26`,
+                            color: p.accent,
+                            border: `1px solid ${p.accent}55`,
+                            backdropFilter: "blur(6px)",
+                          }}
+                        >
+                          {p.specialty === "behavioural"
+                            ? "Behavioural"
+                            : p.specialty === "case"
+                              ? "Case"
+                              : "Technical"}
+                        </span>
+                        <div className="absolute bottom-2 left-2 right-2">
+                          <p className="text-white text-sm font-bold leading-tight">{p.name}</p>
+                          <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.6)" }}>
+                            {p.title}
+                          </p>
+                        </div>
+                      </div>
+                      <p className="px-3 py-2 text-[11px] text-neutral-500 leading-snug">{p.blurb}</p>
                     </button>
                   );
                 })}
@@ -695,7 +784,16 @@ export default function PracticePage() {
     const jobContext = getJobContext();
     return (
       <VoiceCallView
-        selectedCategory={{ id: interviewType, label: interviewType === "technical" ? "Technical Interview" : interviewType === "case" ? "Case Interview" : "Behavioural Interview", color: interviewType === "technical" ? "#06b6d4" : interviewType === "case" ? "#f59e0b" : "#2dec29" }}
+        selectedCategory={{
+          id: interviewType,
+          label:
+            interviewType === "technical"
+              ? "Technical Interview"
+              : interviewType === "case"
+                ? "Case Interview"
+                : "Behavioural Interview",
+          color: getInterviewerById(interviewerId).accent,
+        }}
         selectedQuestion={`${interviewType} interview practice`}
         level={level}
         role={role}
@@ -703,6 +801,7 @@ export default function PracticePage() {
         interviewType={interviewType}
         jobContext={jobContext}
         resumeText={resumeText ?? undefined}
+        interviewerId={interviewerId}
         onComplete={(msgs, duration) => completeSession(msgs, duration)}
         onReset={() => {
           track("Session Abandoned", { interview_type: interviewType, level, role: role || null });

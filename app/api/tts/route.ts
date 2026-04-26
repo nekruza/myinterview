@@ -5,9 +5,11 @@ export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   let text: string;
+  let voiceId: string | undefined;
   try {
     const body = await req.json();
     text = body.text;
+    voiceId = typeof body.voiceId === "string" ? body.voiceId : undefined;
   } catch {
     return new Response(JSON.stringify({ error: "Invalid request body" }), {
       status: 400,
@@ -34,7 +36,7 @@ export async function POST(req: Request) {
         },
         body: JSON.stringify({
           text,
-          voiceId: process.env.INWORLD_VOICE_ID ?? "Jason",
+          voiceId: voiceId ?? process.env.INWORLD_VOICE_ID ?? "Jason",
           modelId: "inworld-tts-1.5-mini",
         }),
       });

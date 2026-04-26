@@ -11,7 +11,9 @@ const VOICE_SYSTEM_PROMPT = (
   interviewType?: string,
   jobContext?: { mode: string; value: string },
   resumeText?: string,
-  role?: string
+  role?: string,
+  interviewerName?: string,
+  interviewerTitle?: string,
 ) => {
   const isTechnical = interviewType === "technical";
   const isCase = interviewType === "case";
@@ -31,7 +33,9 @@ const VOICE_SYSTEM_PROMPT = (
     : "";
 
   if (isCase) {
-    return `You are Jordan Ellis, a senior partner at a top-tier professional services firm. You conduct case interviews across consulting, finance, and strategy roles. You have 20+ years of interviewing experience.
+    const personaName = interviewerName ?? "Henry";
+    const personaTitle = interviewerTitle ?? "Senior Partner at a top-tier professional services firm";
+    return `You are ${personaName}, ${personaTitle}. You conduct case interviews across consulting, finance, and strategy roles. You have 20+ years of interviewing experience.
 
 Your personality:
 - Professional but warm and approachable
@@ -64,7 +68,9 @@ For ${level === "staff" || level === "senior" ? "senior/staff level, expect stra
   }
 
   if (isTechnical) {
-    return `You are Jason Mitchell, VP of Engineering at a Fortune 500 company. You are conducting a technical interview with a software engineer candidate. You have 15+ years of experience leading engineering teams and have interviewed hundreds of candidates.
+    const personaName = interviewerName ?? "Jake";
+    const personaTitle = interviewerTitle ?? "Staff Engineer at a top tech company";
+    return `You are ${personaName}, ${personaTitle}. You are conducting a technical interview with a software engineer candidate. You have 15+ years of experience leading engineering teams and have interviewed hundreds of candidates.
 
 Your personality:
 - Professional but warm and approachable
@@ -95,7 +101,9 @@ CRITICAL VOICE RULES:
 For ${level === "staff" || level === "senior" ? "senior/staff level, expect system-wide thinking, architectural vision, and deep technical trade-off analysis. Push hard on these." : "mid-level, focus on solid fundamentals, clean problem-solving, and clear communication of technical decisions. Be encouraging but thorough."}.`;
   }
 
-  return `You are Jason Mitchell, VP of Engineering at a Fortune 500 company. You are conducting a behavioral interview with a software engineer candidate. You have 15+ years of experience leading engineering teams and have interviewed hundreds of candidates.
+  const personaName = interviewerName ?? "Luna";
+  const personaTitle = interviewerTitle ?? "Engineering Manager at a top tech company";
+  return `You are ${personaName}, ${personaTitle}. You are conducting a behavioral interview with a software engineer candidate. You have 15+ years of experience leading engineering teams and have interviewed hundreds of candidates.
 
 Your personality:
 - Professional but warm and approachable
@@ -176,8 +184,20 @@ export async function POST(req: Request) {
     });
   }
 
-  const { messages, question, category, level, role, sessionId, isHint, interviewType, jobContext, resumeText } =
-    await req.json();
+  const {
+    messages,
+    question,
+    category,
+    level,
+    role,
+    sessionId,
+    isHint,
+    interviewType,
+    jobContext,
+    resumeText,
+    interviewerName,
+    interviewerTitle,
+  } = await req.json();
 
   if (!question || !messages) {
     return new Response(JSON.stringify({ error: "Missing required fields" }), {
@@ -188,7 +208,17 @@ export async function POST(req: Request) {
 
   const systemPrompt = isHint
     ? HINT_SYSTEM_PROMPT(question, role, resumeText)
-    : VOICE_SYSTEM_PROMPT(category, level, question, interviewType, jobContext, resumeText, role);
+    : VOICE_SYSTEM_PROMPT(
+        category,
+        level,
+        question,
+        interviewType,
+        jobContext,
+        resumeText,
+        role,
+        interviewerName,
+        interviewerTitle,
+      );
 
   // ── Hint: plain JSON response, no streaming needed ──────────────────────────
   if (isHint) {

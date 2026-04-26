@@ -4,12 +4,7 @@ import { FC, useRef, useEffect } from "react";
 import Image from "next/image";
 import { AudioWaveform } from "./AudioWaveform";
 import { Mic } from "lucide-react";
-
-// Realistic interviewer persona
-const INTERVIEWER = {
-  name: "Jason Mitchell",
-  title: "VP of Engineering",
-};
+import { getInterviewerById, type Interviewer } from "@/lib/interviewers";
 
 interface CaptionData {
   text: string;
@@ -24,6 +19,8 @@ interface VideoAreaProps {
   userName?: string;
   avatarUrl?: string | null;
   caption?: CaptionData | null;
+  interviewer?: Interviewer;
+  interviewerId?: string;
 }
 
 export const VideoArea: FC<VideoAreaProps> = ({
@@ -34,7 +31,10 @@ export const VideoArea: FC<VideoAreaProps> = ({
   userName = "You",
   avatarUrl,
   caption,
+  interviewer,
+  interviewerId,
 }) => {
+  const persona = interviewer ?? getInterviewerById(interviewerId);
   const videoRef = useRef<HTMLVideoElement>(null);
   useEffect(() => {
     if (videoRef.current && webcamStream) {
@@ -110,7 +110,7 @@ export const VideoArea: FC<VideoAreaProps> = ({
               className="text-[9px] font-bold uppercase tracking-widest mb-1.5"
               style={{ color: caption.role === "user" ? "#2dec29" : "rgba(255,255,255,0.38)" }}
             >
-              {caption.role === "user" ? "You" : INTERVIEWER.name.split(" ")[0]}
+              {caption.role === "user" ? "You" : persona.name.split(" ")[0]}
             </p>
             <p className="text-sm text-white/95 leading-relaxed">
               {caption.text}
@@ -161,7 +161,8 @@ export const VideoArea: FC<VideoAreaProps> = ({
             muted
             playsInline
             preload="auto"
-            src="/speaking.mp4"
+            key={persona.speakingVideo}
+            src={persona.speakingVideo}
             className="absolute inset-0 w-full h-full object-cover"
             style={{ opacity: isAISpeaking ? 1 : 0 }}
           />
@@ -172,7 +173,8 @@ export const VideoArea: FC<VideoAreaProps> = ({
             muted
             playsInline
             preload="auto"
-            src="/listening.mp4"
+            key={persona.idleVideo}
+            src={persona.idleVideo}
             className="absolute inset-0 w-full h-full object-cover"
             style={{ opacity: isAISpeaking ? 0 : 1 }}
           />
@@ -187,11 +189,11 @@ export const VideoArea: FC<VideoAreaProps> = ({
         {/* Name tag below video */}
         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-black/45 backdrop-blur-sm w-fit">
           <p className="text-xs font-semibold text-white leading-tight">
-            {INTERVIEWER.name}
+            {persona.name}
           </p>
           <span className="text-[10px] text-white/40">·</span>
           <p className="text-[10px] text-white/40 leading-tight">
-            {INTERVIEWER.title}
+            {persona.title}
           </p>
         </div>
       </div>

@@ -17,6 +17,7 @@ import type { Message } from "@/lib/practice-data";
 import { LEVELS } from "@/lib/practice-data";
 import { useInworldRealtime } from "@/lib/hooks/useInworldRealtime";
 import { buildInterviewInstructions } from "@/lib/utils/buildInterviewInstructions";
+import { getInterviewerById } from "@/lib/interviewers";
 
 interface JobContext {
   mode: "link" | "paste" | "general";
@@ -32,6 +33,7 @@ interface VoiceCallViewProps {
   interviewType?: "technical" | "behavioural" | "case";
   jobContext?: JobContext;
   resumeText?: string;
+  interviewerId?: string;
   onComplete: (messages: Message[], duration: string) => void;
   onReset: () => void;
 }
@@ -53,9 +55,11 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
   interviewType,
   jobContext,
   resumeText,
+  interviewerId,
   onComplete,
   onReset,
 }) => {
+  const interviewer = getInterviewerById(interviewerId);
   const [messages, setMessages] = useState<Message[]>([]);
   const [convState, setConvState] = useState<ConversationState>("initializing");
   const [webcamStream, setWebcamStream] = useState<MediaStream | null>(null);
@@ -223,6 +227,8 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
             interviewType,
             jobContext,
             resumeText,
+            interviewerName: interviewer.name,
+            interviewerTitle: interviewer.title,
           }),
         });
 
@@ -311,9 +317,9 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
     async (text: string): Promise<void> => {
       // Stop recognition BEFORE TTS to prevent mic picking up AI voice
       speech.stopListening();
-      await tts.speakAsync(text);
+      await tts.speakAsync(text, interviewer.voiceId);
     },
-    [tts, speech]
+    [tts, speech, interviewer.voiceId]
   );
 
   // ── Start listening to user ──
@@ -516,6 +522,8 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
           interviewType,
           jobContext,
           resumeText,
+          interviewerName: interviewer.name,
+          interviewerTitle: interviewer.title,
         }),
       });
       const { hint, error } = await res.json();
@@ -768,6 +776,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
             isUserSpeaking={convState === "listening" && speech.isListening}
             analyserData={visualizer.analyserData}
             caption={videoCaption}
+            interviewer={interviewer}
           />
 
           {/* Hint overlay (positioned inside video area) */}
