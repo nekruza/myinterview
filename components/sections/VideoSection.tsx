@@ -87,10 +87,10 @@ export const VideoSection: FC = () => {
           {INTERVIEWERS.map((p) => (
             <article
               key={p.name}
-              className="group relative rounded-2xl overflow-hidden bg-neutral-900 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl flex flex-col"
+              className="group relative rounded-2xl overflow-hidden bg-black transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl flex flex-col"
               style={{ border: "1px solid rgba(255,255,255,0.06)" }}
             >
-              <div className="relative aspect-[4/5] overflow-hidden bg-neutral-800">
+              <div className="relative aspect-[4/5] overflow-hidden bg-black">
                 <Image
                   src={p.image}
                   alt={`${p.name}, ${p.role}`}

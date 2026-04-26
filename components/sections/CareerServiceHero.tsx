@@ -1,8 +1,6 @@
 "use client";
 
 import { FC } from "react";
-import Link from "next/link";
-import { track } from "@/lib/mixpanel";
 
 /* ─── Hero ───────────────────────────────────────────────────────────────── */
 export const CareerServiceHero: FC = () => {
@@ -97,22 +95,6 @@ export const CareerServiceHero: FC = () => {
               get hired.
             </strong>
           </p>
-
-          {/* CTA */}
-          <div className="hero-stagger-4 flex justify-center mb-10">
-            <Link
-              href="/app/practice"
-              onClick={() => track("CTA Clicked", { button: "Start free session", location: "hero" })}
-              className="inline-flex items-center gap-2 px-7 py-4 rounded-xl font-bold text-base transition-all duration-200 hover:brightness-110 active:scale-[0.98]"
-              style={{ background: "#2dec29", color: "#071a09" }}
-            >
-              Start free session
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-          </div>
-
 
       </div>
 

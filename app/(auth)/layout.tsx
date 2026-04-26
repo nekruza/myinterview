@@ -45,7 +45,7 @@ export default function AuthLayout({
           </Link>
 
           {/* Hero copy */}
-          <div className="flex-1 flex flex-col justify-center gap-8">
+          <div className="flex-1 flex flex-col justify-center gap-8 -mt-10">
             <div>
               <div
                 className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-5"
@@ -66,7 +66,7 @@ export default function AuthLayout({
                 </span>
               </div>
 
-              <h2 className="text-[2.2rem] font-black leading-[1.1] mb-4 text-white">
+              <h2 className="text-[2.8rem] font-black leading-[1.1] mb-4 text-white">
                 Practice interviews.
                 <br />
                 <span
