@@ -103,46 +103,29 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
     let mounted = true;
 
     const init = async () => {
-      // Request mic (required) + camera (optional)
+      // Mic + camera acquisition. Strategy:
+      // - In realtime mode the Inworld SDK acquires its own mic — we MUST NOT call
+      //   getUserMedia({audio}) here or the SDK's later call can hit NotReadableError.
+      //   We only need the camera for the user pane in that case.
+      // - In non-realtime mode we need both: the mic stream powers the visualizer
+      //   and Web Speech recognition driver, and the camera is for the user pane.
       let micAcquired = false;
+      let audioStream: MediaStream | null = null;
 
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-          video: true,
-        });
-        // Permission granted — always record this (state persists across Strict Mode re-mounts)
-        setMicPermission(true);
-        micAcquired = true;
-        if (mounted) {
-          setWebcamStream(stream);
-          webcamStreamRef.current = stream;
-          // Start audio visualizer with mic stream
-          const audioTrack = stream.getAudioTracks()[0];
-          if (audioTrack) {
-            const audioStream = new MediaStream([audioTrack]);
-            visualizer.startAnalyser(audioStream);
-          }
-        } else {
-          // Strict Mode cleanup already ran — release the orphaned stream
-          stream.getTracks().forEach((t) => t.stop());
-        }
-      } catch (err) {
-        // Try audio only (no camera)
+      if (!useRealtime) {
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            audio: true,
-          });
+          audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
           setMicPermission(true);
           micAcquired = true;
           if (mounted) {
-            webcamStreamRef.current = stream;
-            visualizer.startAnalyser(stream);
+            webcamStreamRef.current = audioStream;
+            visualizer.startAnalyser(audioStream);
           } else {
-            stream.getTracks().forEach((t) => t.stop());
+            audioStream.getTracks().forEach((t) => t.stop());
+            audioStream = null;
           }
-        } catch (err2) {
-          const name = (err2 as DOMException)?.name;
+        } catch (err) {
+          const name = (err as DOMException)?.name;
           const msg =
             name === "NotFoundError" || name === "DevicesNotFoundError"
               ? "No microphone detected — plug one in and refresh."
@@ -152,8 +135,29 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
               ? "Microphone is in use by another app — close it and refresh."
               : "Could not access microphone — please refresh and try again.";
           setMicError(msg);
-          // Only mark denied if no prior init already succeeded
           setMicPermission((prev) => (prev === true ? true : false));
+        }
+      } else {
+        // Realtime mode: assume mic will be granted by the SDK; let the rest of init proceed.
+        setMicPermission(true);
+        micAcquired = true;
+      }
+
+      // Camera is optional — never fail the flow if it's missing/blocked
+      if (micAcquired && mounted) {
+        try {
+          const videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+          if (!mounted) {
+            videoStream.getTracks().forEach((t) => t.stop());
+          } else {
+            const combined = new MediaStream();
+            audioStream?.getAudioTracks().forEach((t) => combined.addTrack(t));
+            videoStream.getVideoTracks().forEach((t) => combined.addTrack(t));
+            setWebcamStream(combined);
+            webcamStreamRef.current = combined;
+          }
+        } catch {
+          // No camera or denied — keep audio-only. UI already handles the no-webcam case.
         }
       }
 
@@ -175,7 +179,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
         });
         await realtime.connect({
           instructions,
-          voice: "Dennis",
+          voice: interviewer.voiceId,
           model: "google-ai-studio/gemini-3.1-flash-lite-preview",
           interviewType: interviewType ?? "technical",
           hybridMode: true,
@@ -710,7 +714,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
               <>
                 <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
                 <span className="text-xs text-blue-400 font-medium">
-                  Jason is speaking
+                  {interviewer.name} is speaking
                 </span>
               </>
             )}
@@ -718,7 +722,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
               <>
                 <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
                 <span className="text-xs text-yellow-400 font-medium">
-                  Jason is thinking...
+                  {interviewer.name} is thinking...
                 </span>
               </>
             )}

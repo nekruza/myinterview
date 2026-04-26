@@ -52,9 +52,9 @@ interface DetailedFeedback {
 
 export default function PracticePage() {
   const [phase, setPhase] = useState<Phase>("setup");
-  const [interviewType, setInterviewType] = useState<InterviewType>("technical");
+  const [interviewType, setInterviewType] = useState<InterviewType>("case");
   const [interviewerId, setInterviewerId] = useState<string>(
-    getDefaultInterviewerForSpecialty("technical").id
+    getDefaultInterviewerForSpecialty("case").id
   );
   const [jobContextMode, setJobContextMode] = useState<JobContextMode>("paste");
   const [jobDescription, setJobDescription] = useState("");

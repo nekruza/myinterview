@@ -36,11 +36,21 @@ export const VideoArea: FC<VideoAreaProps> = ({
 }) => {
   const persona = interviewer ?? getInterviewerById(interviewerId);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const idleVideoRef = useRef<HTMLVideoElement>(null);
+  const speakingVideoRef = useRef<HTMLVideoElement>(null);
+
   useEffect(() => {
     if (videoRef.current && webcamStream) {
       videoRef.current.srcObject = webcamStream;
     }
   }, [webcamStream]);
+
+  // Both clips autoplay+loop, but on some browsers a hidden (opacity:0) video
+  // gets paused. Force-play the active clip whenever the speaking state flips.
+  useEffect(() => {
+    const target = isAISpeaking ? speakingVideoRef.current : idleVideoRef.current;
+    target?.play().catch(() => {});
+  }, [isAISpeaking, persona.speakingVideo, persona.idleVideo]);
 
   const initials = userName
     .split(" ")
@@ -58,36 +68,38 @@ export const VideoArea: FC<VideoAreaProps> = ({
           className="relative flex-1 md:w-1/2 rounded-2xl overflow-hidden bg-black transition-all duration-500"
           style={{
             border: isAISpeaking
-              ? "1px solid rgba(45, 236, 41, 0.35)"
+              ? "1px solid rgba(45, 236, 41, 0.45)"
               : "1px solid rgba(255, 255, 255, 0.06)",
             boxShadow: isAISpeaking
-              ? "0 0 30px rgba(45, 236, 41, 0.18), inset 0 0 60px rgba(45, 236, 41, 0.04)"
+              ? "0 0 32px rgba(45, 236, 41, 0.28), inset 0 0 60px rgba(45, 236, 41, 0.05)"
               : "inset 0 0 80px rgba(0,0,0,0.4)",
           }}
         >
-          {/* Speaking video */}
+          {/* Idle clip — visible when AI is silent */}
           <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="auto"
-            key={persona.speakingVideo}
-            src={persona.speakingVideo}
-            className="absolute inset-0 w-full h-full object-cover"
-            style={{ opacity: isAISpeaking ? 1 : 0 }}
-          />
-          {/* Idle video */}
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="auto"
+            ref={idleVideoRef}
             key={persona.idleVideo}
             src={persona.idleVideo}
-            className="absolute inset-0 w-full h-full object-cover"
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            className="absolute inset-0 w-full h-full object-cover transition-opacity duration-200"
             style={{ opacity: isAISpeaking ? 0 : 1 }}
+          />
+          {/* Speaking clip — visible when AI is talking */}
+          <video
+            ref={speakingVideoRef}
+            key={persona.speakingVideo}
+            src={persona.speakingVideo}
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            className="absolute inset-0 w-full h-full object-cover transition-opacity duration-200"
+            style={{ opacity: isAISpeaking ? 1 : 0 }}
           />
 
           {/* Name tag */}
