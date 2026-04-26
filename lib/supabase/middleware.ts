@@ -2,8 +2,13 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function updateSession(request: NextRequest) {
+  // Forward the pathname as a request header so server components (layouts) can read it
+  const requestHeaders = new Headers(request.headers);
+  const pathname = request.nextUrl.pathname;
+  requestHeaders.set("x-pathname", pathname);
+
   let supabaseResponse = NextResponse.next({
-    request,
+    request: { headers: requestHeaders },
   });
 
   const supabase = createServerClient(
@@ -19,7 +24,7 @@ export async function updateSession(request: NextRequest) {
             request.cookies.set(name, value)
           );
           supabaseResponse = NextResponse.next({
-            request,
+            request: { headers: requestHeaders },
           });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
@@ -34,9 +39,10 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protected routes: redirect to login if not authenticated
-  const pathname = request.nextUrl.pathname;
-  if (pathname.startsWith("/app") && !user) {
+  // Protected routes: redirect to login if not authenticated.
+  // /app/practice is intentionally public (anonymous trial — 3 free sessions).
+  const isPublicAppRoute = pathname === "/app/practice";
+  if (pathname.startsWith("/app") && !user && !isPublicAppRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);

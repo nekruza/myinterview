@@ -15,6 +15,7 @@ import {
   Star,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { VoiceCallView } from "@/components/practice/VoiceCallView";
 import { LEVELS } from "@/lib/practice-data";
 import type { Phase, Message } from "@/lib/practice-data";
@@ -63,8 +64,11 @@ export default function PracticePage() {
   const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
 
-  const [sessionCredits, setSessionCredits] = useState(0);
+  type UsageKind = "auth" | "anon";
+  const [usage, setUsage] = useState<{ kind: UsageKind; remaining: number; max: number | null } | null>(null);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const router = useRouter();
+  const SIGNUP_HREF = "/signup?next=/app/practice";
 
   // Resume
   const [hasResume, setHasResume] = useState<boolean | null>(null);
@@ -72,24 +76,35 @@ export default function PracticePage() {
 
   const supabase = createClient();
 
+  async function loadUsage() {
+    try {
+      const res = await fetch("/api/sessions/usage", { cache: "no-store" });
+      if (res.ok) setUsage(await res.json());
+    } catch {
+      // ignore — start gating will hit the API directly
+    }
+  }
+
   useEffect(() => {
+    loadUsage();
+
     async function checkProfile() {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setHasResume(false);
+        return;
+      }
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("resume_url, resume_text, session_credits, experience_level, interview_style, target_role")
+        .select("resume_url, resume_text, experience_level, interview_style, target_role")
         .eq("id", user.id)
         .single();
 
       setHasResume(!!profile?.resume_url);
       setResumeText(profile?.resume_text ?? null);
-      setSessionCredits(profile?.session_credits ?? 0);
 
-      // Preset from onboarding preferences
       if (profile?.experience_level) {
-        // "student" from onboarding has no direct match — treat as junior
         setLevel(profile.experience_level === "student" ? "junior" : profile.experience_level);
       }
       if (profile?.target_role) {
@@ -103,6 +118,9 @@ export default function PracticePage() {
     }
     checkProfile();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const sessionCredits = usage?.remaining ?? 0;
+  const isAnon = usage?.kind === "anon";
 
 
   const submitUserFeedback = async () => {
@@ -136,9 +154,23 @@ export default function PracticePage() {
   };
 
   const startSession = async () => {
-    if (sessionCredits <= 0) {
+    // Local fast-path: if we already know remaining is 0, show the right wall
+    if (usage && usage.remaining <= 0) {
+      if (usage.kind === "anon") {
+        track("Upgrade Modal Shown", {
+          reason: "no_credits",
+          source: "start_session",
+          kind: usage.kind,
+        });
+        router.push(SIGNUP_HREF);
+        return;
+      }
       setShowUpgrade(true);
-      track("Upgrade Modal Shown", { reason: "no_credits", source: "start_session" });
+      track("Upgrade Modal Shown", {
+        reason: "no_credits",
+        source: "start_session",
+        kind: usage.kind,
+      });
       return;
     }
 
@@ -157,12 +189,20 @@ export default function PracticePage() {
       });
       const data = await res.json();
       if (res.status === 403 && data.error === "limit_reached") {
-        setShowUpgrade(true);
-        track("Upgrade Modal Shown", { reason: "limit_reached", source: "start_session" });
+        const isAnonLimit = data.type === "anon_trial";
+        track("Upgrade Modal Shown", {
+          reason: "limit_reached",
+          source: "start_session",
+          kind: isAnonLimit ? "anon" : "auth",
+        });
+        if (isAnonLimit) router.push(SIGNUP_HREF);
+        else setShowUpgrade(true);
         return;
       }
       if (!res.ok) throw new Error(data.error);
-      setSessionCredits((prev) => Math.max(0, prev - 1));
+      setUsage((prev) =>
+        prev ? { ...prev, remaining: Math.max(0, prev.remaining - 1) } : prev
+      );
       setSessionId(data.sessionId);
       setPhase("chat");
       track("Session Started", {
@@ -172,6 +212,7 @@ export default function PracticePage() {
         has_job_context: jobContext.mode === "paste",
         has_resume: hasResume ?? false,
         credits_remaining: Math.max(0, sessionCredits - 1),
+        kind: usage?.kind ?? "unknown",
       });
     } catch {
       toast.error("Could not start session. Please try again.");
@@ -217,11 +258,12 @@ export default function PracticePage() {
       const data: DetailedFeedback = await res.json();
       setFeedbackData(data);
 
+      const categories = data.categories ?? [];
       track("AI Feedback Received", {
         interview_type: interviewType,
         score: Math.round(data.score * 10),
         verdict: data.verdict,
-        category_count: data.categories.length,
+        category_count: categories.length,
       });
 
       // Store: score as 0-100, feedback as JSON, per-category progress scores
@@ -232,7 +274,7 @@ export default function PracticePage() {
           sessionId,
           score: Math.round(data.score * 10),
           feedback: JSON.stringify(data),
-          competencyScores: data.categories.map((c) => ({
+          competencyScores: categories.map((c) => ({
             competency: c.name.toLowerCase().replace(/\s+/g, "_"),
             score: Math.round(c.score * 10),
           })),
@@ -559,15 +601,65 @@ export default function PracticePage() {
                 Without context, you get generic questions. With your resume and the job description, the AI acts like a real interviewer who has read your application.
               </p>
             </div>
+
+            {isAnon && (
+              <div
+                className="rounded-2xl p-5"
+                style={{ background: "linear-gradient(135deg, #112715 0%, #0d2410 100%)" }}
+              >
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] mb-2" style={{ color: "#2dec29" }}>
+                  Save your progress
+                </p>
+                <p className="text-xs leading-relaxed mb-3" style={{ color: "rgba(255,255,255,0.7)" }}>
+                  Sign up free to keep your scores, history, and unlock unlimited practice.
+                </p>
+                <Link
+                  href={SIGNUP_HREF}
+                  className="block text-center w-full py-2.5 rounded-xl text-xs font-bold transition-all hover:brightness-110"
+                  style={{ background: "#2dec29", color: "#071a09" }}
+                >
+                  Sign up free
+                </Link>
+              </div>
+            )}
           </div>
         </div>
 
+        {isAnon && (
+          <div className="lg:hidden mt-6">
+            <div
+              className="rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center gap-3"
+              style={{ background: "linear-gradient(135deg, #112715 0%, #0d2410 100%)" }}
+            >
+              <div className="flex-1">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] mb-1" style={{ color: "#2dec29" }}>
+                  Save your progress
+                </p>
+                <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.7)" }}>
+                  Sign up free to keep your scores and unlock unlimited practice.
+                </p>
+              </div>
+              <Link
+                href={SIGNUP_HREF}
+                className="shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold transition-all hover:brightness-110"
+                style={{ background: "#2dec29", color: "#071a09" }}
+              >
+                Sign up free
+              </Link>
+            </div>
+          </div>
+        )}
+
       {/* ── Sticky Start Button ── */}
       <div className="sticky bottom-16 md:bottom-0 -mx-4 sm:-mx-6 md:-mb-8 px-4 sm:px-6 py-4 mt-6 border-t border-neutral-100" style={{ background: "rgba(250,249,246,0.97)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}>
-        {sessionCredits <= 5 && (
+        {usage && (sessionCredits <= 5 || isAnon) && (
           <p className="text-center text-xs text-neutral-400 mb-2">
             {sessionCredits <= 0 ? (
-              <span className="text-amber-600 font-medium">No sessions remaining — buy more to continue</span>
+              <span className="text-amber-600 font-medium">
+                {isAnon ? "Sign up free to keep practising" : "No sessions remaining — buy more to continue"}
+              </span>
+            ) : isAnon ? (
+              <span>{sessionCredits} free session{sessionCredits !== 1 ? "s" : ""} left</span>
             ) : (
               <span>{sessionCredits} session{sessionCredits !== 1 ? "s" : ""} remaining</span>
             )}
@@ -579,15 +671,21 @@ export default function PracticePage() {
           style={{ background: "#2dec29", color: "#112715" }}
         >
           <Sparkles className="w-4 h-4" />
-          {sessionCredits <= 0 ? "Buy Sessions to Continue" : "Start Voice Practice"}
+          {sessionCredits <= 0
+            ? isAnon
+              ? "Sign Up to Continue"
+              : "Buy Sessions to Continue"
+            : "Start Voice Practice"}
         </button>
       </div>
 
-      <UpgradeModal
-        open={showUpgrade}
-        onClose={() => setShowUpgrade(false)}
-        reason="practice_limit"
-      />
+      {!isAnon && (
+        <UpgradeModal
+          open={showUpgrade}
+          onClose={() => setShowUpgrade(false)}
+          reason="practice_limit"
+        />
+      )}
     </div>
     );
   }
@@ -632,6 +730,33 @@ export default function PracticePage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+      {/* ── Anonymous celebration / save-progress wall ── */}
+      {isAnon && usage && usage.remaining <= 0 && (
+        <div
+          className="rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4"
+          style={{
+            background: "linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)",
+            border: "1px solid #bbf7d0",
+          }}
+        >
+          <div className="flex-1">
+            <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: "#0d6e0c" }}>
+              You finished your 3 free sessions
+            </p>
+            <p className="text-sm font-semibold text-secondary leading-snug">
+              Save your scores + unlock unlimited practice — sign up free, no password.
+            </p>
+          </div>
+          <Link
+            href="/signup?next=/app/practice"
+            className="shrink-0 px-5 py-2.5 rounded-xl font-bold text-sm transition-all hover:brightness-95 active:scale-[0.99]"
+            style={{ background: "#2dec29", color: "#071a09", boxShadow: "0 4px 14px rgba(45,236,41,0.35)" }}
+          >
+            Save my progress
+          </Link>
+        </div>
+      )}
+
       {/* ── Score Hero ── */}
       {feedbackLoading ? (
         <div
@@ -781,13 +906,13 @@ export default function PracticePage() {
             </div>
           ))}
         </div>
-      ) : feedbackData && feedbackData.categories.length > 0 ? (
+      ) : feedbackData && (feedbackData.categories?.length ?? 0) > 0 ? (
         <div className="rounded-2xl p-6" style={{ background: "#fff", border: "1px solid #f0f0f0" }}>
           <p className="text-[10px] font-bold uppercase tracking-widest mb-5" style={{ color: "#9ca3af" }}>
             Category Breakdown
           </p>
           <div className="space-y-5">
-            {feedbackData.categories.map((cat, i) => {
+            {(feedbackData.categories ?? []).map((cat, i) => {
               const barColor = getCategoryBarColor(cat.score);
               return (
                 <div key={i}>
@@ -829,13 +954,13 @@ export default function PracticePage() {
             </div>
           ))}
         </div>
-      ) : (feedbackData && (feedbackData.strengths.length > 0 || feedbackData.improvements.length > 0)) ? (
+      ) : (feedbackData && ((feedbackData.strengths?.length ?? 0) > 0 || (feedbackData.improvements?.length ?? 0) > 0)) ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {feedbackData.strengths.length > 0 && (
+          {(feedbackData.strengths?.length ?? 0) > 0 && (
             <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm">
               <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wide mb-4">Strengths</p>
               <ul className="space-y-2.5">
-                {feedbackData.strengths.map((s, i) => (
+                {(feedbackData.strengths ?? []).map((s, i) => (
                   <li key={i} className="flex items-start gap-2.5 text-sm text-neutral-700">
                     <span
                       className="shrink-0 w-4 h-4 mt-0.5 rounded-full border flex items-center justify-center text-[9px] font-black"
@@ -849,11 +974,11 @@ export default function PracticePage() {
               </ul>
             </div>
           )}
-          {feedbackData.improvements.length > 0 && (
+          {(feedbackData.improvements?.length ?? 0) > 0 && (
             <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm">
               <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wide mb-4">Improve</p>
               <ul className="space-y-2.5">
-                {feedbackData.improvements.map((s, i) => (
+                {(feedbackData.improvements ?? []).map((s, i) => (
                   <li key={i} className="flex items-start gap-2.5 text-sm text-neutral-700">
                     <span
                       className="shrink-0 w-4 h-4 mt-0.5 rounded-full border flex items-center justify-center text-[9px] font-black"
@@ -878,11 +1003,11 @@ export default function PracticePage() {
             <div key={i} className="h-4 bg-neutral-100 rounded mb-3" style={{ width: `${[88, 80, 70][i]}%` }} />
           ))}
         </div>
-      ) : feedbackData && feedbackData.tips.length > 0 ? (
+      ) : feedbackData && (feedbackData.tips?.length ?? 0) > 0 ? (
         <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm">
           <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wide mb-4">Tips & Tricks</p>
           <ul className="space-y-2.5">
-            {feedbackData.tips.map((t, i) => (
+            {(feedbackData.tips ?? []).map((t, i) => (
               <li key={i} className="flex items-start gap-2.5 text-sm text-neutral-700">
                 <span
                   className="shrink-0 w-4 h-4 mt-0.5 rounded-md flex items-center justify-center text-[9px] font-black"
@@ -911,12 +1036,12 @@ export default function PracticePage() {
             </div>
           ))}
         </div>
-      ) : feedbackData && feedbackData.questions.length > 0 ? (
+      ) : feedbackData && (feedbackData.questions?.length ?? 0) > 0 ? (
         <div className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm">
           <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wide mb-2">Reconstructed Q&A</p>
           <p className="text-xs text-neutral-400 mb-5">AI reconstructed the interviewer&apos;s questions from your answers.</p>
           <div className="space-y-5">
-            {feedbackData.questions.map((q, i) => (
+            {(feedbackData.questions ?? []).map((q, i) => (
               <div
                 key={i}
                 className="pl-3 py-1"
@@ -1068,6 +1193,7 @@ export default function PracticePage() {
           </div>
         </div>
       )}
+
     </div>
   );
 }

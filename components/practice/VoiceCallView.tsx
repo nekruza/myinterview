@@ -838,9 +838,6 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
               hintLoading={hintLoading}
               onToggleCamera={handleToggleCamera}
               cameraOn={cameraOn}
-              onSkip={handleSkip}
-              onPause={handlePause}
-              isPaused={convState === "paused"}
               onStop={handleStop}
               onToggleNotes={() => setShowNotes((v) => !v)}
               notesOpen={showNotes}

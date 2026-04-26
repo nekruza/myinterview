@@ -4,9 +4,6 @@ import { FC } from "react";
 import {
   Subtitles,
   Lightbulb,
-  SkipForward,
-  Pause,
-  Play,
   Square,
   FileText,
   Video,
@@ -21,9 +18,6 @@ interface ControlBarProps {
   hintLoading: boolean;
   onToggleCamera: () => void;
   cameraOn: boolean;
-  onSkip: () => void;
-  onPause: () => void;
-  isPaused: boolean;
   onStop: () => void;
   onToggleNotes: () => void;
   notesOpen: boolean;
@@ -75,9 +69,6 @@ export const ControlBar: FC<ControlBarProps> = ({
   hintLoading,
   onToggleCamera,
   cameraOn,
-  onSkip,
-  onPause,
-  isPaused,
   onStop,
   onToggleNotes,
   notesOpen,
@@ -120,11 +111,6 @@ export const ControlBar: FC<ControlBarProps> = ({
       onClick={onToggleCamera}
       active={cameraOn}
     />
-    <ControlButton
-      icon={<SkipForward className="w-4 h-4 md:w-5 md:h-5 text-white/80" />}
-      label="Skip"
-      onClick={onSkip}
-    />
     {isAISpeaking && onInterrupt && (
       <ControlButton
         icon={<StopCircle className="w-4 h-4 md:w-5 md:h-5 text-white" />}
@@ -133,17 +119,6 @@ export const ControlBar: FC<ControlBarProps> = ({
         danger
       />
     )}
-    <ControlButton
-      icon={
-        isPaused ? (
-          <Play className="w-4 h-4 md:w-5 md:h-5 text-white/80" />
-        ) : (
-          <Pause className="w-4 h-4 md:w-5 md:h-5 text-white/80" />
-        )
-      }
-      label={isPaused ? "Resume" : "Pause"}
-      onClick={onPause}
-    />
     <ControlButton
       icon={<Square className="w-4 h-4 md:w-5 md:h-5 text-white" />}
       label="End Session"

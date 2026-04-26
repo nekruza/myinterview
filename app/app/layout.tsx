@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppLayoutClient } from "./AppLayoutClient";
@@ -7,23 +8,27 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const headerList = await headers();
+  const pathname = headerList.get("x-pathname") ?? "";
+  const isPublicRoute = pathname === "/app/practice";
+
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
+  if (!user && !isPublicRoute) {
     redirect("/login");
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("avatar_url, onboarding_complete")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile?.onboarding_complete) {
-    redirect("/onboarding");
+  let avatarUrl: string | null = null;
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("avatar_url")
+      .eq("id", user.id)
+      .single();
+    avatarUrl = profile?.avatar_url ?? null;
   }
 
   return (
@@ -38,7 +43,11 @@ export default async function AppLayout({
           background: "radial-gradient(ellipse 50% 60% at 0% 50%, rgba(180,200,220,0.08) 0%, transparent 70%)",
         }}
       />
-      <AppLayoutClient userId={user.id} userEmail={user.email ?? ""} avatarUrl={profile?.avatar_url ?? null}>
+      <AppLayoutClient
+        userId={user?.id ?? null}
+        userEmail={user?.email ?? null}
+        avatarUrl={avatarUrl}
+      >
         {children}
       </AppLayoutClient>
     </div>

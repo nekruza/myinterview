@@ -87,11 +87,12 @@ const glassHoverPill = {
 };
 
 interface AppSidebarProps {
-  userEmail: string;
+  userEmail: string | null;
   avatarUrl: string | null;
 }
 
 export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
+  const isAuthed = !!userEmail;
   const pathname = usePathname();
   const router = useRouter();
   const [popoverOpen, setPopoverOpen] = useState(false);
@@ -163,7 +164,7 @@ export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
     router.refresh();
   }
 
-  const initials = userEmail.split("@")[0].slice(0, 2).toUpperCase();
+  const initials = userEmail ? userEmail.split("@")[0].slice(0, 2).toUpperCase() : "";
 
   return (
     <>
@@ -323,7 +324,7 @@ export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
         </div>
 
         {/* ── Session credit warning indicator ──────────────────── */}
-        {sessionCredits <= 5 && (
+        {isAuthed && sessionCredits <= 5 && (
           <div className="relative z-10 w-full px-2 shrink-0">
             <Tooltip>
               <TooltipTrigger asChild>
@@ -525,72 +526,94 @@ export const AppSidebar: FC<AppSidebarProps> = ({ userEmail, avatarUrl }) => {
           }}
         />
 
-        {/* ── User avatar ──────────────────────────────────────── */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Link
-              href="/app/settings"
-              className="relative z-10 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 overflow-hidden transition-all duration-200"
-              style={{
-                background:
-                  "linear-gradient(145deg, rgba(45,236,41,0.55) 0%, rgba(45,236,41,0.3) 100%)",
-                border: "1.5px solid rgba(255,255,255,0.6)",
-                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.65)",
-                color: "#0d6e0c",
-              }}
-            >
-              {avatarUrl ? (
-                <Image
-                  src={avatarUrl}
-                  alt="Profile"
-                  width={32}
-                  height={32}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                initials
-              )}
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent side="right">Settings</TooltipContent>
-        </Tooltip>
+        {/* ── User avatar / Sign in CTA ─────────────────────────── */}
+        {isAuthed ? (
+          <>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link
+                  href="/app/settings"
+                  className="relative z-10 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 overflow-hidden transition-all duration-200"
+                  style={{
+                    background:
+                      "linear-gradient(145deg, rgba(45,236,41,0.55) 0%, rgba(45,236,41,0.3) 100%)",
+                    border: "1.5px solid rgba(255,255,255,0.6)",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.65)",
+                    color: "#0d6e0c",
+                  }}
+                >
+                  {avatarUrl ? (
+                    <Image
+                      src={avatarUrl}
+                      alt="Profile"
+                      width={32}
+                      height={32}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    initials
+                  )}
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="right">Settings</TooltipContent>
+            </Tooltip>
 
-        {/* ── Sign out ─────────────────────────────────────────── */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              onClick={handleSignOut}
-              className="relative z-10 flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 shrink-0"
-              style={{
-                color: "rgba(0,0,0,0.35)",
-                border: "1px solid transparent",
-              }}
-              onMouseEnter={(e) => {
-                const el = e.currentTarget as HTMLElement;
-                el.style.background =
-                  "linear-gradient(145deg, rgba(239,68,68,0.2) 0%, rgba(239,68,68,0.1) 100%)";
-                el.style.border = "1px solid rgba(255,255,255,0.55)";
-                el.style.boxShadow = "inset 0 1px 0 rgba(255,255,255,0.5)";
-                el.style.color = "#dc2626";
-              }}
-              onMouseLeave={(e) => {
-                const el = e.currentTarget as HTMLElement;
-                el.style.background = "";
-                el.style.border = "1px solid transparent";
-                el.style.boxShadow = "";
-                el.style.color = "rgba(0,0,0,0.35)";
-              }}
-            >
-              <LogOut
-                className="w-4 h-4"
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleSignOut}
+                  className="relative z-10 flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 shrink-0"
+                  style={{
+                    color: "rgba(0,0,0,0.35)",
+                    border: "1px solid transparent",
+                  }}
+                  onMouseEnter={(e) => {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.background =
+                      "linear-gradient(145deg, rgba(239,68,68,0.2) 0%, rgba(239,68,68,0.1) 100%)";
+                    el.style.border = "1px solid rgba(255,255,255,0.55)";
+                    el.style.boxShadow = "inset 0 1px 0 rgba(255,255,255,0.5)";
+                    el.style.color = "#dc2626";
+                  }}
+                  onMouseLeave={(e) => {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.background = "";
+                    el.style.border = "1px solid transparent";
+                    el.style.boxShadow = "";
+                    el.style.color = "rgba(0,0,0,0.35)";
+                  }}
+                >
+                  <LogOut
+                    className="w-4 h-4"
+                    style={{
+                      filter: "drop-shadow(0 1px 1.5px rgba(0,0,0,0.10))",
+                    }}
+                  />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Sign out</TooltipContent>
+            </Tooltip>
+          </>
+        ) : (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                href="/login"
+                className="relative z-10 flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 shrink-0"
                 style={{
-                  filter: "drop-shadow(0 1px 1.5px rgba(0,0,0,0.10))",
+                  color: "#0d6e0c",
+                  background:
+                    "linear-gradient(145deg, rgba(45,236,41,0.38) 0%, rgba(45,236,41,0.18) 100%)",
+                  border: "1px solid rgba(255,255,255,0.55)",
+                  boxShadow: "inset 0 1.5px 0 rgba(255,255,255,0.65)",
                 }}
-              />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="right">Sign out</TooltipContent>
-        </Tooltip>
+              >
+                <UserPlus className="w-4 h-4" />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent side="right">Sign in</TooltipContent>
+          </Tooltip>
+        )}
       </div>
     </aside>
 

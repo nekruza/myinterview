@@ -112,7 +112,7 @@ export const VideoArea: FC<VideoAreaProps> = ({
             >
               {caption.role === "user" ? "You" : INTERVIEWER.name.split(" ")[0]}
             </p>
-            <p className="text-sm text-white/95 leading-relaxed line-clamp-3">
+            <p className="text-sm text-white/95 leading-relaxed">
               {caption.text}
             </p>
           </div>

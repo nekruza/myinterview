@@ -49,7 +49,7 @@ export default function Home() {
           <VideoSection />
           <FeaturesSection />
           <PricingSection />
-          <CareerSolutionSection />
+          {/* <CareerSolutionSection /> */}
           <FAQSection />
         </main>
         <Footer />

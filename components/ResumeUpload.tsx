@@ -62,7 +62,11 @@ export function ResumeUpload({
 
       if (!res.ok) {
         setState("error");
-        setWarning(json.error ?? "Upload failed. Please try again.");
+        const friendly =
+          res.status === 401 || json.error === "Unauthorized"
+            ? "Sign up to be able to upload your resume."
+            : json.error ?? "Upload failed. Please try again.";
+        setWarning(friendly);
         track("Resume Upload Failed", { reason: json.error ?? "api_error", file_type: file.type });
         return;
       }
