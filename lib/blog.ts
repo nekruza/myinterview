@@ -13,6 +13,100 @@ export interface BlogPost {
 
 export const posts: BlogPost[] = [
   {
+    slug: "get-a-job-through-linkedin",
+    title: "How to Actually Get a Job Through LinkedIn (Not Just Apply on It)",
+    excerpt:
+      "Job postings get 200+ applicants on day one. The candidates who get hired through LinkedIn rarely use the Apply button. Here's the playbook that actually works.",
+    author: "Sara Holloway",
+    authorRole: "Tech Recruiter, ex-Stripe & Notion",
+    date: "April 26, 2026",
+    readTime: "8 min read",
+    category: "Job Search",
+    coverEmoji: "💼",
+    content: `
+## Why "Apply" Is the Slowest Path
+
+Most job seekers treat LinkedIn like Indeed — scroll, click Apply, repeat. The math doesn't work. A senior engineer role posted at 9am has 250+ applicants by lunch. Recruiters skim ~6 seconds per resume. You will lose to keyword matching no matter how good you are.
+
+The candidates who get hired through LinkedIn aren't outcompeting that pile — they're skipping it. They're getting referred, DM'd by recruiters, or warm-introduced before the role is even public. This guide is about getting into that lane.
+
+## Step 1: Fix the Three Lines That Matter
+
+Recruiters search LinkedIn the same way you Google — keywords, location, filters. If your profile doesn't surface in their search, the rest doesn't matter. Three things drive almost all of it:
+
+1. **Headline** — not your job title. Use it as a search-targeted statement: *"Senior Backend Engineer · Distributed systems, Postgres, Go · Open to Staff roles"*. This is what shows up in search results and connection requests. Putting "Software Engineer @ Acme" wastes the most valuable real estate on the platform.
+
+2. **About (first two lines)** — only the first two lines show before "see more." Lead with what you build, who you build it for, and the outcome. Skip the personal mission statement. Recruiters scanning 40 profiles in an hour need a reason to expand yours within ~2 seconds.
+
+3. **Featured section** — pin three things: a project you shipped (with metrics), a talk or article you wrote, and a one-page case study. This is where you stop being a list of bullet points and start being a person who does the work.
+
+## Step 2: Stop Cold-Applying. Start Warm-Reaching.
+
+For every role you'd actually apply to, find these three people on LinkedIn:
+
+- **The hiring manager** (usually the role's "Reports to" person — listed on jobs at companies that don't hide it)
+- **A current employee on the team** (find via Search → People → filter by company + skills)
+- **Someone who left in the last year** (Search → People → "ex-[Company]" + the role's skill stack)
+
+The ex-employee is the most underrated. They'll tell you what's actually broken at the company, what the manager is like, and whether the role title matches reality. They have nothing to gain by hiding it. Reach out with: *"I'm interviewing at [Company] for [Role]. I saw you were on the team — would you be open to a 15-min call so I know what I'd be walking into?"*
+
+Reply rates on this hover around 30–40%. Reply rates on cold "I'd love to connect" messages are under 5%.
+
+## Step 3: The Hiring-Manager DM That Works
+
+Almost no one DMs the hiring manager directly. The ones who do, when they do it well, often skip the screen entirely. Format:
+
+> Hi [Name] — I saw the [Role] opening on your team. I've been working on [specific thing the role needs] at [Current Company / project] for [X years]. One quick example: [single specific result, with a number].
+>
+> Happy to send a one-pager rather than the full resume if useful. Either way, hope to be considered.
+
+Three rules: keep it under 90 words, lead with one specific outcome (not a list), and ask for nothing except consideration. Don't attach a resume — send the LinkedIn profile and the one-pager *only if they ask*. The reply rate on this format is dramatically higher than cold applications because it does the recruiter's first-screen work for them.
+
+## Step 4: Engage in Public Where the Hiring Happens
+
+Your network only refers people they remember. The fastest way to be remembered is to comment thoughtfully on the posts of people one or two levels above you, in the companies you want to work at.
+
+Specifically:
+
+- **Comment, don't post** — at the start, posting your own content has near-zero distribution. But a sharp 3-line comment on a director's post can get hundreds of impressions including from their colleagues
+- **Be technical, not motivational** — disagree politely, add a counterexample, share a related metric. "Great post!" is invisible. "We saw the opposite at [Company] when we tried this — the failure mode was [X]" gets noticed
+- **Show up weekly, not daily** — three thoughtful comments a week beats 30 reactions a day
+
+After 4–6 weeks of this, when you DM someone for a referral, they recognize your name. That's the entire game.
+
+## Step 5: Hunt the Hiring Signal
+
+Most jobs aren't posted on LinkedIn until 2–3 weeks after the team decides to hire. Get to them earlier.
+
+Watch for these signals on the profiles and posts of senior engineers and engineering managers at your target companies:
+
+- "We just closed our [Series A/B] and we're hiring [N] engineers" — money landed, hiring will follow
+- "Excited to announce I'm joining [Company] as [Director/VP]" — new leaders hire their first 3–5 people fast
+- "We're growing the [team] team — DM me if you're interested in [stack]" — explicit invitation, treat it as such
+- A flurry of "[Company] is hiring" reposts from employees — the company is paying for an internal referral push
+
+When you see one of these, the hiring manager is open. The window before the role goes public is when reply rates are highest.
+
+## Step 6: The 30/30/30 Weekly Cadence
+
+A working LinkedIn job search is ~3 hours a week, split:
+
+- **30 minutes: profile maintenance and search optimization** — check who viewed your profile, refine your headline based on which roles are showing up, update featured section monthly
+- **30 minutes: thoughtful engagement** — three comments on senior-level posts in your target companies
+- **30 minutes: outbound** — five warm reaches per week (ex-employees, hiring managers, mutuals at target companies)
+
+Three hours weekly, sustained for 6–8 weeks, will produce more interviews than 50 cold applications a day. The math isn't intuitive but it's consistent.
+
+## The Mistake to Avoid
+
+Don't turn on "Open to Work" with the green frame around your photo. Recruiters quietly deprioritize it — research from LinkedIn's own ATS partners shows candidates with the public banner get fewer InMails than candidates without it. Use the *recruiter-only* version (settings → Career interests → "Recruiters only"). Same signal, none of the desperation.
+
+## What to Do Today
+
+Open your LinkedIn profile right now and rewrite only your headline. Three components: senior keyword, two specific skills, what you're open to. Save it. That single change does more for your inbound than anything else you'll do this week — and it takes 90 seconds.
+    `,
+  },
+  {
     slug: "how-to-stop-mind-going-blank-interview",
     title: "Why Your Mind Goes Blank in Interviews (And How to Fix It)",
     excerpt:
