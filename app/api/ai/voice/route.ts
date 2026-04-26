@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { streamLLM } from "@/lib/llm";
+import { getAnonId } from "@/lib/anon-session";
 
 export const runtime = "nodejs";
 
@@ -166,7 +167,9 @@ export async function POST(req: Request) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
+  // Allow either authenticated users or anonymous trial users (gated by /api/sessions cap)
+  const anonId = user ? null : await getAnonId();
+  if (!user && !anonId) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { "Content-Type": "application/json" },

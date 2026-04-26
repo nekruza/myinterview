@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { streamLLM } from "@/lib/llm";
+import { getAnonId } from "@/lib/anon-session";
 
 export const runtime = "nodejs";
 
@@ -128,7 +129,8 @@ export async function POST(req: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
+  const anonId = user ? null : await getAnonId();
+  if (!user && !anonId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
