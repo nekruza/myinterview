@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { VoiceCallView } from "@/components/practice/VoiceCallView";
 import { LEVELS } from "@/lib/practice-data";
 import type { Phase, Message } from "@/lib/practice-data";
@@ -85,6 +85,7 @@ export default function PracticePage() {
   const [resumeText, setResumeText] = useState<string | null>(null);
 
   const supabase = createClient();
+  const searchParams = useSearchParams();
 
   async function loadUsage() {
     try {
@@ -97,6 +98,17 @@ export default function PracticePage() {
 
   useEffect(() => {
     loadUsage();
+
+    // Pre-select interviewer from ?interviewer= query param (set by dashboard avatar cards)
+    const interviewerParam = searchParams?.get("interviewer");
+    if (interviewerParam) {
+      const matched = getInterviewerById(interviewerParam);
+      // getInterviewerById falls back to default if not found — only apply if it's a real match
+      if (matched.id === interviewerParam) {
+        setInterviewerId(matched.id);
+        setInterviewType(matched.specialty);
+      }
+    }
 
     async function checkProfile() {
       const { data: { user } } = await supabase.auth.getUser();
@@ -120,7 +132,8 @@ export default function PracticePage() {
       if (profile?.target_role) {
         setRole(profile.target_role);
       }
-      if (profile?.interview_style) {
+      // Only apply saved interview_style if no ?interviewer param was provided
+      if (!interviewerParam && profile?.interview_style) {
         let nextType: InterviewType | null = null;
         if (profile.interview_style === "technical") nextType = "technical";
         else if (profile.interview_style === "behavioral") nextType = "behavioural";
@@ -364,9 +377,9 @@ export default function PracticePage() {
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {([
-                  { value: "technical", icon: Brain, label: "Technical", sub: "System design, coding, architecture" },
-                  { value: "behavioural", icon: Users, label: "Behavioural", sub: "Leadership, teamwork, conflict" },
                   { value: "case", icon: Briefcase, label: "Case", sub: "Business problems, market sizing" },
+                  { value: "behavioural", icon: Users, label: "Behavioural", sub: "Leadership, teamwork, conflict" },
+                  { value: "technical", icon: Brain, label: "Technical", sub: "System design, coding, architecture" },
                 ] as const).map(({ value, icon: Icon, label, sub }) => {
                   const active = interviewType === value;
                   return (

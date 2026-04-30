@@ -1,12 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
-import { ChevronRight, PlayCircle, Sparkles } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { FreeBanner, FreeBannerInline } from "@/components/FreeBanner";
-import Image from "next/image";
 import Link from "next/link";
 import { posts } from "@/lib/blog";
 import { Suspense } from "react";
 import { SignupConversionTracker } from "@/components/SignupConversionTracker";
+import { InterviewerPicker } from "@/components/InterviewerPicker";
 
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -243,6 +243,12 @@ export default async function DashboardPage() {
         )
       : null;
 
+  // ── Journey milestones ─────────────────────────────────────────────────────
+  const journeyStep1Done = completed.length >= 1;
+  const journeyStep2Done = streak >= 3;
+  const journeyStep3Done = scoresWithValue.some((s) => (s.score ?? 0) >= 80);
+  const journeyAllDone = journeyStep1Done && journeyStep2Done && journeyStep3Done;
+
   const greeting = getGreeting();
   const weekActivity = getWeekActivity(sessionList);
   const scoreHistory = getScoreHistory(sessionList);
@@ -284,78 +290,43 @@ export default async function DashboardPage() {
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <div className="grid gap-3 grid-cols-1 md:grid-cols-[3fr_2fr]">
 
-        {/* ── LEFT: AI Practice card */}
-        <Link
-          href="/app/practice"
-          className="group relative rounded-2xl overflow-hidden flex flex-col justify-between p-7 transition-all duration-300 hover:scale-[1.005] hover:shadow-2xl"
+        {/* ── LEFT: Interviewer picker card */}
+        <div
+          className="relative rounded-2xl overflow-hidden flex flex-col p-6"
           style={{
             background: "linear-gradient(160deg, #071a09 0%, #112914 50%, #0a2010 100%)",
             minHeight: "380px",
+            border: "1px solid rgba(45,236,41,0.12)",
           }}
         >
           {/* ── Glows */}
           <div className="pointer-events-none absolute -top-20 right-10 w-72 h-72 rounded-full blur-3xl opacity-[0.08]" style={{ background: "#2dec29" }} />
           <div className="pointer-events-none absolute bottom-0 left-0 w-56 h-56 rounded-full blur-3xl opacity-[0.07]" style={{ background: "#2dec29" }} />
 
-          {/* ── Avatar — right side, full bleed */}
-          <div className="absolute inset-y-0 right-0 w-[48%] pointer-events-none select-none">
-            <img
-              src="/image.png"
-              alt="AI Coach"
-              className="absolute inset-0 w-full h-full object-cover object-top"
-              style={{
-                mixBlendMode: "multiply",
-                filter: "contrast(1.05) brightness(1.5)",
-              }}
-            />
-          </div>
-
-          {/* ── Top: badge + headline */}
-          <div className="relative z-10 flex flex-col gap-3 max-w-[56%]">
+          {/* ── Badge + headline */}
+          <div className="relative z-10 mb-5">
             <div
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full w-fit mb-3"
               style={{ background: "#2dec2914", border: "1px solid #2dec2935" }}
             >
-              <Sparkles className="w-3 h-3" style={{ color: "#2dec29" }} />
+              <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#2dec29" }} />
               <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "#2dec29" }}>
                 AI Coach · 24/7
               </span>
             </div>
-
-            <h3 className="text-white font-extrabold leading-[1.1]" style={{ fontSize: "2rem" }}>
-              Practice<br />Now
+            <h3 className="text-white font-extrabold leading-[1.15]" style={{ fontSize: "1.5rem" }}>
+              Who&apos;s interviewing<br />you today?
             </h3>
-            <p className="text-white/45 text-sm leading-relaxed mb-4">
-              No scheduling needed
+            <p className="text-white/35 text-xs mt-1.5">
+              Pick an interviewer to start · 10 min · instant feedback
             </p>
           </div>
 
-          {/* ── Bottom: features + CTA */}
-          <div className="relative z-10 flex flex-col gap-4 max-w-[56%]">
-            <ul className="flex flex-col gap-1.5">
-              {[
-                "Instant AI feedback",
-                "R-STAR framework",
-              ].map((feat) => (
-                <li key={feat} className="flex items-center gap-2">
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="flex-shrink-0">
-                    <circle cx="6" cy="6" r="5.5" stroke="#2dec29" strokeOpacity="0.4"/>
-                    <path d="M3.5 6l1.8 1.8L8.5 4.5" stroke="#2dec29" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  <span className="text-white/55 text-xs">{feat}</span>
-                </li>
-              ))}
-            </ul>
-
-            <button
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold w-fit transition-all duration-200 group-hover:brightness-110 group-hover:gap-3"
-              style={{ background: "#2dec29", color: "#071a09" }}
-            >
-              Start session
-              <ChevronRight className="w-4 h-4" />
-            </button>
+          {/* ── 3 avatar cards */}
+          <div className="relative z-10 flex-1">
+            <InterviewerPicker />
           </div>
-        </Link>
+        </div>
 
         {/* ── RIGHT: Day Streak card */}
         <Link
@@ -443,6 +414,107 @@ export default async function DashboardPage() {
         </Link>
 
       </div>
+
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {/* 4 ▸ JOURNEY STRIP                                                     */}
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      {!journeyAllDone && (
+        <div
+          className="flex items-center gap-3 rounded-2xl px-5 py-3"
+          style={{
+            background: "linear-gradient(135deg, #071a09, #0a1a0b)",
+            border: "1px solid rgba(45,236,41,0.22)",
+          }}
+        >
+          <span className="text-[9px] font-bold uppercase tracking-[0.14em] shrink-0" style={{ color: "rgba(45,236,41,0.65)" }}>
+            Your path
+          </span>
+
+          <div className="flex items-center gap-2 flex-1 overflow-x-auto">
+            {/* Step 1 */}
+            <div
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg shrink-0"
+              style={{
+                background: journeyStep1Done ? "rgba(45,236,41,0.08)" : "rgba(45,236,41,0.12)",
+                border: journeyStep1Done ? "1px solid rgba(45,236,41,0.2)" : "1px solid rgba(45,236,41,0.45)",
+                opacity: journeyStep1Done ? 0.75 : 1,
+              }}
+            >
+              <span
+                className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-black shrink-0"
+                style={{
+                  background: journeyStep1Done ? "rgba(45,236,41,0.3)" : "#2dec29",
+                  color: journeyStep1Done ? "#2dec29" : "#071a09",
+                }}
+              >
+                {journeyStep1Done ? "✓" : "1"}
+              </span>
+              <span
+                className="text-[10px] font-semibold whitespace-nowrap"
+                style={{ color: journeyStep1Done ? "rgba(255,255,255,0.55)" : "#2dec29" }}
+              >
+                {journeyStep1Done ? "First session" : "First session ← now"}
+              </span>
+            </div>
+
+            <span className="text-[10px] shrink-0" style={{ color: "rgba(255,255,255,0.15)" }}>→</span>
+
+            {/* Step 2 */}
+            <div
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg shrink-0 transition-all"
+              style={{
+                background: journeyStep2Done ? "rgba(45,236,41,0.08)" : "rgba(255,255,255,0.04)",
+                border: journeyStep2Done ? "1px solid rgba(45,236,41,0.2)" : journeyStep1Done ? "1px solid rgba(45,236,41,0.45)" : "1px solid rgba(255,255,255,0.08)",
+                opacity: journeyStep2Done ? 0.75 : journeyStep1Done ? 1 : 0.5,
+              }}
+            >
+              <span
+                className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-black shrink-0"
+                style={{
+                  background: journeyStep2Done ? "rgba(45,236,41,0.3)" : journeyStep1Done ? "#2dec29" : "rgba(255,255,255,0.08)",
+                  color: journeyStep2Done ? "#2dec29" : journeyStep1Done ? "#071a09" : "rgba(255,255,255,0.3)",
+                }}
+              >
+                {journeyStep2Done ? "✓" : "2"}
+              </span>
+              <span
+                className="text-[10px] font-semibold whitespace-nowrap"
+                style={{ color: journeyStep2Done ? "rgba(255,255,255,0.55)" : journeyStep1Done ? "#2dec29" : "rgba(255,255,255,0.3)" }}
+              >
+                3-day streak 🔥
+              </span>
+            </div>
+
+            <span className="text-[10px] shrink-0" style={{ color: "rgba(255,255,255,0.15)" }}>→</span>
+
+            {/* Step 3 */}
+            <div
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg shrink-0"
+              style={{
+                background: "rgba(255,255,255,0.04)",
+                border: journeyStep2Done ? "1px solid rgba(45,236,41,0.45)" : "1px solid rgba(255,255,255,0.08)",
+                opacity: journeyStep2Done ? 1 : 0.4,
+              }}
+            >
+              <span
+                className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-black shrink-0"
+                style={{
+                  background: journeyStep2Done ? "#2dec29" : "rgba(255,255,255,0.08)",
+                  color: journeyStep2Done ? "#071a09" : "rgba(255,255,255,0.3)",
+                }}
+              >
+                3
+              </span>
+              <span
+                className="text-[10px] font-semibold whitespace-nowrap"
+                style={{ color: journeyStep2Done ? "#2dec29" : "rgba(255,255,255,0.3)" }}
+              >
+                Score 80%+ 🏆
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       {/* 7 ▸ FROM THE BLOG                                                     */}
