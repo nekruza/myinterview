@@ -30,7 +30,7 @@ const INTERVIEWERS: Interviewer[] = [
     focus: "Leadership, teamwork, and STAR storytelling",
     image: "/ai_avatars/luna.png",
     tag: "Behavioural",
-    accent: "#2dec29",
+    accent: "#2dec28",
   },
   {
     name: "Henry",
