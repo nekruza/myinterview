@@ -69,19 +69,19 @@ export const test = base.extend<{ api: ApiMock }>({
     // than a 204 or an abort, because a browser treats those as a script load
     // failure. An empty 200 loads cleanly and defines nothing, so `gtag` stays
     // undefined and the app takes its documented no-analytics path.
-    const isLocal = (url: string) => {
-      const { hostname } = new URL(url);
-      return hostname === "localhost" || hostname === "127.0.0.1";
-    };
+    // Matched with a predicate rather than "**/*" so local traffic is never
+    // handed to a handler at all. Routing every static chunk through the test
+    // driver costs a round trip each and, under parallel workers, is enough to
+    // push a heavy page past its timeout.
+    const isExternal = (url: URL) =>
+      url.hostname !== "localhost" && url.hostname !== "127.0.0.1";
 
-    await context.route("**/*", (route) =>
-      isLocal(route.request().url())
-        ? route.continue()
-        : route.fulfill({
-            status: 200,
-            contentType: "application/javascript",
-            body: "",
-          })
+    await context.route(isExternal, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/javascript",
+        body: "",
+      })
     );
 
     // ── Defaults ─────────────────────────────────────────────────────────────
