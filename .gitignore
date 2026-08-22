@@ -47,3 +47,11 @@ _bmad-output
 
 .superpowers.
 .worktrees/
+
+# Playwright
+/e2e/.results
+/e2e/.report
+/test-results
+/playwright-report
+/blob-report
+/playwright/.cache

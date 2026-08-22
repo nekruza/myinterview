@@ -10,6 +10,10 @@ module.exports = createJestConfig({
   moduleNameMapper: { '^@/(.*)$': '<rootDir>/$1' },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
 
+  // The Playwright specs also end in .spec.ts, which Jest's default testMatch
+  // would happily pick up and then fail on. They belong to `npm run e2e`.
+  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/e2e/'],
+
   // Reset call history between tests so suites can't leak assertions into each
   // other. Implementations set via mockResolvedValue are preserved.
   clearMocks: true,
