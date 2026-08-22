@@ -22,12 +22,17 @@ global.RTCPeerConnection = jest.fn().mockImplementation(() => ({
   close: jest.fn(),
 })) as unknown as typeof RTCPeerConnection;
 
-global.navigator.mediaDevices = {
-  getUserMedia: jest.fn().mockResolvedValue({
-    getAudioTracks: jest.fn().mockReturnValue([{ kind: "audio" }]),
-    getTracks: jest.fn().mockReturnValue([{ stop: jest.fn() }]),
-  }),
-} as unknown as MediaDevices;
+// navigator.mediaDevices is read-only, so define it rather than assigning.
+Object.defineProperty(global.navigator, "mediaDevices", {
+  value: {
+    getUserMedia: jest.fn().mockResolvedValue({
+      getAudioTracks: jest.fn().mockReturnValue([{ kind: "audio" }]),
+      getTracks: jest.fn().mockReturnValue([{ stop: jest.fn() }]),
+    }),
+  },
+  writable: true,
+  configurable: true,
+});
 
 describe("useInworldRealtime", () => {
   afterEach(() => {

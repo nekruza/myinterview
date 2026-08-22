@@ -26,6 +26,7 @@ const mockProfile: UserProfile = {
   peer: { sessions_hosted: 0, sessions_joined: 0 },
   preferences: { email_notifications: true, match_alerts: true },
   plan: "free",
+  session_credits: 5,
   practice_sessions_used: 2,
   peer_sessions_joined: 0,
   isAdmin: false,
