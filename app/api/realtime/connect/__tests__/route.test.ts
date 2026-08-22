@@ -1,6 +1,17 @@
 import { POST } from "../route";
 
+const INWORLD_CALLS_URL = "https://api.inworld.ai/v1/realtime/calls";
+
 global.fetch = jest.fn();
+
+const mockFetch = global.fetch as jest.Mock;
+
+function connectRequest(body: unknown) {
+  return new Request("http://localhost/api/realtime/connect", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
 
 describe("POST /api/realtime/connect", () => {
   beforeEach(() => {
@@ -8,43 +19,34 @@ describe("POST /api/realtime/connect", () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
     delete process.env.INWORLD_API_KEY;
   });
 
-  it("proxies SDP offer to Inworld and returns SDP answer", async () => {
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      text: async () => "v=0\r\na=sendrecv\r\n",
-    });
+  it("proxies the SDP offer to Inworld and returns the SDP answer", async () => {
+    mockFetch.mockResolvedValue({ ok: true, text: async () => "v=0\r\na=sendrecv\r\n" });
 
-    const req = new Request("http://localhost/api/realtime/connect", {
-      method: "POST",
-      body: JSON.stringify({ sdp: "v=0\r\noffer sdp\r\n" }),
-    });
+    const response = await POST(connectRequest({ sdp: "v=0\r\noffer sdp\r\n" }));
 
-    const response = await POST(req);
     expect(response.status).toBe(200);
-
-    const body = await response.text();
-    expect(body).toBe("v=0\r\na=sendrecv\r\n");
+    expect(await response.text()).toBe("v=0\r\na=sendrecv\r\n");
   });
 
-  it("forwards SDP to Inworld with Basic auth", async () => {
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      text: async () => "answer",
-    });
+  it("returns the answer as application/sdp so the browser can consume it", async () => {
+    mockFetch.mockResolvedValue({ ok: true, text: async () => "answer" });
 
-    const req = new Request("http://localhost/api/realtime/connect", {
-      method: "POST",
-      body: JSON.stringify({ sdp: "my-sdp-offer" }),
-    });
+    const response = await POST(connectRequest({ sdp: "offer" }));
 
-    await POST(req);
+    expect(response.headers.get("Content-Type")).toBe("application/sdp");
+  });
 
-    expect(global.fetch).toHaveBeenCalledWith(
-      "https://api.inworld.ai/v1/realtime/webrtc",
+  it("forwards the offer to the calls endpoint with Basic auth", async () => {
+    mockFetch.mockResolvedValue({ ok: true, text: async () => "answer" });
+
+    await POST(connectRequest({ sdp: "my-sdp-offer" }));
+
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(mockFetch).toHaveBeenCalledWith(
+      INWORLD_CALLS_URL,
       expect.objectContaining({
         method: "POST",
         headers: expect.objectContaining({
@@ -56,25 +58,84 @@ describe("POST /api/realtime/connect", () => {
     );
   });
 
-  it("returns 500 when Inworld SDP exchange fails", async () => {
-    (global.fetch as jest.Mock).mockResolvedValue({ ok: false, status: 503 });
+  it("sends the raw SDP as the body, not a JSON envelope", async () => {
+    mockFetch.mockResolvedValue({ ok: true, text: async () => "answer" });
 
-    const req = new Request("http://localhost/api/realtime/connect", {
-      method: "POST",
-      body: JSON.stringify({ sdp: "offer" }),
-    });
+    await POST(connectRequest({ sdp: "v=0\r\nraw\r\n" }));
 
-    const response = await POST(req);
-    expect(response.status).toBe(500);
+    expect(mockFetch.mock.calls[0][1].body).toBe("v=0\r\nraw\r\n");
   });
 
-  it("returns 400 when SDP is missing", async () => {
-    const req = new Request("http://localhost/api/realtime/connect", {
-      method: "POST",
-      body: JSON.stringify({}),
+  it("returns 500 with the upstream status when the SDP exchange fails", async () => {
+    mockFetch.mockResolvedValue({
+      ok: false,
+      status: 503,
+      text: async () => "upstream unavailable",
     });
 
-    const response = await POST(req);
+    const response = await POST(connectRequest({ sdp: "offer" }));
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({
+      error: "SDP exchange failed: 503",
+      detail: "upstream unavailable",
+    });
+  });
+
+  it("still returns 500 when the upstream error body cannot be read", async () => {
+    mockFetch.mockResolvedValue({
+      ok: false,
+      status: 500,
+      text: async () => {
+        throw new Error("stream closed");
+      },
+    });
+
+    const response = await POST(connectRequest({ sdp: "offer" }));
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({
+      error: "SDP exchange failed: 500",
+      detail: "",
+    });
+  });
+
+  it("returns 400 when the SDP offer is missing", async () => {
+    const response = await POST(connectRequest({}));
+
     expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toEqual({ error: "Missing SDP offer" });
+  });
+
+  it("returns 400 without calling Inworld when the SDP is an empty string", async () => {
+    const response = await POST(connectRequest({ sdp: "" }));
+
+    expect(response.status).toBe(400);
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("returns 500 when the API key is not configured", async () => {
+    delete process.env.INWORLD_API_KEY;
+
+    const response = await POST(connectRequest({ sdp: "offer" }));
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({
+      error: "INWORLD_API_KEY not configured",
+    });
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("checks the API key before parsing the body", async () => {
+    delete process.env.INWORLD_API_KEY;
+
+    const req = new Request("http://localhost/api/realtime/connect", {
+      method: "POST",
+      body: "not json",
+    });
+
+    // Must not throw a JSON parse error — the config guard runs first.
+    const response = await POST(req);
+    expect(response.status).toBe(500);
   });
 });
