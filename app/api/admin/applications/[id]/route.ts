@@ -1,19 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { verifyAdminRequest } from "@/lib/admin-auth";
 
 type ApplicationStatus = "new" | "reviewed" | "rejected";
-
-function verifyAdminSession(req: NextRequest): boolean {
-  const session = req.cookies.get("admin_session")?.value;
-  const expected = Buffer.from(process.env.ADMIN_PASSWORD ?? "").toString("base64");
-  return !!session && session === expected;
-}
 
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!verifyAdminSession(req)) {
+  if (!(await verifyAdminRequest(req))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -35,7 +30,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!verifyAdminSession(req)) {
+  if (!(await verifyAdminRequest(req))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

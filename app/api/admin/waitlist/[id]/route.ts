@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-
-function verifyAdminSession(req: NextRequest): boolean {
-  const session = req.cookies.get("admin_session")?.value;
-  const expected = Buffer.from(process.env.ADMIN_PASSWORD ?? "").toString("base64");
-  return !!session && session === expected;
-}
+import { verifyAdminRequest } from "@/lib/admin-auth";
 
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!verifyAdminSession(req)) {
+  if (!(await verifyAdminRequest(req))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

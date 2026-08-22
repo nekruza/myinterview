@@ -1,13 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { ADMIN_COOKIE, ADMIN_COOKIE_OPTIONS } from "@/lib/admin-auth";
 
-export async function POST(_req: NextRequest) {
-  const response = NextResponse.redirect(new URL("/admin/login", process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"));
+export const runtime = "nodejs";
 
-  response.cookies.set("admin_session", "", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    path: "/admin",
+export async function POST() {
+  // The caller (app/admin/page.tsx) redirects on the client, so return JSON
+  // rather than a redirect the fetch would follow opaquely.
+  const response = NextResponse.json({ ok: true });
+
+  // Path MUST match the login cookie's path or the browser keeps the original.
+  // That mismatch was the bug that made logout a no-op.
+  response.cookies.set(ADMIN_COOKIE, "", {
+    ...ADMIN_COOKIE_OPTIONS,
     maxAge: 0,
   });
 
