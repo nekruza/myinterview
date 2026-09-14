@@ -1,10 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Keep pdf-parse and pdfjs-dist as native Node modules — prevents Next.js from
-  // bundling them and mangling the pdfjs worker path at runtime
-  serverExternalPackages: ["pdf-parse", "pdfjs-dist"],
-
   // Compress responses for faster TTFB
   compress: true,
 
@@ -69,12 +65,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "randomuser.me",
-        pathname: "/api/portraits/**",
-      },
-      {
-        protocol: "https",
-        hostname: "wgvyosffhhwkzbvhdwql.supabase.co",
+        hostname: "qynzytaqbsthioybscsg.supabase.co",
         pathname: "/storage/v1/object/public/**",
       },
       {

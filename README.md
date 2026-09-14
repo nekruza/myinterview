@@ -1,79 +1,80 @@
-# MyInterview
+# Fina Web
 
-> AI-powered mock interview practice — a voice interviewer that runs behavioural, technical, and case interviews, then scores the transcript.
+> The web version of Fina — AI voice conversation practice for language learners, built on the myinterview Next.js codebase with every interview-only feature replaced or removed.
 
 ## Overview
 
-MyInterview is a Next.js web app for candidates preparing for job interviews. A user picks an interview type and an AI interviewer persona, optionally uploads a resume or pastes a job description, and then holds a live spoken interview with an LLM-driven interviewer. When the session ends, a second LLM pass scores the transcript and returns structured feedback (verdict, 0–10 score, per-category breakdown, per-question review).
+Fina Web lets learners hold a live spoken conversation with an AI tutor in the language they're learning, instead of only drilling vocabulary lists. A visitor completes a short onboarding flow (tutor → language → level → motivation → daily goal → 30-day plan preview), signs up, and lands in an authenticated app: roleplay-driven voice conversations, AI-generated vocabulary lessons with flashcards, a 30-day study plan, streaks, and a Fina Pro subscription.
 
-The app runs anonymous-first: three free sessions are gated by an HTTP-only cookie with no account required, and those sessions are claimed onto the user's profile when they eventually sign up. Beyond the trial, practice is paid via one-time Stripe session-credit packs.
+It targets the same Supabase project and user base as the Fina mobile app (Expo/React Native, `~/Desktop/fina`), reusing its `profiles`, `lesson_progress`, `favorite_words`, `generated_lessons`, `custom_roleplays`, and `feedback` tables and adding one web-only table (`conversation_sessions`) plus a handful of new `profiles` columns via an additive migration.
 
-Status: production, actively developed. Version is `0.1.0`, there is no CI pipeline in the repo, and two test suites currently fail (see [Testing](#testing)). The marketing site is live at `myinterview.com` (hardcoded in `app/layout.tsx` and `app/sitemap.ts`).
+Status: built and verified in this repo — `npx tsc --noEmit` clean, `npm run build` succeeds, Jest and Playwright pass (see [Testing](#testing)).
 
 ## Features
 
-- **Live voice interviews** — WebRTC realtime session against Inworld, or a browser-speech fallback path (`components/practice/VoiceCallView.tsx`).
-- **Three interviewer personas** — Henry (case), Luna (behavioural), Jake (technical), each with an avatar, idle/speaking video loops, and its own TTS voice (`lib/interviewers.ts`).
-- **Resume-aware prompting** — PDF/DOCX upload, server-side text extraction, injected into the interviewer system prompt (`app/api/resume/extract/route.ts`).
-- **Job-description tailoring** — a pasted JD is folded into both the interview prompt and the scoring prompt.
-- **Structured post-session feedback** — strict-JSON LLM grading with verdict, score, categories, strengths, improvements, tips, and per-question review (`app/api/ai/feedback/route.ts`).
-- **Anonymous 3-session trial** — cookie-scoped, later claimed into the account on signup (`lib/anon-session.ts`, `app/api/auth/claim/route.ts`).
-- **Stripe session-credit packs** — 5 / 20 / 50 session one-time purchases, credited idempotently via both webhook and success-redirect (`lib/session-limits.ts`).
-- **Progress tracking** — session history, streaks, and competency scores surfaced on the dashboard and progress pages.
-- **Peer practice** — session creation, join requests, and notifications exist as routes and pages, but the sidebar entry is commented out in `app/app/AppSidebar.tsx`, so it is not reachable from the app nav.
-- **Content marketing** — 13 blog posts compiled into the bundle from `lib/blog.ts`, statically generated at `/blog/[slug]`, plus `robots.ts`, `sitemap.ts`, and JSON-LD structured data.
-- **Admin console** — password-cookie-gated `/admin` for waitlist and job-application review.
+Each item below is wired to a route or module in this repo:
+
+- **Realtime voice conversation** (`app/app/conversation/`, `components/practice/VoiceCallView.tsx`) — WebRTC session against Inworld Realtime (server-brokered ICE/SDP), with a Web Speech recognition + SSE fallback when realtime is disabled or unsupported.
+- **Roleplay scenarios** (`app/app/roleplay/`) — predefined scenarios from `lib/data/roleplays.ts` plus user-authored custom roleplays persisted to Supabase (`components/roleplay/*`).
+- **Post-session analysis** (`app/api/ai/feedback/route.ts`, `components/conversation/AnalysisResults.tsx`) — six 0–100 scores (overall, fluency, grammar, vocabulary, engagement, relevancy), a short summary, up to 3 strengths, and up to 5 corrections, from the existing Gemini → OpenAI `streamLLM` path.
+- **AI vocabulary generation** (`app/app/vocabulary/generate/`, `app/api/ai/vocabulary/route.ts`) — 12-word lessons from a topic, gated by the free/Pro allowance, saved to `generated_lessons`.
+- **Flashcards and review** (`app/app/vocabulary/lessons/[lessonId]/`, `app/app/vocabulary/favorites/`, `components/vocabulary/*`) — word, IPA, part of speech, definition, example, pronunciation playback, favoriting, and a flip-card review mode.
+- **Static lesson library** (`lib/data/lessons/`) — bundled lessons for Arabic, Chinese, English, French, German, Japanese, Portuguese, Russian, and Spanish.
+- **Onboarding** (`app/onboarding/`) — tutor → language → level → motivation → daily goal → plan preview → AI consent, stored in `localStorage` (`lib/onboarding-storage.ts`) and synced to the profile after sign-up via `POST /api/profile/onboarding`.
+- **30-day study plan** (`app/app/study-plan/`, `lib/study-plan.ts`, `lib/study-plan-storage.ts`) — by-week layout, today highlight, per-section (speak/words) local ticks, completed days on the profile.
+- **Streaks** (`lib/streak.ts`, `components/home/StreakCard.tsx`, `components/conversation/StreakWeek.tsx`) — server-computed daily streak and weekly-activity dots, updated on conversation completion.
+- **Pronunciation playback** (`lib/hooks/usePronunciation.ts`, `/api/tts`) — Inworld TTS per language/voice, falling back to `speechSynthesis`; audio cached in memory only (no Storage bucket writes from web).
+- **Fina Pro subscription** (`app/api/stripe/*`, `lib/billing.ts`, `lib/stripe.ts`) — Stripe Checkout subscription (monthly $9.99 / yearly $59.99) with inline `price_data` (no dashboard price IDs needed), billing portal, and webhook-driven Pro status.
+- **Accounts** — Google OAuth and email/password via Supabase Auth (`app/(auth)/*`, `app/auth/callback/`).
+- **Feedback and account deletion** (`components/FeedbackProvider.tsx`, `app/api/account/route.ts`) — in-app feedback form; account deletion cancels an active Stripe subscription, deletes the user's rows, then deletes the auth user.
 
 ## Tech Stack
 
-| Layer            | Technology                                                                     | Notes                                                                                                                |
-| ---------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| Framework        | Next.js 16.1.6 (App Router)                                                    | React 19.2.3, RSC-first, `serverExternalPackages` for `pdf-parse`/`pdfjs-dist`                                       |
-| Language         | TypeScript 5                                                                   | `strict: true`, `@/*` path alias to repo root                                                                        |
-| Styling          | Tailwind CSS v4 + shadcn/ui (`new-york`)                                       | PostCSS via `@tailwindcss/postcss`; Radix primitives; `lucide-react` icons; Sora font                                |
-| Client state     | TanStack Query v5                                                              | Keys centralised in `lib/queries/keys.ts`; `sonner` for toasts; `next-themes`                                        |
-| Database + Auth  | Supabase (Postgres, Auth, Storage)                                             | `@supabase/ssr` cookie sessions; anon client for RLS-scoped reads, service-role client for privileged writes         |
-| Interview LLM    | Google Gemini 2.5 Flash Lite → OpenAI fallback                                 | SSE streaming through `lib/llm.ts`; Chutes AI helper present but not wired into the fallback chain                   |
-| Realtime voice   | Inworld Realtime (WebRTC)                                                      | Server brokers ICE servers and the SDP exchange; model requested is `google-ai-studio/gemini-3.1-flash-lite-preview` |
-| TTS              | Inworld TTS 1.5 Mini → Chutes Kokoro → Web SpeechSynthesis                     | Three-tier fallback across `app/api/tts/route.ts` and `lib/hooks/useSpeechSynthesis.ts`                              |
-| Payments         | Stripe (`stripe` v20, API `2026-02-25.clover`)                                 | One-time Checkout, no subscriptions in the active path                                                               |
-| Document parsing | `pdf-parse`, `mammoth`                                                         | Dynamically imported inside the route handler                                                                        |
-| Analytics        | Mixpanel (EU host), Vercel Analytics, Google Analytics, Google Ads conversions | `lib/mixpanel.ts`, `lib/conversion.ts`                                                                               |
-| Testing          | Jest 30 + Testing Library                                                      | `next/jest`, `testEnvironment: node`                                                                                 |
-| Tooling          | ESLint 9 (`eslint-config-next`), npm                                           | Lockfile is `package-lock.json`                                                                                      |
-
-`@anthropic-ai/sdk` is listed as a dependency but is not imported anywhere in `app/`, `lib/`, or `components/`.
+| Layer | Technology | Notes |
+|---|---|---|
+| Framework | Next.js 16.1.6 (App Router) | React 19.2.3, RSC-first |
+| Language | TypeScript 5 | `strict: true`, `@/*` path alias to repo root |
+| Styling | Tailwind CSS v4 + shadcn/ui (`new-york`) | PostCSS via `@tailwindcss/postcss`; Radix primitives (`radix-ui`); `lucide-react` icons; Fraunces (display, `font-display`) + Manrope (UI, `font-sans`) via `next/font/google` |
+| Client state | TanStack Query v5 | Keys centralised in `lib/queries/keys.ts`; `sonner` for toasts; `next-themes` |
+| Database + Auth | Supabase (Postgres, Auth) | `@supabase/ssr` cookie sessions; browser client for RLS-scoped reads/writes, service-role admin client for privileged server writes |
+| Conversation LLM | Google Gemini 2.5 Flash Lite → OpenAI `gpt-5.4-mini` fallback | SSE streaming through `lib/llm.ts` |
+| Realtime voice | Inworld Realtime (WebRTC) | Server brokers ICE servers and the SDP exchange (`app/api/realtime/*`); model `google-ai-studio/gemini-3.1-flash-lite-preview` |
+| TTS | Inworld TTS 1.5 Mini → Chutes Kokoro → Web `SpeechSynthesis` | Three-tier fallback in `app/api/tts/route.ts` and `lib/hooks/useSpeechSynthesis.ts` |
+| STT | Web Speech Recognition API | `lib/hooks/useSpeechRecognition.ts`, locale per target language; best supported in Chrome/Edge |
+| Payments | Stripe (`stripe` v20) | Checkout `mode: "subscription"`, billing portal, webhook |
+| Analytics | Mixpanel (EU host), Vercel Analytics | `lib/mixpanel.ts`, `components/MixpanelInit.tsx` |
+| Testing | Jest 30 + Testing Library, Playwright | `next/jest`, `testEnvironment: "node"` by default, jsdom opt-in per file |
+| Tooling | ESLint 9 (`eslint-config-next`), npm | Lockfile is `package-lock.json` |
 
 ## Architecture
 
-A single Next.js App Router deployment does everything: it serves the marketing site, the authenticated app shell, and every API route. There is no separate backend service. Route handlers are the only place secrets live — the browser never talks to Gemini, OpenAI, Inworld, or Stripe directly, and even the WebRTC handshake is proxied so the Inworld key stays server-side. Persistence and identity are entirely Supabase; middleware refreshes the auth cookie on nearly every request and enforces the `/app` and `/admin` gates.
+A single Next.js App Router deployment serves the marketing site, pre-signup onboarding, the authenticated `/app` shell, and every API route. There is no separate backend service. Route handlers are the only place secrets live — the browser never talks to Gemini, OpenAI, Inworld, or Stripe directly, and the WebRTC handshake is proxied so `INWORLD_API_KEY` stays server-side. Persistence and identity are entirely Supabase; middleware refreshes the auth cookie on nearly every request and `app/app/layout.tsx` gates the authenticated shell.
 
-The interview itself has two execution modes chosen at runtime in `VoiceCallView`. When `NEXT_PUBLIC_INWORLD_REALTIME_ENABLED` is `"true"` and the browser has `RTCPeerConnection`, audio flows over a peer connection to Inworld and transcripts arrive on a data channel. Otherwise the component falls back to Web Speech recognition in the browser plus SSE token streaming from `/api/ai/voice` and server-synthesised audio from `/api/tts`. Both modes converge on the same transcript shape, so scoring is mode-agnostic.
-
-Access control is deliberately split. Authenticated users spend `session_credits` on the `profiles` row; anonymous users are identified only by the `mi_anon_id` cookie, and their session rows are counted with the service-role client because RLS would otherwise hide them.
+The conversation feature has two execution modes chosen at runtime in `VoiceCallView`. When `NEXT_PUBLIC_INWORLD_REALTIME_ENABLED` is `"true"` and the browser has `RTCPeerConnection`, audio flows over a peer connection to Inworld and transcripts arrive on a data channel (`lib/hooks/useInworldRealtime.ts`). Otherwise the component falls back to Web Speech recognition plus SSE token streaming from `/api/ai/voice` and server-synthesised audio from `/api/tts`. Both modes converge on the same transcript shape, so scoring (`/api/ai/feedback`) is mode-agnostic.
 
 ```mermaid
 flowchart TD
     subgraph Client["Browser"]
-        Landing["Marketing pages<br/>app/page.tsx, /blog"]
-        Practice["Practice UI<br/>app/app/practice + VoiceCallView"]
-        Dash["App shell<br/>dashboard / progress / settings"]
+        Landing["Marketing + onboarding<br/>app/page.tsx, app/onboarding"]
+        Roleplay["Roleplay + conversation UI<br/>app/app/roleplay, VoiceCallView"]
+        Vocab["Vocabulary UI<br/>app/app/vocabulary/*"]
+        Shell["App shell<br/>home / study-plan / progress / settings"]
     end
 
     subgraph Server["Next.js App Router (server)"]
-        MW["middleware.ts<br/>session refresh + route guards"]
-        Sessions["/api/sessions<br/>/api/sessions/usage"]
-        Voice["/api/ai/voice<br/>/api/ai/feedback"]
+        MW["middleware.ts<br/>Supabase cookie refresh"]
+        Conv["/api/conversations<br/>/api/conversations/usage"]
+        Voice["/api/ai/voice<br/>/api/ai/feedback<br/>/api/ai/translate<br/>/api/ai/vocabulary"]
         RT["/api/realtime/config<br/>/api/realtime/connect"]
         TTS["/api/tts"]
-        Resume["/api/resume/extract"]
+        Profile["/api/profile<br/>/api/profile/onboarding"]
         Pay["/api/stripe/*"]
+        Acct["/api/account"]
         LLM["lib/llm.ts<br/>streamLLM"]
     end
 
-    subgraph Data["Supabase"]
-        DB[("Postgres<br/>profiles, interview_sessions, ...")]
-        Store[("Storage<br/>resumes, avatars")]
+    subgraph Data["Supabase project (shared with Fina mobile)"]
+        DB[("Postgres<br/>profiles, conversation_sessions,<br/>lesson_progress, favorite_words,<br/>generated_lessons, custom_roleplays, feedback")]
         Auth["Supabase Auth"]
     end
 
@@ -81,198 +82,221 @@ flowchart TD
         Gemini["Google Gemini"]
         OpenAI["OpenAI"]
         Inworld["Inworld realtime + TTS"]
+        Chutes["Chutes AI (Kokoro TTS)"]
         StripeAPI["Stripe"]
+        Mix["Mixpanel"]
     end
 
-    Practice -->|"POST /api/sessions"| Sessions
-    Practice -->|"SSE transcript"| Voice
-    Practice -->|"WebRTC SDP + ICE"| RT
-    Practice -->|"POST audio text"| TTS
-    Practice -->|"multipart upload"| Resume
-    Dash -->|"REST /api/profile"| DB
+    Roleplay -->|"POST /api/conversations"| Conv
+    Roleplay -->|"SSE transcript"| Voice
+    Roleplay -->|"WebRTC SDP + ICE"| RT
+    Roleplay -->|"POST audio text"| TTS
+    Vocab -->|"gated generation"| Voice
+    Shell -->|"REST"| Profile
     Landing --> MW
-    MW -->|"cookie refresh"| Auth
-    Sessions -->|"SQL credits + rows"| DB
+    MW -->|"cookie refresh + getUser"| Auth
+    Conv -->|"SQL: sessions + streak"| DB
+    Profile -->|"SQL: profile row"| DB
     Voice --> LLM
     LLM -->|"streamGenerateContent"| Gemini
     LLM -->|"fallback on error"| OpenAI
-    RT -->|"SDP exchange"| Inworld
+    RT -->|"ICE + SDP exchange"| Inworld
     TTS -->|"synthesise"| Inworld
-    Resume -->|"extracted text"| DB
-    Resume --> Store
-    Pay -->|"Checkout + webhook"| StripeAPI
-    Pay -->|"credit profile"| DB
+    TTS -->|"fallback"| Chutes
+    Pay -->|"Checkout + portal + webhook"| StripeAPI
+    Pay -->|"pro_status, stripe_* columns"| DB
+    Acct -->|"cancel subscription"| StripeAPI
+    Acct -->|"delete rows + auth user"| DB
+    Acct --> Auth
+    Landing --> Mix
 ```
 
 ### Project Structure
 
 ```
-myinterview/
+fina-web/
 ├── app/
 │   ├── (auth)/                 # login, signup, forgot-password (shared auth layout)
-│   ├── admin/                  # password-cookie-gated waitlist + applications console
 │   ├── api/
-│   │   ├── admin/              # waitlist + job-application CRUD, admin login/logout
-│   │   ├── ai/                 # chat (unused), voice (interview turns), feedback (scoring)
-│   │   ├── auth/claim/         # attach anonymous sessions to a new account
-│   │   ├── peer-sessions/      # peer practice create/list/join/respond
+│   │   ├── account/            # DELETE — cancel subscription, delete rows + auth user
+│   │   ├── ai/                 # voice (conversation turns + hints), feedback, translate, vocabulary
+│   │   ├── conversations/      # create/complete/list sessions, usage
+│   │   ├── profile/            # GET/PATCH profile, POST onboarding upsert
 │   │   ├── realtime/           # Inworld ICE-server config + SDP exchange proxy
-│   │   ├── resume/extract/     # PDF/DOCX → text
-│   │   ├── sessions/           # session create/complete + remaining-usage check
 │   │   ├── stripe/             # checkout, webhook, verify-purchase, portal
 │   │   └── tts/                # Inworld → Chutes TTS proxy
-│   ├── app/                    # authenticated shell: dashboard, practice, progress, resources, settings
-│   ├── auth/callback/          # OAuth/PKCE code exchange + anonymous-session claim
-│   ├── blog/                   # statically generated posts from lib/blog.ts
+│   ├── app/                    # authenticated shell: home, roleplay, conversation,
+│   │                           #   vocabulary, study-plan, progress, settings
+│   ├── auth/callback/          # OAuth/PKCE code exchange
+│   ├── onboarding/             # pre-signup onboarding flow + completion handoff
 │   └── layout.tsx, page.tsx    # root metadata + marketing landing page
 ├── components/
-│   ├── practice/               # VoiceCallView (session engine), VideoArea, ControlBar, TranscriptPanel, ...
-│   ├── sections/               # landing page sections (hero, pricing, FAQ, video, ...)
-│   ├── structured-data/        # JSON-LD schema components
-│   └── ui/                     # shadcn/ui primitives
+│   ├── practice/                # VoiceCallView (session engine), VideoArea, ControlBar, TranscriptPanel, ...
+│   ├── landing/                  # marketing page sections (hero, pricing, FAQ, tutor trio, ...)
+│   ├── onboarding/, roleplay/, vocabulary/, conversation/, home/
+│   ├── structured-data/          # JSON-LD schema components
+│   └── ui/                       # shadcn/ui primitives
 ├── lib/
-│   ├── hooks/                  # useInworldRealtime, useSpeechRecognition, useSpeechSynthesis, useAudioVisualizer, useTimer
-│   ├── queries/                # TanStack Query hooks + key registry
-│   ├── supabase/               # browser / server / admin / middleware clients
-│   ├── types/                  # UserProfile shape, Web Speech ambient types
-│   ├── utils/                  # buildInterviewInstructions (realtime system prompt)
-│   ├── anon-session.ts         # mi_anon_id cookie helpers, MAX_ANON_SESSIONS
-│   ├── blog.ts                 # 13 blog posts as inline data
-│   ├── interviewers.ts         # persona registry
-│   ├── llm.ts                  # Gemini → OpenAI streaming with fallback
-│   ├── practice-data.ts        # competency categories, question bank, experience levels
-│   └── session-limits.ts       # pack pricing + free-trial constant
-├── docs/superpowers/           # design specs and implementation plans
-├── middleware.ts               # Supabase session refresh + /app and /admin guards
-└── next.config.ts              # security headers, cache policy, image config
+│   ├── data/                     # lessons/* (9 languages), roleplays.ts, studyPlan.ts, onboarding.ts
+│   ├── db/                       # profile, conversations, lessons, favorites, generatedLessons, customRoleplays, feedback
+│   ├── hooks/                    # useInworldRealtime, useSpeechRecognition, useSpeechSynthesis, usePronunciation, useTimer
+│   ├── queries/                  # TanStack Query hooks + key registry
+│   ├── supabase/                 # browser / server / admin / middleware clients
+│   ├── types/                    # profile, conversation, roleplay, vocabulary shapes
+│   ├── utils/                    # buildConversationInstructions (realtime + hint + analysis prompts)
+│   ├── billing.ts                # plans, free limits, hasProAccess
+│   ├── languages.ts, levels.ts, tutors.ts   # domain registries
+│   ├── llm.ts                    # Gemini → OpenAI streaming with fallback
+│   ├── streak.ts                 # pure streak-update algorithm
+│   └── onboarding-storage.ts, study-plan-storage.ts   # SSR-safe localStorage helpers
+├── supabase/migrations/           # 20260913000000_fina_web.sql (additive, run manually)
+├── middleware.ts                  # Supabase session refresh
+├── e2e/                            # Playwright specs + hermetic Supabase stub
+└── next.config.ts                 # security headers, cache policy, image config
 ```
-
-`_bmad/`, `_bmad-output/`, `design-artifacts/`, `strategy.md`, and `ideas.md` are planning and analysis artifacts, not application code.
 
 ### Data Flow
 
-One AI practice session, end to end:
+One AI conversation practice session, end to end:
 
-1. **Usage check** — `app/app/practice/page.tsx` calls `GET /api/sessions/usage`. For an authenticated user it reads `profiles.session_credits`; for a visitor it mints/reads the `mi_anon_id` cookie and counts existing `interview_sessions` rows with the service-role client, returning `MAX_ANON_SESSIONS - used`.
-2. **Setup** — the user picks interview type (which selects the matching persona), experience level, target role, and optionally pastes a JD or uploads a resume. A resume upload posts to `/api/resume/extract`, which parses PDF via `pdf-parse` or DOCX via `mammoth` and returns text held in component state.
-3. **Session create** — `POST /api/sessions` inserts an `interview_sessions` row with `topic` encoded as `"<category>|<question>"`. The authenticated branch decrements `session_credits` and increments `practice_sessions_used` in the same request; the anonymous branch writes `anonymous_id` instead of `user_id`. Out of credits returns `403 { error: "limit_reached" }`, which opens the upgrade modal.
-4. **Interview** — `VoiceCallView` acquires media and branches:
-   - _Realtime:_ `buildInterviewInstructions()` composes the persona prompt from type, level, question, role, JD, and resume. `useInworldRealtime` fetches ICE servers from `/api/realtime/config`, creates an offer, POSTs the SDP to `/api/realtime/connect`, and applies the answer. Session config, user turns, and completed transcripts move over the data channel; agent audio arrives as a remote media stream.
-   - _Fallback:_ `useSpeechRecognition` transcribes locally, each turn POSTs to `/api/ai/voice`, `streamLLM()` streams Gemini tokens (falling back to OpenAI on any throw) back as SSE, and `/api/tts` returns Inworld or Kokoro audio — with Web SpeechSynthesis as the last resort if TTS answers `503`.
-5. **Scoring** — on end, the transcript plus level, role, JD, and resume go to `POST /api/ai/feedback`, which prompts for strict JSON (verdict, score, categories, strengths, improvements, tips, per-question review) and returns it to the results view.
-6. **Completion** — `PATCH /api/sessions` marks the row complete and records duration/score, which is what the dashboard, progress page, and streak counters read back.
-7. **Claim on signup** — after the visitor signs up, `app/auth/callback/route.ts` (with `POST /api/auth/claim` as an idempotent retry) reassigns rows matching the `mi_anon_id` cookie to the new `user_id`, bumps `practice_sessions_used`, and deletes the cookie.
+1. **Usage check** — `app/app/conversation/ConversationClient.tsx` calls `GET /api/conversations/usage`, returning `{ isPro, freeLimit, freeUsed, freeRemaining }`.
+2. **Start** — the user picks a roleplay and tutor (`app/app/roleplay/`). `POST /api/conversations` checks `hasProAccess()` against `FREE_CONVERSATIONS` (3), inserts a `conversation_sessions` row, and returns `403 { error: "limit_reached" }` when the free allowance is used up, which opens `ProUpgradeDialog`.
+3. **Conversation** — `VoiceCallView` builds the system prompt with `buildConversationInstructions({ language, level, tutorName, roleplay })` and connects either:
+   - _Realtime:_ `useInworldRealtime` fetches ICE servers from `/api/realtime/config`, creates an SDP offer, POSTs it to `/api/realtime/connect`, and applies the answer; transcripts arrive on the data channel, tutor audio on the remote track.
+   - _Fallback:_ `useSpeechRecognition` transcribes locally in the target-language locale, each turn POSTs to `/api/ai/voice`, which streams Gemini (falling back to OpenAI) tokens back as SSE, and `/api/tts` returns Inworld or Kokoro audio, with `speechSynthesis` as the last resort.
+4. **End** — the transcript goes to `POST /api/ai/feedback` for the six-score analysis; the client then calls `PATCH /api/conversations` with the analysis and the browser's local date/day-of-week, which persists the session, recomputes the streak with `computeStreakUpdate()`, and writes it back to `profiles`.
+5. **Results** — `components/conversation/AnalysisResults.tsx` renders the scores, summary, strengths, corrections, and the updated streak week.
+
+Onboarding: `localStorage` key `fina_onboarding` (`lib/onboarding-storage.ts`) → sign-up → `/auth/callback?next=/onboarding/complete` → `POST /api/profile/onboarding` (maps onboarding level ids to DB `UserLevel` values) → `/app`. `app/app/layout.tsx` redirects a signed-in user with no `target_language` back to `/onboarding`.
 
 ### Key Design Decisions
 
-- **Server-brokered WebRTC** — the browser never sees `INWORLD_API_KEY`; `/api/realtime/config` and `/api/realtime/connect` proxy ICE discovery and the SDP exchange. Trade-off: two extra round-trips before the call connects.
-- **Two interview engines behind one component** — realtime is env-flagged, so a bad Inworld deploy degrades to browser speech plus SSE rather than breaking practice. Trade-off: `VoiceCallView` carries both code paths (~900 lines) and mic acquisition is deliberately skipped in realtime mode, because calling `getUserMedia({audio})` there makes the SDK's own call fail with `NotReadableError`.
-- **Provider fallback in `streamLLM`** — Gemini is primary for cost, OpenAI catches any error. Trade-off: the `catch` is untyped, so a Gemini quota error and a malformed-response bug both silently switch providers.
-- **Anonymous trial in a cookie, not an account** — removes the signup wall before first value. Trade-off: the limit is per-device and clearing cookies resets it, and every anonymous read needs the service-role client to bypass RLS.
-- **Stripe credited twice, idempotently** — both the webhook and the success redirect can grant credits, guarded by `profiles.last_stripe_session_id`. Trade-off: duplicated crediting logic in two files, in exchange for credits appearing instantly even if the webhook is slow or misconfigured.
-- **Blog posts as a TypeScript module** — `lib/blog.ts` holds all 13 posts inline, so `/blog/[slug]` statically generates with no CMS and no fetch. Trade-off: every edit is a deploy, and post content ships in the bundle graph.
-- **Admin auth is a stateless signed cookie** — `lib/admin-auth.ts` issues an HMAC-SHA256 token (`base64url(payload).base64url(sig)`) carrying an expiry and a random nonce, signed with `ADMIN_SESSION_SECRET`. The password is never derivable from the cookie, and rotating the secret revokes every outstanding session. Built on Web Crypto rather than `node:crypto` so middleware (edge) and route handlers (Node) share one implementation. Trade-off: stateless means no per-session revocation — you revoke all sessions or none. That's proportionate for a single-operator console; a token table would be the next step if `/admin` gains multiple users.
-- **`serverExternalPackages`** — `pdf-parse` and `pdfjs-dist` are excluded from bundling because bundling mangles the pdfjs worker path at runtime.
+- **Server-brokered WebRTC, kept from myinterview.** The browser never sees `INWORLD_API_KEY`; only the prompt, persona, and language inputs changed for Fina.
+- **Two conversation engines behind one component**, so a bad Inworld deploy degrades to browser speech + SSE instead of breaking practice.
+- **Free limits instead of a device trial.** Mobile enforces a 24h device-local trial that cannot be enforced on web; web instead gives 3 free conversations and 3 free AI word generations, tracked server-side on `profiles`/counts, with Pro as unlimited.
+- **Service-role usage minimised.** Only the Stripe webhook, the Stripe verify-purchase redirect, and account deletion construct the admin client, and they do so lazily inside the handler so a missing key never crashes module load — everything else goes through the RLS-scoped browser/SSR client.
+- **Webhook re-retrieves subscription state** rather than trusting the event payload, since Stripe does not guarantee delivery order; this makes an out-of-order webhook a no-op instead of a Pro downgrade.
+- **RevenueCat is not read on web.** Mobile Pro entitlements (RevenueCat) and web Pro status (Stripe → `profiles.pro_status`) are two independent systems — see [Known Limitations](#known-limitations).
 
 ### Data Model
 
-Supabase Postgres. Schema is managed in the Supabase dashboard — there are no migration files in the repo, so the columns below are the ones the code actually reads and writes.
+Existing Fina tables (shared with the mobile app; schemas live in the Supabase project, not in this repo, except where noted):
 
-| Table                                         | Purpose                                              | Key columns seen in code                                                                                                                                                                   |
-| --------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `profiles`                                    | One row per auth user; the billing and stats hub     | `id`, `full_name`, `avatar_url`, `resume_url`, `resume_text`, `experience_level`, `target_role`, `target_companies`, `session_credits`, `practice_sessions_used`, `last_stripe_session_id` |
-| `interview_sessions`                          | One row per practice session, AI or peer             | `user_id`, `anonymous_id`, `type`, `topic`, `status`, duration/score fields                                                                                                                |
-| `progress_scores`                             | Per-competency scoring history                       | competency, score, timestamp                                                                                                                                                               |
-| `user_streaks`                                | Current and longest practice streaks                 | read by `/api/profile`                                                                                                                                                                     |
-| `subscriptions`                               | Legacy plan records                                  | read by `/api/profile` and `lib/queries/subscription.ts`                                                                                                                                   |
-| `peer_sessions` / `peer_session_participants` | Peer practice sessions and their joiners             | host, slot, status                                                                                                                                                                         |
-| `notifications`                               | In-app notifications (peer join requests)            | read/PATCH via `/api/notifications`                                                                                                                                                        |
-| `waitlist`                                    | Marketing waitlist captures                          | surfaced in `/admin`                                                                                                                                                                       |
-| `job_applications`                            | Career-service applications with uploaded resume URL | surfaced in `/admin`                                                                                                                                                                       |
-| `contact_messages`                            | Contact form submissions                             | written by `/api/contact`                                                                                                                                                                  |
-| `user_feedback`                               | In-app rating + category + message                   | written from the practice results view                                                                                                                                                     |
+| Table | Key fields | Purpose |
+|---|---|---|
+| `profiles` | `id` (→ `auth.users`), `email`, `display_name`, `user_level`, `target_language`, `learning_motivation`, `daily_goal_minutes`, `current_streak`, `last_conversation_date`, `weekly_activity`, `words_learned`, `accuracy`, `study_plan_start_date`, `study_plan_completed_days`, plus the web-only columns below | One row per user: onboarding results, streaks, 30-day plan progress, billing |
+| `lesson_progress` | `user_id`, `lesson_id`, `completed_words`, `current_word_index`, `time_spent`, `accuracy`, `is_completed` | Per-lesson progress and completion, unique on `(user_id, lesson_id)` |
+| `favorite_words` | `user_id`, `word_id`, `word_data` | Saved vocabulary for the favorites/review flow |
+| `generated_lessons` | `user_id`, `topic`, `difficulty`, `lesson_data`, `is_global` | AI-generated vocabulary lessons (paginated + searchable) |
+| `custom_roleplays` | `user_id`, `title`, `category`, `difficulty`, `user_role`, `ai_role`, `scenario` | User-authored roleplay scenarios |
+| `feedback` | `user_id` (nullable), `type`, `message` | In-app feedback |
 
-Relationships: `profiles.id` is the auth user id and the foreign key every user-owned table hangs off. `interview_sessions` is the exception — it is keyed by `user_id` _or_ `anonymous_id`, and the claim flow migrates rows from the latter to the former.
+New in `supabase/migrations/20260913000000_fina_web.sql` — **additive and idempotent; must be applied manually in the Supabase SQL editor** (this repo does not run it):
 
-Storage buckets: `resumes` (uploaded CVs) and `avatars` (profile images). Neither has a companion table — the public URL and, for resumes, the extracted `resume_text` are written straight onto `profiles`.
+- `profiles` gains: `native_language`, `tutor_id`, `ai_consent_at`, `stripe_customer_id`, `stripe_subscription_id`, `pro_status`, `pro_current_period_end` (plus an index on `stripe_subscription_id`).
+- New table `conversation_sessions` — `id`, `user_id`, `roleplay_id`, `roleplay_title`, `tutor_id`, `language`, `level`, `status` (`active`/`completed`), `started_at`, `completed_at`, `duration_seconds`, `overall_score`, `analysis` (jsonb), `message_count`, with RLS policies scoping select/insert/update to `auth.uid() = user_id`.
 
 ### External Integrations
 
-| Service                       | Used for                                                           | Called from                                        |
-| ----------------------------- | ------------------------------------------------------------------ | -------------------------------------------------- |
-| Supabase                      | Postgres, Auth, Storage                                            | `lib/supabase/*`, every API route, `middleware.ts` |
-| Google Gemini                 | Primary interview + feedback LLM                                   | `lib/llm.ts` (server)                              |
-| OpenAI                        | LLM fallback when Gemini throws                                    | `lib/llm.ts` (server)                              |
-| Inworld                       | Realtime WebRTC voice agent + TTS 1.5 Mini                         | `app/api/realtime/*`, `app/api/tts` (server)       |
-| Chutes AI                     | Kokoro TTS fallback; a Qwen chat helper exists but is unreferenced | `app/api/tts`, `lib/llm.ts` (server)               |
-| Stripe                        | One-time Checkout for session packs, webhooks, billing portal      | `app/api/stripe/*` (server)                        |
-| Mixpanel                      | Product analytics + session recording, EU residency host           | `lib/mixpanel.ts` (client)                         |
-| Vercel Analytics              | Web analytics                                                      | `app/layout.tsx` (client)                          |
-| Google Analytics / Google Ads | Pageviews and conversion events                                    | `app/layout.tsx`, `lib/conversion.ts` (client)     |
+| Service | Used for | Called from |
+|---|---|---|
+| Supabase Auth | Google OAuth, email/password | `lib/supabase/{client,server,middleware}.ts`, `app/auth/callback/` |
+| Supabase Postgres | All persistence (shared with the mobile app) | `lib/db/*`, most API routes |
+| Google Gemini | Conversation turns, hints, feedback, translation, vocabulary generation | `lib/llm.ts` (server) |
+| OpenAI | LLM fallback when Gemini throws | `lib/llm.ts` (server) |
+| Inworld Realtime | WebRTC voice session | `app/api/realtime/*` (server) |
+| Inworld TTS / Chutes Kokoro | Pronunciation + tutor voice audio | `app/api/tts` (server) |
+| Stripe | Fina Pro subscription: Checkout, billing portal, webhook | `app/api/stripe/*` (server) |
+| Mixpanel | Product analytics (EU residency host) | `lib/mixpanel.ts` (client) |
+| Vercel Analytics | Web analytics | `app/layout.tsx` (client) |
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js — no `engines` field is declared; Next.js 16 and React 19 require Node 20+.
-- npm (the repo is locked with `package-lock.json`).
-- Accounts/keys: Supabase project, Google Gemini API key, OpenAI API key, Inworld API key, Stripe account (test keys are enough for local work).
+- Node.js 20+ and npm (lockfile is `package-lock.json`).
+- Accounts/keys: the Fina Supabase project, Google AI Studio (Gemini), OpenAI, Inworld, Stripe (test keys are enough for local work).
 
 ### Installation
 
 ```bash
-git clone https://github.com/nekruza/myinterview.git
-cd myinterview
 npm install
+cp .env.example .env.local   # then fill in the values
 ```
 
 ### Environment Variables
 
-There is no `.env.example` in the repo. Create `.env.local` (or `.env`) with the following. Names and purposes below are taken from `process.env` references in the code; never commit real values.
+See `.env.example` for the authoritative, commented list. Summary:
 
-| Variable                               | Required     | Purpose                                                                                        |
-| -------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`             | yes          | Supabase project URL — used by browser, server, and service-role clients                       |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY`        | yes          | Supabase anon key for RLS-scoped browser/server access                                         |
-| `SUPABASE_SERVICE_ROLE_KEY`            | yes          | Privileged writes: anonymous session counting, session claiming, Stripe crediting              |
-| `GOOGLE_GEMINI_API_KEY`                | yes          | Primary LLM for interview turns and feedback scoring                                           |
-| `OPENAI_API_KEY`                       | yes          | LLM fallback when the Gemini stream throws                                                     |
-| `INWORLD_API_KEY`                      | yes          | Realtime ICE servers, SDP exchange, and TTS synthesis                                          |
-| `INWORLD_VOICE_ID`                     | no           | Default TTS voice when the persona does not supply one                                         |
-| `NEXT_PUBLIC_INWORLD_REALTIME_ENABLED` | no           | Set to `"true"` to enable WebRTC realtime mode; anything else uses the browser-speech fallback |
-| `CHUTES_API_KEY`                       | no           | Kokoro TTS fallback when Inworld fails                                                         |
-| `STRIPE_SECRET_KEY`                    | for payments | Checkout session creation, purchase verification, billing portal                               |
-| `STRIPE_WEBHOOK_SECRET`                | for payments | Verifies `checkout.session.completed` webhook signatures                                       |
-| `NEXT_PUBLIC_APP_URL`                  | no           | Absolute origin for Stripe success/cancel URLs; falls back to the request origin               |
-| `NEXT_PUBLIC_MIXPANEL_TOKEN`           | no           | Enables Mixpanel; analytics is a no-op when unset                                              |
-| `ADMIN_PASSWORD`                       | for `/admin` | The admin console login password, checked with a timing-safe comparison                        |
-| `ADMIN_SESSION_SECRET`                 | for `/admin` | Signing key for the admin session cookie; must be ≥32 chars. Rotating it logs out every admin  |
+| Variable | Required | Purpose |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | yes | Fina Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | yes | Fina Supabase anon key |
+| `SUPABASE_SERVICE_ROLE_KEY` | yes for billing + deletion | Stripe webhook, verify-purchase, and auth-user deletion |
+| `GOOGLE_GEMINI_API_KEY` | yes | Primary LLM for conversation turns, hints, feedback, translation, vocabulary |
+| `OPENAI_API_KEY` | yes | LLM fallback when the Gemini stream throws |
+| `INWORLD_API_KEY` | yes | Realtime ICE servers, SDP exchange, and TTS synthesis |
+| `INWORLD_VOICE_ID` | no | Default TTS voice when no language/tutor voice is supplied |
+| `NEXT_PUBLIC_INWORLD_REALTIME_ENABLED` | no | `"true"` enables WebRTC realtime voice; otherwise Web Speech fallback |
+| `CHUTES_API_KEY` | no | Kokoro TTS fallback when Inworld fails |
+| `STRIPE_SECRET_KEY` | for payments | Checkout, billing portal, webhook, verify-purchase, subscription cancel on delete |
+| `STRIPE_WEBHOOK_SECRET` | for payments | Verifies `/api/stripe/webhook` signatures |
+| `NEXT_PUBLIC_APP_URL` | no | Absolute origin for Stripe URLs and `metadataBase`; falls back to the request origin |
+| `NEXT_PUBLIC_MIXPANEL_TOKEN` | no | Enables Mixpanel; analytics is a no-op when unset |
 
-`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `NEXT_PUBLIC_BASE_URL`, `NEXT_PUBLIC_LLM_PROVIDER`, `STRIPE_PRO_QUARTERLY_PRICE_ID`, and `FAL_KEY` also appear in the local `.env` but are not read anywhere in the current source — they are leftovers from earlier iterations.
+Apply `supabase/migrations/20260913000000_fina_web.sql` by hand in the Supabase SQL editor before running the app against a fresh project state — see [Known Limitations](#known-limitations).
 
 ### Running Locally
 
 ```bash
 npm run dev     # http://localhost:3000
 npm run build   # production build
-npm start       # serve the production build
-npm run lint    # eslint
+npm start        # serve the production build
+npm run lint      # eslint
+npx tsc --noEmit  # type check
 ```
 
-Voice practice needs microphone permission and an HTTPS or `localhost` origin. Realtime mode additionally needs a browser with `RTCPeerConnection` and `NEXT_PUBLIC_INWORLD_REALTIME_ENABLED=true`; without it the app uses Web Speech recognition, which is Chromium-only in practice.
+Voice practice needs microphone permission and an HTTPS or `localhost` origin. Realtime mode additionally needs a browser with `RTCPeerConnection` and `NEXT_PUBLIC_INWORLD_REALTIME_ENABLED=true`; without it the app uses Web Speech recognition, which works best in Chrome/Edge.
 
 ## Testing
 
 ```bash
-npm test              # jest, all suites
-npx jest --watch      # watch mode
+npm test               # jest, all unit/route suites
+npm run test:watch     # watch mode
+npm run test:coverage  # jest --coverage, enforced against jest.config.js thresholds
+npm run test:ci        # jest --ci --coverage --runInBand
+
+npm run e2e             # playwright, both projects (chromium + mobile)
+npm run e2e:ui           # playwright UI mode
+npm run e2e:headed       # headed chromium only
+npm run e2e:report       # open the last HTML report
 ```
 
-Jest runs through `next/jest` with `testEnvironment: node` and the `@/*` alias mapped to the repo root.
+Jest runs through `next/jest` with `testEnvironment: "node"` by default (route handlers); browser-facing modules (hooks, react-query, analytics) opt in to `jsdom` per file with a `/** @jest-environment jsdom */` docblock. Route tests mock `@/lib/supabase/server` via `test-utils/supabase-mock.ts`. Coverage is collected from `lib/**`, `app/api/**`, and `middleware.ts`, and is a ratchet (`jest.config.js` `coverageThreshold`) — set just below measured coverage so a regression fails the run without needing to be raised on every unrelated change.
 
-Current state — 12 suites, 74 tests: **10 suites pass, 2 fail (70 passing, 4 failing).**
+Playwright (`e2e/`) is hermetic: `e2e/support/global-setup.ts` and `e2e/stub/supabase.mjs` boot a local Supabase Auth stub alongside the real Next.js app on a dedicated port, so specs need no secrets and touch no production data or paid APIs — every AI/voice/TTS route is mocked at the browser layer (`e2e/support/test.ts`). Specs in `e2e/specs/` cover landing → onboarding → signup redirect, home rendering and navigation, roleplay → conversation start/end/results, vocabulary lessons/flashcards/favorites, and settings/billing entry points, across the `chromium` and `mobile` (Pixel 7 viewport) projects.
 
-- `lib/__tests__/session-limits.test.ts` asserts `SESSION_LIMITS.starter/pro/max`, but `lib/session-limits.ts` now exports only `free` and `pro` under the legacy `SESSION_LIMITS` map. The test is stale relative to the pack-based pricing model.
-- `app/api/realtime/connect/__tests__/route.test.ts` also fails. TODO: diagnose — not investigated during this documentation pass.
+## Deployment
 
-Covered: admin session tokens (signing, tampering, expiry, legacy-cookie rejection), the login rate limiter, pack pricing math, realtime route handlers, the realtime hook, `buildInterviewInstructions`, the waitlist route, and the TanStack Query hooks (profile, subscription, notifications, peer sessions).
+Deploys to Vercel from this repo.
+
+1. Set every variable from `.env.example` in the Vercel project's Environment Variables (Production and Preview as needed).
+2. Apply `supabase/migrations/20260913000000_fina_web.sql` in the Supabase SQL editor against the target project — it is not run automatically by any build step.
+3. In Stripe, add a webhook endpoint pointing at `https://<your-domain>/api/stripe/webhook` subscribed to:
+   - `checkout.session.completed`
+   - `customer.subscription.created`
+   - `customer.subscription.updated`
+   - `customer.subscription.deleted`
+
+   Copy the endpoint's signing secret into `STRIPE_WEBHOOK_SECRET`.
+4. `npm run build` / Vercel's default Next.js build both work unmodified — there is no custom build step.
+
+## Known Limitations
+
+- **RevenueCat entitlements aren't shared with web.** Mobile Pro status lives in RevenueCat; web Pro status lives in Stripe → `profiles.pro_status`. A user who subscribes on one platform does not automatically get Pro on the other.
+- **The migration must be applied manually.** `supabase/migrations/20260913000000_fina_web.sql` is not run by the Supabase CLI or any build/deploy step in this repo — apply it by hand in the Supabase SQL editor (mobile repo convention).
+- **`SUPABASE_SERVICE_ROLE_KEY` is required** for the Stripe webhook (`/api/stripe/webhook`), the Stripe verify-purchase redirect (`/api/stripe/verify-purchase`), and deleting the `auth.users` row on account deletion (`/api/account`). Without it, the webhook responds `500` and account deletion still removes the user's table rows but leaves the auth user behind.
+- **Web Speech recognition works best in Chrome/Edge.** The non-realtime conversation fallback (`lib/hooks/useSpeechRecognition.ts`) depends on the browser's `SpeechRecognition` implementation, which Safari and Firefox support inconsistently or not at all.
+- **Account deletion cancels an active Stripe subscription first.** `DELETE /api/account` calls `stripe.subscriptions.cancel()` for a profile with `pro_status` in `active`/`trialing`/`past_due` before deleting any rows; if the Stripe cancel call fails, the whole deletion aborts with a `502` rather than deleting an account with live billing attached.
+- **Pronunciation audio is not cached in Storage on web.** Unlike mobile (which writes to the `pronunciation-audio` bucket), `/api/tts` responses are cached in memory only per session, so repeated plays across sessions re-synthesise.
+- **AI routes require an authenticated Supabase user.** There is no anonymous trial on web (unlike myinterview's cookie-based trial) — every `/api/ai/*` and `/api/conversations` call returns `401` for a signed-out request.
