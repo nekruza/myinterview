@@ -36,9 +36,11 @@ export function authCookieName(supabaseUrl: string): string {
  * context get its own view without the stub holding shared mutable state.
  */
 export interface SessionState {
-  session_credits?: number;
-  practice_sessions_used?: number;
-  isAdmin?: boolean;
+  /** False signs in a user who hasn't finished onboarding (`target_language` is null). Defaults to true. */
+  onboarded?: boolean;
+  /** True gives the profile row an active Fina Pro subscription. Defaults to false. */
+  pro?: boolean;
+  current_streak?: number;
 }
 
 function tokenFor(state: SessionState): string {
@@ -67,7 +69,6 @@ export function buildSession(state: SessionState = {}) {
       user_metadata: {
         full_name: "E2E Tester",
         email: E2E_USER.email,
-        onboarding_complete: true,
       },
       identities: [],
     },

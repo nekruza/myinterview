@@ -1,0 +1,73 @@
+import { test, expect } from "../support/test";
+import { signIn } from "../support/auth";
+
+/**
+ * The signed-in home dashboard: greeting, streak, today's plan, quick
+ * actions, primary navigation, and the feedback dialog.
+ */
+
+test.describe("home", () => {
+  test.beforeEach(async ({ context }) => {
+    await signIn(context);
+  });
+
+  test("shows a greeting, the streak, today's plan, and quick actions", async ({ page }) => {
+    await page.goto("/app");
+
+    await expect(
+      page.getByRole("heading", { level: 1, name: /Good (morning|afternoon|evening), E2E/ })
+    ).toBeVisible();
+    await expect(page.getByText(/2\s*🔥/)).toBeVisible();
+    await expect(page.getByText("Today’s Plan")).toBeVisible();
+
+    await expect(page.getByText("Voice chat", { exact: true })).toBeVisible();
+    // "Words" alone is ambiguous with the "Words" nav label, which is present
+    // (if not visible) in both the desktop sidebar and the mobile bottom nav
+    // regardless of viewport — match the quick-action card by its full text instead.
+    await expect(page.getByRole("link", { name: /Words.*manage your vocabulary/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Give us feedback/ })).toBeVisible();
+  });
+
+  test("reaches Roleplay from the primary navigation", async ({ page }) => {
+    await page.goto("/app");
+    // The desktop sidebar and mobile bottom nav are both real `<nav>`
+    // elements and both render every link; only one is visible per viewport
+    // (the other is `hidden`/`md:hidden`). Scoping to `nav` excludes the
+    // (also real, also visible) content links that happen to share an href,
+    // e.g. the streak card and quick-action tile also link to /app/roleplay.
+    await page.locator('nav a[href="/app/roleplay"]:visible').click();
+    await expect(page.getByRole("heading", { name: "Roleplay" })).toBeVisible();
+  });
+
+  test("reaches Vocabulary from the primary navigation", async ({ page }) => {
+    await page.goto("/app");
+    await page.locator('nav a[href="/app/vocabulary"]:visible').click();
+    await expect(page).toHaveURL(/\/app\/vocabulary$/);
+    await expect(page.getByText("Words by Topic")).toBeVisible();
+  });
+
+  test("reaches the 30-day plan from the primary navigation", async ({ page }) => {
+    await page.goto("/app");
+    await page.locator('nav a[href="/app/study-plan"]:visible').click();
+    await expect(page.getByRole("heading", { name: "Your 30-Day Plan" })).toBeVisible();
+  });
+
+  test("reaches Progress from the primary navigation", async ({ page }) => {
+    await page.goto("/app");
+    await page.locator('nav a[href="/app/progress"]:visible').click();
+    await expect(page).toHaveURL(/\/app\/progress$/);
+  });
+
+  test("submits the feedback dialog", async ({ page, api }) => {
+    await api.table("feedback", []);
+    await page.goto("/app");
+
+    await page.getByRole("button", { name: "Give us feedback" }).click();
+    await expect(page.getByRole("heading", { name: "Share your feedback" })).toBeVisible();
+
+    await page.getByPlaceholder(/Tell us what you think/i).fill("Loving the app so far!");
+    await page.getByRole("button", { name: "Submit feedback" }).click();
+
+    await expect(page.getByText("Thanks for your feedback")).toBeVisible();
+  });
+});

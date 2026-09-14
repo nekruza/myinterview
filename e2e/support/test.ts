@@ -1,10 +1,10 @@
 import { test as base, expect, type Page, type Route } from "@playwright/test";
 import {
-  anonUsage,
-  authUsage,
-  feedbackFixture,
-  peerSessionFixture,
+  analysisFixture,
+  hintsFixture,
+  lessonFixture,
   profileFixture,
+  usageFixture,
 } from "../fixtures/data";
 
 type Body = unknown;
@@ -21,14 +21,15 @@ export interface ApiMock {
   json(urlGlob: string, body: Body, status?: number): Promise<void>;
   /** Fail an endpoint with a status and body. */
   fail(urlGlob: string, status: number, body?: Body): Promise<void>;
-  /** Serve a server-sent-event stream, as the AI chat/voice routes do. */
+  /** Serve a server-sent-event stream, as the AI voice route does for a conversation turn. */
   sse(urlGlob: string, chunks: string[]): Promise<void>;
   /**
    * Rows for a direct browser-to-Supabase table read.
    *
-   * Some pages query Postgrest from the client rather than going through
-   * `/api/*` — the dashboard reads its credit balance that way. Those requests
-   * are ordinary browser fetches, so they can be stubbed per test.
+   * Several pages query Postgrest from the client rather than going through
+   * `/api/*` — custom roleplays, favorites, lesson progress, generated
+   * lessons, and the feedback form all do. Those requests are ordinary
+   * browser fetches, so they can be stubbed per test.
    */
   table(name: string, rows: Record<string, unknown>[]): Promise<void>;
   /** Every request the page made to a matching URL. */
@@ -44,7 +45,11 @@ function jsonRoute(route: Route, body: Body, status = 200) {
 }
 
 export const test = base.extend<{ api: ApiMock }>({
-  api: async ({ page, context }, use) => {
+  // `auto: true` so every test gets the external-host blocker and the
+  // default `/api/*` mocks even when it never destructures `api` itself —
+  // otherwise a test that forgets to ask for it would fall through to the
+  // real handlers (real AI/TTS/Stripe calls), silently breaking hermeticity.
+  api: [async ({ page, context }, use) => {
     const recorded: Array<{ method: string; url: string; body: string | null }> = [];
 
     page.on("request", (req) => {
@@ -86,26 +91,33 @@ export const test = base.extend<{ api: ApiMock }>({
 
     // ── Defaults ─────────────────────────────────────────────────────────────
     // Enough for any page to render. Individual tests override what they assert.
-    await page.route("**/api/profile", (r) => jsonRoute(r, profileFixture()));
-    await page.route("**/api/notifications**", (r) => jsonRoute(r, { notifications: [] }));
-    // Order matters: Playwright gives precedence to the most recently
-    // registered route, so the broad pattern must be declared before the
-    // specific one it would otherwise swallow.
-    await page.route("**/api/sessions**", (r) =>
-      r.request().method() === "GET"
-        ? jsonRoute(r, { sessions: [] })
-        : jsonRoute(r, { sessionId: "e2e-session-1" })
+    await page.route("**/api/profile", (r) =>
+      r.request().method() === "PATCH" ? jsonRoute(r, { ok: true }) : jsonRoute(r, profileFixture())
     );
-    await page.route("**/api/sessions/usage", (r) => jsonRoute(r, authUsage(12)));
-    await page.route("**/api/peer-sessions**", (r) =>
-      jsonRoute(r, { sessions: [peerSessionFixture()], userId: "e2e-user" })
-    );
-    await page.route("**/api/ai/feedback", (r) => jsonRoute(r, feedbackFixture()));
-    await page.route("**/api/tts", (r) =>
-      // A tiny silent payload: enough for the audio element, no network calls.
-      r.fulfill({ status: 503, body: "" })
-    );
+    await page.route("**/api/conversations/usage", (r) => jsonRoute(r, usageFixture(3, false)));
+    await page.route("**/api/conversations", (r) => {
+      const method = r.request().method();
+      if (method === "POST") return jsonRoute(r, { sessionId: "e2e-conv-1" });
+      if (method === "PATCH")
+        return jsonRoute(r, {
+          ok: true,
+          streak: { current: 3, weeklyActivity: [false, true, true, true, false, false, false], lastConversationDate: "2026-09-13" },
+        });
+      return jsonRoute(r, { sessions: [] });
+    });
+    await page.route("**/api/ai/feedback", (r) => jsonRoute(r, analysisFixture()));
+    await page.route("**/api/ai/voice", (r) => {
+      const body = r.request().postDataJSON() as { isHint?: boolean } | null;
+      if (body?.isHint) return jsonRoute(r, { hints: hintsFixture });
+      return r.fulfill({
+        status: 200,
+        headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache" },
+        body: `data: ${JSON.stringify({ text: "¡Hola! Bienvenido, ¿qué te gustaría pedir hoy?" })}\n\ndata: [DONE]\n\n`,
+      });
+    });
+    await page.route("**/api/tts", (r) => r.fulfill({ status: 503, body: "" }));
     await page.route("**/api/realtime/config", (r) => jsonRoute(r, { iceServers: [] }));
+    await page.route("**/api/ai/translate", (r) => jsonRoute(r, { translation: "Hello" }));
 
     const api: ApiMock = {
       async json(urlGlob, body, status = 200) {
@@ -145,19 +157,20 @@ export const test = base.extend<{ api: ApiMock }>({
     };
 
     await use(api);
-  },
+  }, { auto: true }],
 });
 
 /**
  * Fail a test on any uncaught page error — a silent crash is still a bug.
  *
- * One exception is tolerated. Ending a session while the WebRTC offer/answer
- * exchange is still in flight rejects with "setRemoteDescription ... signalingState
- * is 'closed'", because the peer connection is torn down before the answer
- * arrives. It is a real unhandled rejection in the app, but it is a teardown
- * race rather than a fault this suite introduces, and stubbing makes the
- * handshake finish fast enough to hit it far more often than a real session
- * would. Tracked separately; ignored here so it cannot mask other crashes.
+ * One exception is tolerated. Ending a conversation while the WebRTC
+ * offer/answer exchange is still in flight rejects with "setRemoteDescription
+ * ... signalingState is 'closed'", because the peer connection is torn down
+ * before the answer arrives. It is a real unhandled rejection in the app, but
+ * it is a teardown race rather than a fault this suite introduces, and
+ * stubbing makes the handshake finish fast enough to hit it far more often
+ * than a real session would. Tracked separately; ignored here so it cannot
+ * mask other crashes.
  */
 const KNOWN_TEARDOWN_RACE = /setRemoteDescription.*signalingState is 'closed'/;
 
@@ -168,5 +181,5 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-export { expect, anonUsage, authUsage, profileFixture, feedbackFixture };
+export { expect, analysisFixture, hintsFixture, lessonFixture, profileFixture, usageFixture };
 export type { Page };

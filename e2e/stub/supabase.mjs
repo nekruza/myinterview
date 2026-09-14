@@ -33,7 +33,6 @@ const E2E_USER = {
   user_metadata: {
     full_name: "E2E Tester",
     email: "e2e@example.com",
-    onboarding_complete: true,
   },
   identities: [],
 };
@@ -72,7 +71,7 @@ function send(res, status, body, headers = {}) {
  * this shared stub would leak between parallel tests, so instead a test encodes
  * what it needs into the token it signs in with — e.g.
  *
- *   e2e-access-token;session_credits=3
+ *   e2e-access-token;onboarded=0;pro=1;current_streak=5
  *
  * and every request carrying that token sees exactly that. Isolation comes free
  * because the token is scoped to one browser context.
@@ -137,21 +136,36 @@ const server = createServer((req, res) => {
     // `.single()` / `.maybeSingle()` ask for a bare object via Accept.
     const wantsOne = (req.headers.accept ?? "").includes("vnd.pgrst.object+json");
 
+    const onboarded = state.onboarded !== 0;
+    const isPro = state.pro === 1;
+
     const rows =
       table === "profiles"
         ? [
             {
               id: E2E_USER.id,
-              full_name: "E2E Tester",
-              session_credits: state.session_credits ?? 12,
-              practice_sessions_used: state.practice_sessions_used ?? 3,
-              peer_sessions_joined: 0,
-              resume_url: null,
-              resume_text: null,
-              experience_level: "senior",
-              target_role: "Senior Engineer",
-              interview_style: null,
-              isAdmin: state.isAdmin === 1,
+              email: E2E_USER.email,
+              display_name: "E2E Tester",
+              user_level: "intermediate",
+              current_streak: state.current_streak ?? 2,
+              words_learned: 0,
+              accuracy: null,
+              last_conversation_date: null,
+              weekly_activity: "[false,true,true,false,false,false,false]",
+              target_language: onboarded ? "spanish" : null,
+              learning_motivation: "travel",
+              daily_goal_minutes: 10,
+              study_plan_completed_days: "[1]",
+              study_plan_start_date: "2026-09-10T00:00:00.000Z",
+              native_language: "english",
+              tutor_id: "luna",
+              ai_consent_at: "2026-01-01T00:00:00.000Z",
+              stripe_customer_id: isPro ? "cus_e2e" : null,
+              stripe_subscription_id: isPro ? "sub_e2e" : null,
+              pro_status: isPro ? "active" : null,
+              pro_current_period_end: "2099-01-01T00:00:00.000Z",
+              created_at: "2026-01-01T00:00:00.000Z",
+              updated_at: null,
             },
           ]
         : [];

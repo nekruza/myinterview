@@ -11,12 +11,12 @@ const ROUTES = [
   "/",
   "/login",
   "/signup",
-  "/blog",
-  "/contact",
   "/privacy",
-  "/admin/login",
-  "/app/practice",
-  "/app/dashboard",
+  "/terms",
+  "/onboarding",
+  "/app",
+  "/app/roleplay",
+  "/app/vocabulary",
   "/app/settings",
 ];
 
