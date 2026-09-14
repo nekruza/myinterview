@@ -16,12 +16,9 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     setError(null);
 
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-      email,
-      {
-        redirectTo: `${window.location.origin}/auth/callback?next=/app/settings`,
-      }
-    );
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/callback?next=/app/settings`,
+    });
 
     if (resetError) {
       setError(resetError.message);
@@ -36,34 +33,23 @@ export default function ForgotPasswordPage() {
   if (success) {
     return (
       <div className="text-center py-4">
-        <div
-          className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5"
-          style={{
-            background: "rgba(45,236,41,0.08)",
-            border: "1px solid rgba(45,236,41,0.2)",
-          }}
-        >
+        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5 bg-accent-soft border border-accent-brand/20">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path
               d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-              stroke="#2dec29"
+              stroke="#2E5E3E"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
           </svg>
         </div>
-        <h2 className="text-2xl font-black text-white mb-2">Check your email</h2>
-        <p className="text-sm mb-6" style={{ color: "rgba(255,255,255,0.42)" }}>
-          If an account exists for{" "}
-          <span className="text-white font-medium">{email}</span>, we sent a
-          password reset link.
+        <h2 className="font-display text-2xl font-bold text-ink mb-2">Check your email</h2>
+        <p className="text-sm mb-6 text-sub">
+          If an account exists for <span className="font-medium text-ink">{email}</span>, we sent a password reset
+          link.
         </p>
-        <Link
-          href="/login"
-          className="text-sm font-semibold transition-colors"
-          style={{ color: "#2dec29" }}
-        >
+        <Link href="/login" className="text-sm font-semibold text-accent-brand hover:underline">
           Back to Sign In
         </Link>
       </div>
@@ -73,54 +59,29 @@ export default function ForgotPasswordPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-black text-white mb-2">Reset password</h1>
-        <p className="text-sm" style={{ color: "rgba(255,255,255,0.42)" }}>
-          Enter your email and we&apos;ll send you a reset link
-        </p>
+        <h1 className="font-display text-3xl font-bold text-ink mb-2">Reset password</h1>
+        <p className="text-sm text-sub">Enter your email and we&apos;ll send you a reset link</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1.5">
-          <label
-            htmlFor="email"
-            className="block text-xs font-semibold uppercase tracking-wider"
-            style={{ color: "rgba(255,255,255,0.45)" }}
-          >
+          <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-wider text-sub">
             Email
           </label>
           <input
             id="email"
             type="email"
+            aria-label="Email"
             placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full h-11 px-4 rounded-xl text-sm outline-none transition-all"
-            style={{
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.09)",
-              color: "white",
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.border = "1px solid rgba(45,236,41,0.45)";
-              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(45,236,41,0.08)";
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.border = "1px solid rgba(255,255,255,0.09)";
-              e.currentTarget.style.boxShadow = "none";
-            }}
+            className="w-full h-11 px-4 rounded-xl text-sm outline-none border border-line bg-surface text-ink transition-colors focus:border-accent-brand focus:ring-2 focus:ring-accent-soft"
           />
         </div>
 
         {error && (
-          <div
-            className="rounded-xl px-4 py-3 text-sm"
-            style={{
-              background: "rgba(239,68,68,0.08)",
-              border: "1px solid rgba(239,68,68,0.2)",
-              color: "#fca5a5",
-            }}
-          >
+          <div role="alert" className="rounded-xl px-4 py-3 text-sm border border-hot/25 bg-hot/10 text-hot">
             {error}
           </div>
         )}
@@ -128,26 +89,15 @@ export default function ForgotPasswordPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full h-11 rounded-xl font-bold text-sm transition-all disabled:opacity-50 mt-1"
-          style={{
-            background: loading ? "rgba(45,236,41,0.6)" : "#2dec29",
-            color: "#071a09",
-          }}
+          className="w-full h-11 rounded-xl font-bold text-sm text-white bg-ink transition-opacity disabled:opacity-50 mt-1"
         >
           {loading ? "Sending…" : "Send Reset Link"}
         </button>
       </form>
 
-      <p
-        className="text-center text-sm mt-6"
-        style={{ color: "rgba(255,255,255,0.38)" }}
-      >
+      <p className="text-center text-sm mt-6 text-sub">
         Remember your password?{" "}
-        <Link
-          href="/login"
-          className="font-semibold transition-colors"
-          style={{ color: "#2dec29" }}
-        >
+        <Link href="/login" className="font-semibold text-accent-brand hover:underline">
           Sign in
         </Link>
       </p>

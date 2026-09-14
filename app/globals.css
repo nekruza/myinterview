@@ -6,12 +6,21 @@
 
 :root {
 
-  /* Brand Colors - MyInterview Palette */
-  --primary: #2dec29; /* Bright green */
-  --primary-hover: #48e57c;
-  --secondary: #112715; /* Near black */
-  --cream: #fbfdf3; /* Warm cream background */ 
-  --cream-dark: #e3f5e6; /* Darker cream */
+  /* Fina brand tokens */
+  --fina-bg: #F7F4EE;
+  --fina-surface: #FFFFFF;
+  --fina-ink: #1B1A17;
+  --fina-sub: #6E6A63;
+  --fina-line: #E8E3D9;
+  --fina-accent: #2E5E3E;
+  --fina-accent-soft: #E5F0E8;
+  --fina-hot: #D94F2A;
+
+  --primary: #2E5E3E;
+  --primary-hover: #24492f;
+  --secondary: #1B1A17;
+  --cream: #F7F4EE;
+  --cream-dark: #E8E3D9;
 
   /* Extended neutral palette */
   --neutral-50: #f9fafb;
@@ -31,7 +40,7 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary-foreground: oklch(0.985 0 0);
+  --primary-foreground: #ffffff;
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
@@ -151,15 +160,23 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sora);
+  --font-sans: var(--font-manrope);
+  --font-display: var(--font-fraunces);
   --font-mono: var(--font-geist-mono);
 
-  /* Brand Color Mappings */
+  /* Fina brand color mappings */
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-secondary: var(--secondary);
-  --color-cream: var(--cream);
+  --color-cream: var(--fina-bg);
   --color-cream-dark: var(--cream-dark);
+  --color-surface: var(--fina-surface);
+  --color-ink: var(--fina-ink);
+  --color-sub: var(--fina-sub);
+  --color-line: var(--fina-line);
+  --color-accent-brand: var(--fina-accent);
+  --color-accent-soft: var(--fina-accent-soft);
+  --color-hot: var(--fina-hot);
 
   --color-neutral-50: var(--neutral-50);
   --color-neutral-100: var(--neutral-100);
@@ -219,7 +236,8 @@
 }
 
 body {
-  font-family: var(--font-sora), Arial, Helvetica, sans-serif;
+  font-family: var(--font-manrope), Arial, Helvetica, sans-serif;
+  background: var(--fina-bg);
 }
 
 /* Smooth scrolling for better UX */
@@ -296,55 +314,39 @@ html {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes card-float {
-  0%, 100% { transform: translateY(0px); }
-  50%       { transform: translateY(-10px); }
-}
-
-@keyframes card-float-alt {
-  0%, 100% { transform: translateY(0px) rotate(2deg); }
-  50%       { transform: translateY(-8px) rotate(2deg); }
-}
-
 @keyframes waveform-bar {
   0%, 100% { transform: scaleY(0.4); }
   50%       { transform: scaleY(1); }
 }
 
-.hero-stagger-1 { animation: stagger-fade-up 0.55s cubic-bezier(0.22,1,0.36,1) 0.05s both; }
-.hero-stagger-2 { animation: stagger-fade-up 0.55s cubic-bezier(0.22,1,0.36,1) 0.15s both; }
-.hero-stagger-3 { animation: stagger-fade-up 0.55s cubic-bezier(0.22,1,0.36,1) 0.26s both; }
-.hero-stagger-4 { animation: stagger-fade-up 0.55s cubic-bezier(0.22,1,0.36,1) 0.38s both; }
-.hero-stagger-5 { animation: stagger-fade-up 0.55s cubic-bezier(0.22,1,0.36,1) 0.50s both; }
-.hero-stagger-6 { animation: stagger-fade-up 0.55s cubic-bezier(0.22,1,0.36,1) 0.62s both; }
+/* ── Marketing pages (landing, privacy, terms) ── */
 
-/* Hero card individual entrance animations */
-@keyframes card-enter-up    { from { opacity:0; transform:translateY(28px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
-@keyframes card-enter-right { from { opacity:0; transform:translateX(24px) scale(0.97); } to { opacity:1; transform:translateX(0) scale(1); } }
-@keyframes card-enter-down  { from { opacity:0; transform:translateY(-20px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
-@keyframes card-enter-left  { from { opacity:0; transform:translateX(-20px) scale(0.97); } to { opacity:1; transform:translateX(0) scale(1); } }
-
-.hero-card-main  { animation: card-enter-up    0.65s cubic-bezier(0.22,1,0.36,1) 0.68s both; }
-.hero-card-tr    { animation: card-enter-right 0.55s cubic-bezier(0.22,1,0.36,1) 0.88s both; }
-.hero-card-br    { animation: card-enter-down  0.55s cubic-bezier(0.22,1,0.36,1) 1.02s both; }
-.hero-card-bl    { animation: card-enter-left  0.55s cubic-bezier(0.22,1,0.36,1) 1.14s both; }
-
-.card-float     { animation: card-float     4.2s ease-in-out infinite; }
-.card-float-alt { animation: card-float-alt 3.8s ease-in-out 1.4s infinite; }
-
-/* ── Scroll-reveal system ── */
-.scroll-reveal {
-  opacity: 0;
-  transform: translateY(28px);
-  transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
-              transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+/* Fraunces' softer cut for display type; opsz + SOFT axes are loaded in app/layout.tsx. */
+.fina-display {
+  font-optical-sizing: auto;
+  font-variation-settings: "SOFT" 50;
 }
-.scroll-reveal.scroll-revealed {
-  opacity: 1;
-  transform: translateY(0);
+
+@keyframes fina-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
 }
-@media (prefers-reduced-motion: reduce) {
-  .scroll-reveal { opacity: 1; transform: none; transition: none; }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* One-time entrance for hero content; stagger with the --rise-delay custom property. */
+  .fina-rise {
+    animation: fina-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--rise-delay, 0s) both;
+  }
+
+  /* Sections ease in as they enter the viewport. Pure CSS scroll-driven animation:
+     where unsupported (or with JS off) content is simply visible, never stuck hidden. */
+  @supports (animation-timeline: view()) {
+    .fina-reveal {
+      animation: fina-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 30%;
+    }
+  }
 }
 
 .hover-lift {
@@ -407,12 +409,12 @@ html {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c4dfc5;
+  background: var(--fina-line);
   border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #2dec29;
+  background: #2E5E3E;
 }
 
 .dark {
@@ -451,8 +453,8 @@ html {
 
 /* Voice Practice Animations */
 @keyframes speaking-ring {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(45, 236, 41, 0.4); }
-  50% { box-shadow: 0 0 0 12px rgba(45, 236, 41, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(46, 94, 62, .45); }
+  50% { box-shadow: 0 0 0 12px rgba(46, 94, 62, 0); }
 }
 
 @keyframes hint-enter {
@@ -466,6 +468,21 @@ html {
 
 .animate-hint-enter {
   animation: hint-enter 0.3s ease-out forwards;
+}
+
+/* Score bars on the conversation results screen */
+@keyframes fina-bar-grow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.animate-bar-grow {
+  transform-origin: left center;
+  animation: fina-bar-grow 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-bar-grow { animation: none; }
 }
 
 @layer base {

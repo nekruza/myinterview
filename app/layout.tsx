@@ -1,44 +1,49 @@
 import type { Metadata } from "next";
-import { Sora } from "next/font/google";
+import { Fraunces, Manrope } from "next/font/google";
 import "./globals.css";
-import { ComingSoonProvider } from "@/components/ComingSoonProvider";
 import { MixpanelInit } from "@/components/MixpanelInit";
 import { Analytics } from "@vercel/analytics/next"
-import { GoogleAnalytics } from "@next/third-parties/google"
 
-const sora = Sora({
+const fraunces = Fraunces({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
-  variable: "--font-sora",
+  variable: "--font-fraunces",
+  display: "swap",
+  // Optical sizing for large display type, and the SOFT axis used by .fina-display.
+  axes: ["opsz", "SOFT"],
+});
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-manrope",
   display: "swap",
 });
 
-const BASE_URL = "https://myinterview.com";
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://fina-ai-app.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: "MyInterview — Conquer Interview Anxiety | AI & Peer Practice",
-    template: "%s | MyInterview",
+    default: "Fina — Speak a new language with AI tutors",
+    template: "%s | Fina",
   },
   description:
-    "MyInterview helps engineers overcome interview anxiety through AI-powered mock interviews and peer practice sessions. 93% of candidates experience mental freeze — we fix that. Free to start.",
+    "Practice real conversations out loud with Fina's AI tutors. Roleplays, vocabulary, flashcards and a 30-day plan in 9 languages.",
   keywords: [
-    "interview anxiety",
-    "mock interview practice",
-    "AI interview practice",
-    "peer interview practice",
-    "behavioral interview prep",
-    "technical interview prep",
-    "interview confidence",
-    "STAR method",
-    "system design interview",
-    "software engineer interview",
+    "language learning app",
+    "AI language tutor",
+    "practice speaking a language",
+    "AI conversation practice",
+    "roleplay language learning",
+    "vocabulary flashcards",
+    "learn a language online",
+    "30 day language plan",
+    "AI language coach",
+    "speaking practice app",
   ],
-  authors: [{ name: "MyInterview Team", url: BASE_URL }],
-  creator: "MyInterview",
-  publisher: "MyInterview",
-  category: "Career Development",
+  authors: [{ name: "Fina Team", url: BASE_URL }],
+  creator: "Fina",
+  publisher: "Fina",
+  category: "Education",
   formatDetection: {
     email: false,
     address: false,
@@ -48,27 +53,27 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: BASE_URL,
-    siteName: "MyInterview",
-    title: "MyInterview — Conquer Interview Anxiety | AI & Peer Practice",
+    siteName: "Fina",
+    title: "Fina — Speak a new language with AI tutors",
     description:
-      "AI-powered mock interview practice and peer coaching to help engineers overcome anxiety and land their dream roles. 500+ beta users. Free to start.",
+      "Practice real conversations out loud with Fina's AI tutors. Roleplays, vocabulary, flashcards and a 30-day plan in 9 languages.",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "MyInterview — AI and peer interview practice platform for engineers",
+        alt: "Fina — practice a new language out loud with AI tutors",
         type: "image/png",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    site: "@myinterviewapp",
-    creator: "@myinterviewapp",
-    title: "MyInterview — Conquer Interview Anxiety",
+    site: "@finaapp",
+    creator: "@finaapp",
+    title: "Fina — Speak a new language with AI tutors",
     description:
-      "Practice behavioral & technical interviews with AI and peers. Build real confidence. Free to start.",
+      "Practice real conversations out loud with Fina's AI tutors. Roleplays, vocabulary, flashcards and a 30-day plan.",
     images: ["/og-image.png"],
   },
   robots: {
@@ -83,9 +88,9 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: "/logo.jpg",
-    shortcut: "/logo.jpg",
-    apple: "/logo.jpg",
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
   },
   alternates: {
     canonical: BASE_URL,
@@ -103,20 +108,21 @@ export default function RootLayout({
         {/* Preconnect to external origins for faster resource loading */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://randomuser.me" />
       </head>
-      <body className={`${sora.variable} font-sans antialiased`} suppressHydrationWarning>
+      <body
+        className={`${fraunces.variable} ${manrope.variable} font-sans antialiased bg-cream text-ink`}
+        suppressHydrationWarning
+      >
         {/* Skip-to-content for accessibility and SEO */}
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-white focus:text-secondary focus:font-bold focus:rounded-lg focus:shadow-lg"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-white focus:text-ink focus:font-bold focus:rounded-lg focus:shadow-lg"
         >
           Skip to main content
         </a>
-        <GoogleAnalytics gaId="AW-18065580102" />
         <MixpanelInit />
         <Analytics />
-        <ComingSoonProvider>{children}</ComingSoonProvider>
+        {children}
       </body>
     </html>
   );

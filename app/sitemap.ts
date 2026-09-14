@@ -1,12 +1,11 @@
 import { MetadataRoute } from "next";
-import { posts } from "@/lib/blog";
 
-const BASE_URL = "https://myinterview.com";
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://fina-ai-app.vercel.app";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
 
-  const staticPages: MetadataRoute.Sitemap = [
+  return [
     {
       url: BASE_URL,
       lastModified: now,
@@ -14,37 +13,34 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1.0,
     },
     {
-      url: `${BASE_URL}/blog`,
+      url: `${BASE_URL}/login`,
       lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.9,
+      changeFrequency: "monthly",
+      priority: 0.6,
     },
     {
-      url: `${BASE_URL}/contact`,
-      lastModified: new Date("2026-02-15"),
+      url: `${BASE_URL}/signup`,
+      lastModified: now,
       changeFrequency: "monthly",
-      priority: 0.7,
+      priority: 0.6,
+    },
+    {
+      url: `${BASE_URL}/onboarding`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.8,
     },
     {
       url: `${BASE_URL}/privacy`,
-      lastModified: new Date("2026-02-15"),
+      lastModified: now,
       changeFrequency: "yearly",
       priority: 0.3,
     },
     {
       url: `${BASE_URL}/terms`,
-      lastModified: new Date("2026-02-15"),
+      lastModified: now,
       changeFrequency: "yearly",
       priority: 0.3,
     },
   ];
-
-  const blogPages: MetadataRoute.Sitemap = posts.map((post) => ({
-    url: `${BASE_URL}/blog/${post.slug}`,
-    lastModified: new Date(post.date),
-    changeFrequency: "monthly" as const,
-    priority: 0.8,
-  }));
-
-  return [...staticPages, ...blogPages];
 }

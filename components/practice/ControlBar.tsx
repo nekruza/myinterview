@@ -9,6 +9,8 @@ import {
   Video,
   VideoOff,
   StopCircle,
+  Pause,
+  Play,
 } from "lucide-react";
 
 interface ControlBarProps {
@@ -21,6 +23,9 @@ interface ControlBarProps {
   onStop: () => void;
   onToggleNotes: () => void;
   notesOpen: boolean;
+  onPause: () => void;
+  isPaused: boolean;
+  pauseDisabled?: boolean;
   onInterrupt?: () => void;
   isAISpeaking?: boolean;
 }
@@ -30,6 +35,8 @@ interface ControlButtonProps {
   label: string;
   onClick: () => void;
   active?: boolean;
+  /** Set for on/off toggles so assistive tech hears the state. */
+  pressed?: boolean;
   danger?: boolean;
   disabled?: boolean;
 }
@@ -39,28 +46,37 @@ const ControlButton: FC<ControlButtonProps> = ({
   label,
   onClick,
   active,
+  pressed,
   danger,
   disabled,
 }) => (
   <button
+    type="button"
     onClick={onClick}
     disabled={disabled}
-    className="group relative flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-40 disabled:hover:scale-100"
+    aria-label={label}
+    aria-pressed={pressed}
+    className="group relative flex shrink-0 items-center justify-center w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full transition-all duration-200 motion-safe:hover:scale-110 motion-safe:active:scale-95 disabled:opacity-40 disabled:hover:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4ade80]"
     style={{
       background: danger
         ? "rgba(239, 68, 68, 0.9)"
         : active
-          ? "rgba(45, 236, 41, 0.2)"
+          ? "rgba(74, 222, 128, 0.18)"
           : "rgba(255, 255, 255, 0.1)",
-      border: active ? "1px solid rgba(45, 236, 41, 0.4)" : "1px solid rgba(255, 255, 255, 0.1)",
+      border: active ? "1px solid rgba(74, 222, 128, 0.4)" : "1px solid rgba(255, 255, 255, 0.1)",
     }}
   >
     {icon}
-    <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md bg-black/80 text-white text-[10px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+    <span
+      aria-hidden
+      className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md bg-black/80 text-white text-[10px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity pointer-events-none"
+    >
       {label}
     </span>
   </button>
 );
+
+const iconClass = "w-4 h-4 md:w-5 md:h-5";
 
 export const ControlBar: FC<ControlBarProps> = ({
   onToggleCaptions,
@@ -72,27 +88,33 @@ export const ControlBar: FC<ControlBarProps> = ({
   onStop,
   onToggleNotes,
   notesOpen,
+  onPause,
+  isPaused,
+  pauseDisabled,
   onInterrupt,
   isAISpeaking,
 }) => (
-  <div className="flex items-center justify-center gap-2 md:gap-3 px-4 md:px-6 py-2 md:py-3 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10">
+  <div className="flex max-w-full items-center justify-center gap-1.5 sm:gap-2 md:gap-3 px-2 sm:px-3 md:px-6 py-2 md:py-3 rounded-2xl bg-white/[0.04] backdrop-blur-xl border border-white/10">
     <ControlButton
-      icon={<FileText className="w-4 h-4 md:w-5 md:h-5 text-white/80" />}
+      icon={<FileText className={`${iconClass} text-white/80`} aria-hidden />}
       label="Notes"
       onClick={onToggleNotes}
       active={notesOpen}
+      pressed={notesOpen}
     />
     <ControlButton
-      icon={<Subtitles className="w-4 h-4 md:w-5 md:h-5 text-white/80" />}
+      icon={<Subtitles className={`${iconClass} text-white/80`} aria-hidden />}
       label="Captions"
       onClick={onToggleCaptions}
       active={captionsOn}
+      pressed={captionsOn}
     />
     <ControlButton
       icon={
         <Lightbulb
-          className="w-4 h-4 md:w-5 md:h-5"
-          style={{ color: hintLoading ? "#2dec29" : "rgba(255,255,255,0.8)" }}
+          className={iconClass}
+          style={{ color: hintLoading ? "#4ade80" : "rgba(255,255,255,0.8)" }}
+          aria-hidden
         />
       }
       label="Get Hint"
@@ -102,25 +124,39 @@ export const ControlBar: FC<ControlBarProps> = ({
     <ControlButton
       icon={
         cameraOn ? (
-          <Video className="w-4 h-4 md:w-5 md:h-5 text-white/80" />
+          <Video className={`${iconClass} text-white/80`} aria-hidden />
         ) : (
-          <VideoOff className="w-4 h-4 md:w-5 md:h-5 text-white/80" />
+          <VideoOff className={`${iconClass} text-white/80`} aria-hidden />
         )
       }
-      label={cameraOn ? "Camera On" : "Camera Off"}
+      label="Camera"
       onClick={onToggleCamera}
       active={cameraOn}
+      pressed={cameraOn}
+    />
+    <ControlButton
+      icon={
+        isPaused ? (
+          <Play className={`${iconClass} text-white/80`} aria-hidden />
+        ) : (
+          <Pause className={`${iconClass} text-white/80`} aria-hidden />
+        )
+      }
+      label={isPaused ? "Resume" : "Pause"}
+      onClick={onPause}
+      active={isPaused}
+      disabled={pauseDisabled}
     />
     {isAISpeaking && onInterrupt && (
       <ControlButton
-        icon={<StopCircle className="w-4 h-4 md:w-5 md:h-5 text-white" />}
+        icon={<StopCircle className={`${iconClass} text-white`} aria-hidden />}
         label="Interrupt"
         onClick={onInterrupt}
         danger
       />
     )}
     <ControlButton
-      icon={<Square className="w-4 h-4 md:w-5 md:h-5 text-white" />}
+      icon={<Square className={`${iconClass} text-white`} aria-hidden />}
       label="End Session"
       onClick={onStop}
       danger

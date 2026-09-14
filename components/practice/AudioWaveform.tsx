@@ -75,7 +75,7 @@ export const AudioWaveform: FC<AudioWaveformProps> = ({
           className="w-[3px] rounded-full"
           style={{
             height: `${height}px`,
-            background: "#2dec29",
+            background: "#4ade80",
             opacity: isActive ? 0.55 + (height / 20) * 0.45 : 0.3,
             transition: variant === "user" ? "height 100ms ease-out" : undefined,
           }}

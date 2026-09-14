@@ -1,167 +1,103 @@
 /**
- * Organization JSON-LD schema for the homepage.
- * Improves Google Knowledge Panel and AI chatbot citation authority.
+ * JSON-LD structured data for the landing page: Organization, WebSite,
+ * SoftwareApplication and FAQPage. Builders are pure so they can be tested;
+ * the components just serialise them.
  */
-export function OrganizationSchema() {
-  const schema = {
+import { FAQ_ITEMS } from "@/components/landing/faq-data";
+import { PLANS } from "@/lib/billing";
+import { CONTACT_EMAIL, SITE_URL } from "@/lib/site";
+
+const DESCRIPTION =
+  "Fina is a language-learning app for speaking real roleplay conversations out loud with AI tutors, with vocabulary flashcards, AI word generation and a 30-day study plan in 9 languages.";
+
+const toPrice = (cents: number) => (cents / 100).toFixed(2);
+
+export function buildOrganizationSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Fina",
+    url: SITE_URL,
+    logo: `${SITE_URL}/logo.png`,
+    contactPoint: {
+      "@type": "ContactPoint",
+      email: CONTACT_EMAIL,
+      contactType: "customer support",
+    },
+  };
+}
+
+export function buildWebsiteSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Fina",
+    url: SITE_URL,
+    description: DESCRIPTION,
+  };
+}
+
+export function buildSoftwareApplicationSchema() {
+  return {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    name: "MyInterview",
-    alternateName: "MyInterview App",
-    applicationCategory: "EducationApplication",
+    name: "Fina",
+    applicationCategory: "EducationalApplication",
     operatingSystem: "Web",
-    url: "https://myinterview.com",
-    logo: "https://myinterview.com/logo.jpg",
-    description:
-      "MyInterview is a career programme for software engineering graduates who can code but can't get hired. It combines a real 3-month unpaid internship at a partner company, a 1-on-1 CV rewrite, and AI-powered mock interview practice. £359 upfront — £499 placement fee only when you land the job.",
+    url: SITE_URL,
+    image: `${SITE_URL}/logo.png`,
+    description: DESCRIPTION,
     offers: [
       {
         "@type": "Offer",
-        name: "Free Plan",
+        name: "Free",
         price: "0",
-        priceCurrency: "GBP",
-        description:
-          "3 free AI mock interview sessions with resume-tailored questions and instant feedback reports. No credit card required.",
-        availability: "https://schema.org/InStock",
+        priceCurrency: "USD",
       },
       {
         "@type": "Offer",
-        name: "Session Credits",
-        price: "5",
-        priceCurrency: "GBP",
-        description:
-          "Buy AI mock interview session packs as you need them. 5 sessions for £5, 20 for £14, or 50 for £29. Credits never expire and no subscription is required.",
-        availability: "https://schema.org/InStock",
-      },
-      {
-        "@type": "Offer",
-        name: "Career Service (Max)",
-        price: "359",
-        priceCurrency: "GBP",
-        description:
-          "3-month career programme including a real unpaid internship at a partner company, 1-on-1 CV rewrite, and AI mock interview practice. £359 upfront plus £499 placement fee charged only on successful job placement.",
-        availability: "https://schema.org/InStock",
+        name: "Fina Pro",
+        price: toPrice(PLANS.monthly.amountCents),
+        priceCurrency: "USD",
+        description: `Unlimited AI conversations and word generation. ${PLANS.monthly.display} or ${PLANS.yearly.display}.`,
       },
     ],
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.9",
-      reviewCount: "127",
-      bestRating: "5",
-      worstRating: "1",
-    },
-    featureList: [
-      "AI-powered behavioral interview practice",
-      "AI-powered technical interview practice",
-      "Peer-to-peer mock interview sessions",
-      "Interview anxiety techniques and coaching",
-      "STAR method behavioral question training",
-      "System design interview practice",
-      "Progress tracking and confidence scoring",
-      "24/7 AI practice availability",
-    ],
-    screenshot: "https://myinterview.com/hero-image.png",
-    author: {
-      "@type": "Organization",
-      name: "MyInterview",
-      url: "https://myinterview.com",
-    },
   };
+}
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-    />
-  );
+export function buildFaqSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQ_ITEMS.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  };
+}
+
+/** Serialises JSON-LD, escaping "<" so no value can close the script element. */
+export function JsonLd({ data }: { data: Record<string, unknown> }) {
+  const json = JSON.stringify(data).replace(/</g, "\\u003c");
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: json }} />;
+}
+
+export function OrganizationSchema() {
+  return <JsonLd data={buildOrganizationSchema()} />;
 }
 
 export function WebsiteSchema() {
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: "MyInterview",
-    url: "https://myinterview.com",
-    description:
-      "Interview practice platform for engineers to overcome anxiety and land software engineering roles",
-    potentialAction: {
-      "@type": "SearchAction",
-      target: {
-        "@type": "EntryPoint",
-        urlTemplate: "https://myinterview.com/blog?q={search_term_string}",
-      },
-      "query-input": "required name=search_term_string",
-    },
-  };
-
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-    />
-  );
+  return <JsonLd data={buildWebsiteSchema()} />;
 }
 
-export function HomepageFAQSchema() {
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: "What is MyInterview?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "MyInterview is a career programme for software engineering graduates. It combines a real 3-month unpaid internship at a partner company, a 1-on-1 CV rewrite from a specialist, and AI-powered mock interview practice — so you build genuine experience and can prove it in interviews.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Why is the internship unpaid?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Paid internships go to people who already have commercial experience — which is the catch-22 graduates face. The unpaid placement breaks that cycle: you ship real work at a partner company, get code-reviewed by engineers, and build 3 months of genuine git history that hiring managers can verify.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "How does the pricing work?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "£359 upfront funds your place in the cohort — covering the internship placement, CV rewrite, and mock interview access. The £499 placement fee is charged only after you accept a paid job offer. If you don't land a job, you don't pay the £499.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Is there a free option?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "Yes. You can use the AI mock interview tool for free — 3 full sessions with resume-tailored questions and instant feedback reports, no credit card required. The full career service (internship, CV rewrite, cohort) requires joining the waitlist.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "Do I need to be a CS graduate to join?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "No. The only requirement is that you can code. CS graduates, bootcamp graduates, and self-taught developers are all eligible. If you can build things and reason about code, you qualify for the programme.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "What types of interviews can I practice with the AI tool?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "The AI practice tool covers behavioural interviews (STAR method, leadership, conflict) and technical interviews (system design, coding, architecture). Questions are tailored to your CV and the specific role you are applying for.",
-        },
-      },
-    ],
-  };
+export function SoftwareApplicationSchema() {
+  return <JsonLd data={buildSoftwareApplicationSchema()} />;
+}
 
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-    />
-  );
+export function FaqSchema() {
+  return <JsonLd data={buildFaqSchema()} />;
 }

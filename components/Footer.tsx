@@ -1,155 +1,72 @@
-"use client";
-
-import { FC } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { CONTACT_EMAIL } from "@/lib/site";
+import { FOCUS_RING } from "@/components/landing/styles";
 
-export const Footer: FC = () => {
-  const footerLinks = {
-    resources: [
-      { name: "Features", href: "#features" },
-      { name: "Pricing", href: "#pricing" },
-      { name: "Blog", href: "/blog" },
-      { name: "Interview Tips", href: "/blog" },
-      { name: "Anxiety Guide", href: "/blog/how-to-stop-mind-going-blank-interview" },
+// Root-relative so the anchors also work from /privacy and /terms.
+const linkGroups = [
+  {
+    title: "Product",
+    links: [
+      { href: "/#how-it-works", label: "How it works" },
+      { href: "/#features", label: "Features" },
+      { href: "/#pricing", label: "Pricing" },
+      { href: "/#faq", label: "FAQ" },
     ],
-    company: [
-      { name: "Contact", href: "/contact" },
-      { name: "Privacy", href: "/privacy" },
-      { name: "Terms", href: "/terms" },
+  },
+  {
+    title: "Legal",
+    links: [
+      { href: "/privacy", label: "Privacy Policy" },
+      { href: "/terms", label: "Terms of Service" },
     ],
-  };
+  },
+];
+
+const linkClass = `rounded text-[15px] text-sub transition-colors duration-200 hover:text-ink ${FOCUS_RING}`;
+
+export function Footer() {
+  const year = new Date().getFullYear();
 
   return (
-    <footer
-      className="relative overflow-hidden"
-      style={{ background: "linear-gradient(160deg, #071a09 0%, #0d2410 55%, #061508 100%)" }}
-    >
-      {/* Dot grid overlay */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, rgba(45,236,41,0.05) 1px, transparent 1px)",
-          backgroundSize: "28px 28px",
-        }}
-      />
-      {/* Ambient glow */}
-      <div
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full blur-3xl pointer-events-none"
-        style={{ background: "rgba(45,236,41,0.04)" }}
-      />
+    <footer className="border-t border-line bg-surface px-4 sm:px-6">
+      <div className="mx-auto grid max-w-6xl gap-10 py-14 sm:grid-cols-2 md:grid-cols-[minmax(0,1.5fr)_repeat(3,minmax(0,1fr))]">
+        <div className="sm:col-span-2 md:col-span-1">
+          <Link href="/" className={`inline-flex items-center gap-2.5 rounded-lg ${FOCUS_RING}`}>
+            <Image src="/logo.png" alt="" width={32} height={32} className="rounded-lg" />
+            <span className="font-display fina-display text-xl font-semibold text-ink">Fina</span>
+          </Link>
+          <p className="mt-4 max-w-[30ch] text-[15px] leading-relaxed text-sub">
+            Speak a new language out loud with AI tutors Luna, Henry and Jake.
+          </p>
+        </div>
 
-      {/* ── Pre-footer CTA ── */}
-      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
-
-        {/* ── Footer links ── */}
-        <div className="grid md:grid-cols-3 gap-10 mb-14">
-          {/* Brand */}
-          <div>
-            <div className="flex items-center gap-2.5 mb-4">
-              <Image
-                src="/logo.jpg"
-                alt="MyInterview logo"
-                width={36}
-                height={36}
-                className="rounded-lg"
-              />
-              <span className="text-xl font-bold text-white">MyInterview</span>
-            </div>
-            <p
-              className="text-sm leading-relaxed mb-6 max-w-[240px]"
-              style={{ color: "rgba(255,255,255,0.38)" }}
-            >
-              Helping people land their dream job — AI mock interviews, real feedback, and a career service that only wins when you do.
-            </p>
-            <Link
-              href="https://www.linkedin.com/company/myinterview-me/"
-              className="w-9 h-9 rounded-lg flex items-center justify-center"
-              style={{
-                background: "rgba(255,255,255,0.06)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                color: "rgba(255,255,255,0.5)",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(255,255,255,0.12)";
-                e.currentTarget.style.color = "rgba(255,255,255,0.85)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-                e.currentTarget.style.color = "rgba(255,255,255,0.5)";
-              }}
-            >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
-              </svg>
-            </Link>
-          </div>
-
-          {/* Resources */}
-          <div>
-            <h4
-              className="text-xs font-bold uppercase tracking-widest mb-5"
-              style={{ color: "rgba(255,255,255,0.3)" }}
-            >
-              Resources
-            </h4>
-            <ul className="space-y-3">
-              {footerLinks.resources.map((link) => (
-                <li key={link.name}>
-                  <Link
-                    href={link.href}
-                    className="text-sm"
-                    style={{ color: "rgba(255,255,255,0.48)" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.85)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.48)")}
-                  >
-                    {link.name}
+        {linkGroups.map((group) => (
+          <nav key={group.title} aria-label={group.title}>
+            <p className="text-[13px] font-semibold text-ink">{group.title}</p>
+            <ul className="mt-4 space-y-3">
+              {group.links.map((link) => (
+                <li key={link.href}>
+                  <Link href={link.href} className={linkClass}>
+                    {link.label}
                   </Link>
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
+        ))}
 
-          {/* Company */}
-          <div>
-            <h4
-              className="text-xs font-bold uppercase tracking-widest mb-5"
-              style={{ color: "rgba(255,255,255,0.3)" }}
-            >
-              Company
-            </h4>
-            <ul className="space-y-3">
-              {footerLinks.company.map((link) => (
-                <li key={link.name}>
-                  <Link
-                    href={link.href}
-                    className="text-sm"
-                    style={{ color: "rgba(255,255,255,0.48)" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.85)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.48)")}
-                  >
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+        <div>
+          <p className="text-[13px] font-semibold text-ink">Contact</p>
+          <a href={`mailto:${CONTACT_EMAIL}`} className={`mt-4 inline-block [overflow-wrap:anywhere] ${linkClass}`}>
+            {CONTACT_EMAIL}
+          </a>
         </div>
+      </div>
 
-        {/* ── Bottom bar ── */}
-        <div
-          className="pt-8 flex flex-col sm:flex-row justify-between items-center gap-3"
-          style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
-        >
-          <p className="text-sm" style={{ color: "rgba(255,255,255,0.25)" }}>
-            &copy; 2026 MyInterview. All rights reserved.
-          </p>
-          <p className="text-sm" style={{ color: "rgba(255,255,255,0.25)" }}>
-            Built for people who deserve better
-          </p>
-        </div>
+      <div className="mx-auto max-w-6xl border-t border-line py-6">
+        <p className="text-sm text-sub">&copy; {year} Fina. All rights reserved.</p>
       </div>
     </footer>
   );
-};
+}

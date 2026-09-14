@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useState, useRef, useEffect, useCallback } from "react";
+import { FC, FormEvent, useState, useRef, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { Mic, MicOff, AlertTriangle } from "lucide-react";
 import { useTimer } from "@/lib/hooks/useTimer";
@@ -13,28 +13,23 @@ import { ControlBar } from "./ControlBar";
 import { HintOverlay } from "./HintOverlay";
 import { NotesPanel } from "./NotesPanel";
 import { SessionTimer } from "./SessionTimer";
-import type { Message } from "@/lib/practice-data";
-import { LEVELS } from "@/lib/practice-data";
+import type { Message } from "@/lib/types/conversation";
+import type { RoleplayScenario } from "@/lib/types/roleplay";
 import { useInworldRealtime } from "@/lib/hooks/useInworldRealtime";
-import { buildInterviewInstructions } from "@/lib/utils/buildInterviewInstructions";
-import { getInterviewerById } from "@/lib/interviewers";
-
-interface JobContext {
-  mode: "link" | "paste" | "general";
-  value: string;
-}
+import { buildConversationInstructions } from "@/lib/utils/buildConversationInstructions";
+import { getTutorById, tutorVoice, type TutorId } from "@/lib/tutors";
+import { getLanguage, speechLocale, type LanguageId } from "@/lib/languages";
+import type { UserLevel } from "@/lib/levels";
 
 interface VoiceCallViewProps {
-  selectedCategory: { id: string; label: string; color: string };
-  selectedQuestion: string;
-  level: string;
-  role?: string;
+  roleplay: RoleplayScenario;
+  tutorId: TutorId;
+  language: LanguageId;
+  level: UserLevel;
+  nativeLanguage: LanguageId;
+  dailyGoalMinutes: number;
   sessionId: string | null;
-  interviewType?: "technical" | "behavioural" | "case";
-  jobContext?: JobContext;
-  resumeText?: string;
-  interviewerId?: string;
-  onComplete: (messages: Message[], duration: string) => void;
+  onComplete: (messages: Message[], durationSeconds: number) => void;
   onReset: () => void;
 }
 
@@ -46,35 +41,48 @@ type ConversationState =
   | "paused"
   | "ending";
 
+const YOUR_TURN = "#4ade80";
+const ON_ACCENT = "#0a0d14";
+
+const BEGIN_RE = /^\[BEGIN\]/i;
+
+/** Drops the auto-sent "[BEGIN]" greeting trigger so it never reaches the UI, the analysis or the saved count. */
+function stripBeginMarker(msgs: Message[]): Message[] {
+  return msgs.filter((m) => !(m.role === "user" && BEGIN_RE.test(m.content.trim())));
+}
+
 export const VoiceCallView: FC<VoiceCallViewProps> = ({
-  selectedCategory,
-  selectedQuestion,
+  roleplay,
+  tutorId,
+  language,
   level,
-  role,
-  sessionId,
-  interviewType,
-  jobContext,
-  resumeText,
-  interviewerId,
+  nativeLanguage,
+  dailyGoalMinutes,
   onComplete,
   onReset,
 }) => {
-  const interviewer = getInterviewerById(interviewerId);
+  const tutor = getTutorById(tutorId);
+  const voice = tutorVoice(tutor, language);
+  const locale = speechLocale(language);
+  const languageInfo = getLanguage(language);
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [convState, setConvState] = useState<ConversationState>("initializing");
   const [webcamStream, setWebcamStream] = useState<MediaStream | null>(null);
   const [showCaptions, setShowCaptions] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
-  const [currentHint, setCurrentHint] = useState<string | null>(null);
+  const [hints, setHints] = useState<string[] | null>(null);
   const [hintLoading, setHintLoading] = useState(false);
   const [showEndModal, setShowEndModal] = useState(false);
   const [micPermission, setMicPermission] = useState<boolean | null>(null);
   const [micError, setMicError] = useState<string | null>(null);
   const [cameraOn, setCameraOn] = useState(true);
   const [autoSend, setAutoSend] = useState(false);
+  const [typedText, setTypedText] = useState("");
+  const [goalDismissed, setGoalDismissed] = useState(false);
 
   const timer = useTimer();
-  const speech = useSpeechRecognition();
+  const speech = useSpeechRecognition(locale);
   const tts = useSpeechSynthesis();
   const visualizer = useAudioVisualizer();
 
@@ -168,29 +176,20 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
       timer.start();
 
       if (useRealtime) {
-        const instructions = buildInterviewInstructions({
-          interviewType: interviewType ?? "technical",
+        const instructions = buildConversationInstructions({
+          language,
           level,
-          category: selectedCategory.id,
-          question: selectedQuestion,
-          role,
-          jobContext,
-          resumeText,
+          tutorName: tutor.name,
+          roleplay,
         });
         await realtime.connect({
           instructions,
-          voice: interviewer.voiceId,
+          voice,
           model: "google-ai-studio/gemini-3.1-flash-lite-preview",
-          interviewType: interviewType ?? "technical",
           hybridMode: true,
         });
       } else {
-        await sendToAI([
-          {
-            role: "user",
-            content: `[SESSION START] I'm a ${LEVELS.find((l) => l.value === level)?.label} engineer. Please present the practice question and guide me through the session.`,
-          },
-        ]);
+        await sendToAI([{ role: "user", content: "[BEGIN]" }]);
       }
     };
 
@@ -222,17 +221,16 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             messages: msgs,
-            question: selectedQuestion,
-            category: selectedCategory.id,
+            language,
             level,
-            role,
-            sessionId,
+            tutorId,
+            roleplay: {
+              title: roleplay.title,
+              userRole: roleplay.userRole,
+              aiRole: roleplay.aiRole,
+              scenario: roleplay.scenario,
+            },
             isHint,
-            interviewType,
-            jobContext,
-            resumeText,
-            interviewerName: interviewer.name,
-            interviewerTitle: interviewer.title,
           }),
         });
 
@@ -313,7 +311,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
       return fullText;
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [sessionId, selectedQuestion, selectedCategory.id, level]
+    [language, level, tutorId, roleplay]
   );
 
   // ── Speak and wait for completion (promise-based) ──
@@ -321,9 +319,9 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
     async (text: string): Promise<void> => {
       // Stop recognition BEFORE TTS to prevent mic picking up AI voice
       speech.stopListening();
-      await tts.speakAsync(text, interviewer.voiceId);
+      await tts.speakAsync(text, voice, locale);
     },
-    [tts, speech, interviewer.voiceId]
+    [tts, speech, voice, locale]
   );
 
   // ── Start listening to user ──
@@ -447,7 +445,6 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
       cancelAnimationFrame(rafId);
       audioCtx.close();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [useRealtime, realtime.agentAudioStream]);
 
   // ── Hybrid mode: auto-start/stop local STT based on convState ──
@@ -495,6 +492,34 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
     realtime.sendText(text);
   }, [speech, realtime]);
 
+  // ── Typed reply: same routing as a spoken turn ──
+  const handleTypedSubmit = useCallback(
+    (e: FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      const text = typedText.trim();
+      if (!text || convStateRef.current !== "listening") return;
+      setTypedText("");
+
+      if (useRealtime) {
+        speech.stopListening();
+        speech.resetTranscript();
+        realtime.sendText(text);
+        return;
+      }
+
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
+      speech.stopListening();
+      const userMsg: Message = { role: "user", content: text };
+      const updatedMsgs = [...messagesRef.current, userMsg];
+      setMessages(updatedMsgs);
+      sendToAI(updatedMsgs);
+    },
+    [typedText, useRealtime, speech, realtime, sendToAI]
+  );
+
   // ── Interrupt AI mid-response ──
   const handleInterrupt = useCallback(() => {
     realtime.interrupt();
@@ -504,41 +529,58 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
     }
   }, [realtime]);
 
-  // ── Hint handler ──
+  // ── Hint handler: /api/ai/voice (isHint) → { hints: string[] } ──
   const handleHint = useCallback(async () => {
     setHintLoading(true);
     try {
-      // Use the last AI message as the current question, not the session label
       const msgs = useRealtime ? realtime.messages : messagesRef.current;
-      const lastAiMessage = [...msgs].reverse().find((m) => m.role === "assistant")?.content ?? selectedQuestion;
 
       const res = await fetch("/api/ai/voice", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: msgs,
-          question: lastAiMessage,
-          category: selectedCategory.id,
+          language,
           level,
-          role,
-          sessionId,
+          tutorId,
+          roleplay: {
+            title: roleplay.title,
+            userRole: roleplay.userRole,
+            aiRole: roleplay.aiRole,
+            scenario: roleplay.scenario,
+          },
           isHint: true,
-          interviewType,
-          jobContext,
-          resumeText,
-          interviewerName: interviewer.name,
-          interviewerTitle: interviewer.title,
         }),
       });
-      const { hint, error } = await res.json();
+      const { hints: nextHints, error } = await res.json();
       if (error) throw new Error(error);
-      if (hint) setCurrentHint(hint);
+      if (Array.isArray(nextHints) && nextHints.length > 0) {
+        setHints(nextHints.slice(0, 4).map((h: unknown) => String(h)));
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Hint failed");
     } finally {
       setHintLoading(false);
     }
-  }, [selectedQuestion, selectedCategory.id, level, role, sessionId, interviewType, jobContext, resumeText, useRealtime, realtime]);
+  }, [language, level, tutorId, roleplay, useRealtime, realtime]);
+
+  const dismissHints = useCallback(() => setHints(null), []);
+
+  // ── Speak a hint aloud — never during an active AI turn ──
+  const handleSpeakHint = useCallback(
+    async (hint: string) => {
+      const state = convStateRef.current;
+      if (state === "ai_speaking" || state === "processing" || state === "initializing" || state === "ending") {
+        return;
+      }
+      // Pause local STT so the hint audio isn't transcribed as the learner's reply.
+      const wasListening = state === "listening";
+      if (wasListening) speech.stopListening();
+      await tts.speakAsync(hint, voice, locale);
+      if (wasListening && convStateRef.current === "listening") speech.startListening();
+    },
+    [speech, tts, voice, locale]
+  );
 
   // ── Pause / Resume ──
   const handlePause = useCallback(() => {
@@ -579,6 +621,24 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
     setShowEndModal(true);
   }, [timer, speech, tts, useRealtime, realtime]);
 
+  const handleCancelEnd = useCallback(() => {
+    setShowEndModal(false);
+    setConvState("listening");
+    timer.start();
+    startListeningToUser();
+  }, [timer, startListeningToUser]);
+
+  const handleConfirmEnd = useCallback(() => {
+    webcamStreamRef.current?.getTracks().forEach((t) => t.stop());
+    webcamStreamRef.current = null;
+    visualizer.stopAnalyser();
+    if (useRealtime) realtime.disconnect();
+    onComplete(
+      stripBeginMarker(useRealtime ? realtime.messages : messagesRef.current),
+      timer.seconds
+    );
+  }, [visualizer, useRealtime, realtime, onComplete, timer.seconds]);
+
   // ── Toggle camera ──
   const handleToggleCamera = useCallback(() => {
     const stream = webcamStreamRef.current;
@@ -589,25 +649,6 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
     videoTracks.forEach((t) => (t.enabled = enabled));
     setCameraOn(enabled);
   }, []);
-
-  // ── Skip (ask next question) ──
-  const handleSkip = useCallback(() => {
-    if (useRealtime) {
-      realtime.sendTextMessage(
-        "Let's move on to the next aspect of this question. What else should I think about?"
-      );
-    } else {
-      speech.stopListening();
-      tts.cancel();
-      const skipMsg: Message = {
-        role: "user",
-        content: "Let's move on to the next aspect of this question. What else should I think about?",
-      };
-      const updated = [...messagesRef.current, skipMsg];
-      setMessages(updated);
-      sendToAI(updated);
-    }
-  }, [speech, tts, sendToAI, useRealtime, realtime]);
 
   // ── Cleanup on unmount ──
   useEffect(() => {
@@ -636,7 +677,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
 
       // Reset state
       setWebcamStream(null);
-      setCurrentHint(null);
+      setHints(null);
       setHintLoading(false);
       setConvState("initializing");
       setMessages([]);
@@ -644,9 +685,13 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ── Daily goal (derived: fires once, the first time the clock passes the goal) ──
+  const goalReached = dailyGoalMinutes > 0 && timer.seconds >= dailyGoalMinutes * 60;
+  const showGoalBanner = goalReached && !goalDismissed && !showEndModal;
+
   // ── Compute caption for video overlay ──
-  const captionMessages = useRealtime ? realtime.messages : messages;
-  const captionLastMsg = captionMessages[captionMessages.length - 1];
+  const visibleMessages = stripBeginMarker(useRealtime ? realtime.messages : messages);
+  const captionLastMsg = visibleMessages[visibleMessages.length - 1];
   const captionInterim = convState === "listening"
     ? (speech.finalTranscript + speech.transcript).trim()
     : "";
@@ -656,24 +701,27 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
     ? { text: captionLastMsg.content, role: captionLastMsg.role as "user" | "assistant" }
     : null;
 
+  const canSpeakHint = convState === "listening" || convState === "paused";
+
   // ── Browser not supported ──
   if (!useRealtime && !speech.isSupported) {
     return (
-      <div className="fixed inset-0 z-50 bg-[#0a1f0e] flex items-center justify-center">
+      <div className="fixed inset-0 z-50 bg-[#0a0d14] flex items-center justify-center">
         <div className="text-center max-w-md px-6">
-          <AlertTriangle className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-white mb-2">
-            Browser Not Supported
+          <AlertTriangle className="w-12 h-12 text-amber-300 mx-auto mb-4" aria-hidden />
+          <h2 className="font-display text-2xl text-white mb-2">
+            Voice practice needs Chrome or Edge
           </h2>
           <p className="text-white/60 mb-6">
-            Voice practice requires the Web Speech API, which is currently only
-            supported in Chrome and Edge browsers.
+            This browser can&apos;t recognise speech yet. Open Fina in Chrome or Edge to talk with {tutor.name}.
           </p>
           <button
+            type="button"
             onClick={onReset}
-            className="px-6 py-2.5 rounded-xl font-semibold text-sm bg-[#2dec29] text-[#112715] hover:opacity-90 transition"
+            className="px-6 py-2.5 rounded-full font-semibold text-sm transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4ade80]"
+            style={{ background: YOUR_TURN, color: ON_ACCENT }}
           >
-            Go Back
+            Go back
           </button>
         </div>
       </div>
@@ -681,63 +729,69 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0a1f0e] flex flex-col">
+    <div className="fixed inset-0 z-50 bg-[#0a0d14] flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 shrink-0">
+      <header className="flex flex-wrap items-center justify-between gap-3 px-4 md:px-6 py-4 shrink-0">
         <div className="flex items-center gap-3 min-w-0">
           <span
-            className="w-2.5 h-2.5 rounded-full shrink-0"
-            style={{ background: selectedCategory.color }}
-          />
+            aria-hidden
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/[0.06] text-xl"
+          >
+            {roleplay.emoji}
+          </span>
           <div className="min-w-0">
-            <p className="text-xs font-semibold text-white/50 uppercase tracking-wider">
-              {selectedCategory.label}
+            <p className="text-[11px] font-semibold text-white/50 uppercase tracking-[0.14em] truncate max-w-[14rem] md:max-w-md">
+              {roleplay.title}
             </p>
-            <p className="text-sm text-white/80 truncate max-w-md">
-              {selectedQuestion}
+            <p className="text-sm text-white/85 truncate">
+              {tutor.name} · {languageInfo.label} {languageInfo.flag}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3">
           {/* State indicator */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5">
+          <div
+            role="status"
+            aria-live="polite"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5"
+          >
             {convState === "listening" && (
               <>
-                <Mic className="w-3.5 h-3.5 text-[#2dec29]" />
-                <span className="text-xs text-[#2dec29] font-medium">
+                <Mic className="w-3.5 h-3.5" style={{ color: YOUR_TURN }} aria-hidden />
+                <span className="text-xs font-medium" style={{ color: YOUR_TURN }}>
                   Your turn
                 </span>
               </>
             )}
             {convState === "ai_speaking" && (
               <>
-                <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
-                <span className="text-xs text-blue-400 font-medium">
-                  {interviewer.name} is speaking
+                <span className="w-2 h-2 rounded-full bg-white motion-safe:animate-pulse" />
+                <span className="text-xs text-white/85 font-medium">
+                  {tutor.name} is speaking
                 </span>
               </>
             )}
             {convState === "processing" && (
               <>
-                <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
-                <span className="text-xs text-yellow-400 font-medium">
-                  {interviewer.name} is thinking...
+                <span className="w-2 h-2 rounded-full bg-amber-300 motion-safe:animate-pulse" />
+                <span className="text-xs text-amber-300 font-medium">
+                  {tutor.name} is thinking…
                 </span>
               </>
             )}
             {convState === "initializing" && (
               <>
-                <span className="w-2 h-2 rounded-full bg-white/40 animate-pulse" />
-                <span className="text-xs text-white/40 font-medium">
-                  Connecting...
+                <span className="w-2 h-2 rounded-full bg-white/40 motion-safe:animate-pulse" />
+                <span className="text-xs text-white/50 font-medium">
+                  Connecting…
                 </span>
               </>
             )}
             {convState === "paused" && (
               <>
-                <span className="w-2 h-2 rounded-full bg-orange-400" />
-                <span className="text-xs text-orange-400 font-medium">
+                <span className="w-2 h-2 rounded-full bg-orange-300" />
+                <span className="text-xs text-orange-300 font-medium">
                   Paused
                 </span>
               </>
@@ -746,7 +800,7 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
 
           <SessionTimer formatted={timer.formatted} isRunning={timer.isRunning} />
         </div>
-      </div>
+      </header>
 
       {/* Main content area */}
       <div className="flex-1 flex gap-4 px-4 md:px-6 pb-4 min-h-0 relative" style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}>
@@ -755,11 +809,12 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
           {/* Inline mic permission banner */}
           {micPermission === false && (
             <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/15 border border-red-500/25 mb-1">
-              <MicOff className="w-4 h-4 text-red-400 shrink-0" />
+              <MicOff className="w-4 h-4 text-red-400 shrink-0" aria-hidden />
               <p className="text-xs text-red-300 flex-1">
                 {micError ?? "Microphone access denied — allow it in your browser settings."}
               </p>
               <button
+                type="button"
                 onClick={() => window.location.reload()}
                 className="text-xs text-red-300 underline underline-offset-2 hover:text-red-200 shrink-0"
               >
@@ -768,9 +823,39 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
             </div>
           )}
           {speech.error && (
-            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-500/15 border border-yellow-500/25 mb-1">
-              <AlertTriangle className="w-4 h-4 text-yellow-400 shrink-0" />
-              <p className="text-xs text-yellow-300">{speech.error}</p>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/15 border border-amber-500/25 mb-1">
+              <AlertTriangle className="w-4 h-4 text-amber-300 shrink-0" aria-hidden />
+              <p className="text-xs text-amber-200">{speech.error}</p>
+            </div>
+          )}
+
+          {/* Daily goal reached — non-blocking */}
+          {showGoalBanner && (
+            <div
+              role="status"
+              className="flex flex-wrap items-center gap-2 px-4 py-2.5 rounded-xl bg-[#4ade80]/10 border border-[#4ade80]/25"
+            >
+              <p className="flex-1 min-w-[12rem] text-sm text-white/90">
+                {`🎉 You reached your ${dailyGoalMinutes}-minute goal!`}
+              </p>
+              <button
+                type="button"
+                onClick={() => setGoalDismissed(true)}
+                className="h-8 rounded-full px-3 text-xs font-semibold text-white/80 border border-white/15 hover:bg-white/5 transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4ade80]"
+              >
+                Keep talking
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setGoalDismissed(true);
+                  handleStop();
+                }}
+                className="h-8 rounded-full px-3 text-xs font-semibold transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                style={{ background: YOUR_TURN, color: ON_ACCENT }}
+              >
+                Finish
+              </button>
             </div>
           )}
 
@@ -780,15 +865,17 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
             isUserSpeaking={convState === "listening" && speech.isListening}
             analyserData={visualizer.analyserData}
             caption={videoCaption}
-            interviewer={interviewer}
+            tutor={tutor}
           />
 
           {/* Hint overlay (positioned inside video area) */}
-          <div className="absolute bottom-20 left-0 right-0 flex justify-center pointer-events-none z-20">
-            <div className="pointer-events-auto">
+          <div className="absolute bottom-24 left-0 right-0 flex justify-center pointer-events-none z-20">
+            <div className="pointer-events-auto w-full flex justify-center">
               <HintOverlay
-                hint={currentHint}
-                onDismiss={() => setCurrentHint(null)}
+                hints={hints}
+                onDismiss={dismissHints}
+                onSpeak={handleSpeakHint}
+                canSpeak={canSpeakHint}
               />
             </div>
           </div>
@@ -797,11 +884,13 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
           {useRealtime && convState === "listening" && (speech.finalTranscript || speech.transcript) && (
             <div className="shrink-0 flex items-center justify-center">
               <button
+                type="button"
                 onClick={handleRealtimeSend}
-                className="flex items-center gap-2 px-5 py-2 rounded-full font-semibold text-sm transition hover:opacity-90 active:scale-95"
-                style={{ background: "#2dec29", color: "#112715" }}
+                aria-label="Send spoken reply"
+                className="flex items-center gap-2 px-5 py-2 rounded-full font-semibold text-sm transition hover:opacity-90 motion-safe:active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                style={{ background: YOUR_TURN, color: ON_ACCENT }}
               >
-                <Mic className="w-4 h-4" />
+                <Mic className="w-4 h-4" aria-hidden />
                 Send
               </button>
             </div>
@@ -812,18 +901,20 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
             <div className="shrink-0 flex items-center justify-center gap-3">
               {/* Auto-send toggle */}
               <button
+                type="button"
                 onClick={handleToggleAutoSend}
-                title={autoSend ? "Auto-send is on — message sends after 2 s of silence. Click to require manual send." : "Auto-send is off — click Send to submit your message. Click to turn auto-send back on."}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border transition"
+                aria-pressed={autoSend}
+                title={autoSend ? "Auto-send is on — your reply sends after 2 s of silence. Click to send manually." : "Auto-send is off — click Send to submit your reply. Click to turn auto-send on."}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4ade80]"
                 style={{
-                  background: autoSend ? "rgba(45,236,41,0.12)" : "rgba(255,255,255,0.05)",
-                  borderColor: autoSend ? "rgba(45,236,41,0.35)" : "rgba(255,255,255,0.15)",
-                  color: autoSend ? "#2dec29" : "rgba(255,255,255,0.45)",
+                  background: autoSend ? "rgba(74,222,128,0.12)" : "rgba(255,255,255,0.05)",
+                  borderColor: autoSend ? "rgba(74,222,128,0.35)" : "rgba(255,255,255,0.15)",
+                  color: autoSend ? YOUR_TURN : "rgba(255,255,255,0.5)",
                 }}
               >
                 <span
                   className="w-2 h-2 rounded-full shrink-0"
-                  style={{ background: autoSend ? "#2dec29" : "rgba(255,255,255,0.3)" }}
+                  style={{ background: autoSend ? YOUR_TURN : "rgba(255,255,255,0.3)" }}
                 />
                 Auto-send {autoSend ? "on" : "off"}
               </button>
@@ -831,16 +922,30 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
               {/* Manual send — shown when there's transcript */}
               {(speech.finalTranscript || speech.transcript) && (
                 <button
+                  type="button"
                   onClick={handleManualSend}
-                  className="flex items-center gap-2 px-5 py-2 rounded-full font-semibold text-sm transition hover:opacity-90 active:scale-95"
-                  style={{ background: "#2dec29", color: "#112715" }}
+                  aria-label="Send spoken reply"
+                  className="flex items-center gap-2 px-5 py-2 rounded-full font-semibold text-sm transition hover:opacity-90 motion-safe:active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  style={{ background: YOUR_TURN, color: ON_ACCENT }}
                 >
-                  <Mic className="w-4 h-4" />
+                  <Mic className="w-4 h-4" aria-hidden />
                   Send
                 </button>
               )}
             </div>
           )}
+
+          {/* Transcript bottom sheet — below md only (the side panel covers md+) */}
+          <TranscriptPanel
+            variant="sheet"
+            messages={visibleMessages}
+            interimTranscript={captionInterim}
+            isActivelyListening={convState === "listening" && !!speech.transcript}
+            isVisible={showCaptions}
+            tutorName={tutor.name}
+            nativeLanguage={nativeLanguage}
+            onClose={() => setShowCaptions(false)}
+          />
 
           {/* Control bar */}
           <div className="shrink-0 flex justify-center">
@@ -854,15 +959,45 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
               onStop={handleStop}
               onToggleNotes={() => setShowNotes((v) => !v)}
               notesOpen={showNotes}
+              onPause={handlePause}
+              isPaused={convState === "paused"}
+              pauseDisabled={convState === "initializing" || convState === "ending"}
               onInterrupt={useRealtime ? handleInterrupt : undefined}
               isAISpeaking={convState === "ai_speaking"}
             />
           </div>
+
+          {/* Typed reply — an alternative to speaking */}
+          {convState === "listening" && (
+            <form
+              onSubmit={handleTypedSubmit}
+              className="shrink-0 mx-auto flex w-full max-w-md items-center gap-2"
+            >
+              <input
+                type="text"
+                value={typedText}
+                onChange={(e) => setTypedText(e.target.value)}
+                aria-label="Type a message"
+                placeholder="Type instead…"
+                lang={locale}
+                autoComplete="off"
+                maxLength={500}
+                className="h-10 min-w-0 flex-1 rounded-full border border-white/10 bg-white/[0.06] px-4 text-sm text-white placeholder:text-white/35 outline-none transition focus:border-[#4ade80]/50 focus-visible:ring-2 focus-visible:ring-[#4ade80]/25"
+              />
+              <button
+                type="submit"
+                disabled={!typedText.trim()}
+                className="h-10 shrink-0 rounded-full bg-white/10 px-4 text-sm font-semibold text-white transition hover:bg-white/15 disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4ade80]"
+              >
+                Send
+              </button>
+            </form>
+          )}
         </div>
 
         {/* Transcript side panel */}
         <TranscriptPanel
-          messages={useRealtime ? realtime.messages : messages}
+          messages={visibleMessages}
           interimTranscript={
             convState === "listening"
               ? (speech.finalTranscript + speech.transcript).trim()
@@ -870,48 +1005,48 @@ export const VoiceCallView: FC<VoiceCallViewProps> = ({
           }
           isActivelyListening={convState === "listening" && !!speech.transcript}
           isVisible={showCaptions}
+          tutorName={tutor.name}
+          nativeLanguage={nativeLanguage}
         />
       </div>
 
       {/* Notes panel */}
       <NotesPanel isOpen={showNotes} onClose={() => setShowNotes(false)} />
 
-      {/* End session modal */}
+      {/* End conversation modal */}
       {showEndModal && (
-        <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-[#112715] border border-white/10 rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl">
-            <h3 className="text-lg font-bold text-white mb-2">
-              End Session
+        <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center px-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="end-conversation-title"
+            aria-describedby="end-conversation-body"
+            onKeyDown={(e) => {
+              if (e.key === "Escape") handleCancelEnd();
+            }}
+            className="bg-[#111723] border border-white/10 rounded-3xl p-7 max-w-sm w-full shadow-2xl"
+          >
+            <h3 id="end-conversation-title" className="font-display text-2xl text-white mb-2">
+              End conversation
             </h3>
-            <p className="text-sm text-white/60 mb-5">
-              Your session will be saved and scored by AI.
+            <p id="end-conversation-body" className="text-sm text-white/60 mb-6">
+              Your conversation will be saved and analysed.
             </p>
 
             <div className="flex gap-3">
               <button
-                onClick={() => {
-                  setShowEndModal(false);
-                  setConvState("listening");
-                  timer.start();
-                  startListeningToUser();
-                }}
-                className="flex-1 py-2.5 rounded-xl text-sm font-medium border border-white/20 text-white/60 hover:bg-white/5 transition"
+                type="button"
+                autoFocus
+                onClick={handleCancelEnd}
+                className="flex-1 py-2.5 rounded-full text-sm font-medium border border-white/20 text-white/70 hover:bg-white/5 transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4ade80]"
               >
                 Cancel
               </button>
               <button
-                onClick={() => {
-                  webcamStreamRef.current?.getTracks().forEach((t) => t.stop());
-                  webcamStreamRef.current = null;
-                  visualizer.stopAnalyser();
-                  if (useRealtime) realtime.disconnect();
-                  onComplete(
-                    useRealtime ? realtime.messages : messagesRef.current,
-                    timer.formatted
-                  );
-                }}
-                className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition"
-                style={{ background: "#2dec29", color: "#112715" }}
+                type="button"
+                onClick={handleConfirmEnd}
+                className="flex-1 py-2.5 rounded-full text-sm font-semibold transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                style={{ background: YOUR_TURN, color: ON_ACCENT }}
               >
                 Complete
               </button>

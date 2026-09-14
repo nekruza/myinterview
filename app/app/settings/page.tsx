@@ -1,1008 +1,484 @@
 "use client";
 
-import { FC, useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Image from "next/image";
-import { createClient } from "@/lib/supabase/client";
-import { fireConversion } from "@/lib/conversion";
+import Link from "next/link";
 import { toast } from "sonner";
+import { ChevronDown, Loader2 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { useProfile, useUpdateProfile } from "@/lib/queries/profile";
+import { LANGUAGES, type LanguageId } from "@/lib/languages";
+import { USER_LEVELS, type UserLevel } from "@/lib/levels";
+import { TutorPicker } from "@/components/roleplay/TutorPicker";
+import type { TutorId } from "@/lib/tutors";
+import { isBillingPlan, type BillingPlan } from "@/lib/billing";
+import { ProUpgradeDialog } from "@/components/ProUpgradeDialog";
 import {
-  Briefcase,
-  CreditCard,
-  LogOut,
-  Save,
-  X,
-  Camera,
-  FileText,
-  Upload,
-  Trash2,
-  Loader2,
-  Mail,
-  Pencil,
-  MapPin,
-  Calendar,
-} from "lucide-react";
-import { ResumeUpload } from "@/components/ResumeUpload";
-import { useSettingsProfile } from "@/lib/queries/profile";
-import { useQueryClient } from "@tanstack/react-query";
-import { QUERY_KEYS } from "@/lib/queries/keys";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
-const EXPERIENCE_LEVELS = [
-  { value: "junior", label: "Junior (0-2 years)" },
-  { value: "mid", label: "Mid-Level (3-5 years)" },
-  { value: "senior", label: "Senior (6-9 years)" },
-  { value: "staff", label: "Staff / Principal (10+ years)" },
-];
+const DAILY_GOALS = [5, 10, 20, 30];
+const DELETE_CONFIRM_WORD = "DELETE";
 
-const TIMELINE_OPTIONS = [
-  { value: "1month", label: "Within 1 month" },
-  { value: "3months", label: "1-3 months" },
-  { value: "6months", label: "3-6 months" },
-  { value: "exploring", label: "Just exploring" },
-];
-
-const INTERVIEW_STYLE_OPTIONS = [
-  { value: "behavioral", label: "Behavioral" },
-  { value: "technical", label: "Technical" },
-  { value: "case", label: "Case Study" },
-  { value: "mixed", label: "Mixed" },
-];
-
-const DURATION_OPTIONS = [
-  { value: "15", label: "15 minutes" },
-  { value: "30", label: "30 minutes" },
-  { value: "45", label: "45 minutes" },
-  { value: "60+", label: "60+ minutes" },
-];
-
-const PRACTICE_PARTNER_OPTIONS = [
-  { value: "ai", label: "With AI" },
-];
-
-const LANGUAGE_OPTIONS = [
-  { value: "english", label: "English" },
-  { value: "spanish", label: "Spanish" },
-  { value: "french", label: "French" },
-  { value: "german", label: "German" },
-  { value: "mandarin", label: "Mandarin" },
-  { value: "other", label: "Other" },
-];
-
-const PLATFORM_OPTIONS = [
-  { value: "zoom", label: "Zoom" },
-  { value: "meet", label: "Google Meet" },
-  { value: "teams", label: "MS Teams" },
-  { value: "coderpad", label: "CoderPad" },
-  { value: "hirevue", label: "HireVue" },
-  { value: "any", label: "No Preference" },
-];
-
-const FEEDBACK_OPTIONS = [
-  { value: "detailed", label: "Detailed Critique" },
-  { value: "overview", label: "High-Level Overview" },
-  { value: "score", label: "Score Only" },
-  { value: "none", label: "No Feedback" },
-];
-
-function optionLabel(opts: { value: string; label: string }[], val: string) {
-  return opts.find((o) => o.value === val)?.label ?? val;
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-const COMPANY_SUGGESTIONS = [
-  "Google",
-  "Meta",
-  "Amazon",
-  "Apple",
-  "Netflix",
-  "Microsoft",
-  "Stripe",
-  "Airbnb",
-  "Uber",
-  "Lyft",
-];
-
-function experienceLabel(value: string) {
-  return EXPERIENCE_LEVELS.find((l) => l.value === value)?.label ?? value;
+function SelectField({
+  id,
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <div>
+      <label htmlFor={id} className="text-[11px] font-semibold uppercase tracking-[0.1em] text-sub">
+        {label}
+      </label>
+      <div className="relative mt-2">
+        <select
+          id={id}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full appearance-none rounded-xl border border-line bg-surface px-4 py-3 pr-10 text-sm text-ink transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-brand"
+        >
+          {options.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+        <ChevronDown
+          className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-sub"
+          aria-hidden
+        />
+      </div>
+    </div>
+  );
 }
 
-function timelineLabel(value: string) {
-  return TIMELINE_OPTIONS.find((t) => t.value === value)?.label ?? value;
-}
+const LANGUAGE_OPTIONS = LANGUAGES.map((l) => ({ value: l.id, label: `${l.flag} ${l.label}` }));
+const LEVEL_OPTIONS = USER_LEVELS.map((l) => ({ value: l.id, label: l.label }));
 
-interface SettingsProps {
-  searchParams?: Record<string, string>;
-}
-
-const SettingsPage: FC<SettingsProps> = () => {
+export default function SettingsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const supabase = createClient();
-  const avatarInputRef = useRef<HTMLInputElement>(null);
-
+  const { data: profile, isLoading, refetch } = useProfile();
+  const updateProfile = useUpdateProfile();
 
   const [displayName, setDisplayName] = useState("");
-  const [experienceLevel, setExperienceLevel] = useState("mid");
-  const [timeline, setTimeline] = useState("3months");
-  const [targetCompanies, setTargetCompanies] = useState<string[]>([]);
-  const [companyInput, setCompanyInput] = useState("");
-  const [emailNotifs, setEmailNotifs] = useState(true);
-  const [matchAlerts, setMatchAlerts] = useState(true);
+  const [level, setLevel] = useState<UserLevel>("beginner");
+  const [targetLanguage, setTargetLanguage] = useState<LanguageId>("english");
+  const [nativeLanguage, setNativeLanguage] = useState<LanguageId>("english");
+  const [dailyGoalMinutes, setDailyGoalMinutes] = useState(10);
+  const [tutorId, setTutorId] = useState<TutorId>("luna");
   const [saving, setSaving] = useState(false);
-  const [email, setEmail] = useState("");
-  const [userId, setUserId] = useState("");
 
-  // Upload states
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [resumeName, setResumeName] = useState<string | null>(null);
-  const [resumeLoaded, setResumeLoaded] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [upgradePlan, setUpgradePlan] = useState<BillingPlan>("yearly");
+  const [openingPortal, setOpeningPortal] = useState(false);
 
-  // Onboarding preferences
-  const [interviewStyle, setInterviewStyle] = useState("");
-  const [interviewDuration, setInterviewDuration] = useState("");
-  const [practicePartner, setPracticePartner] = useState("");
-  const [interviewLanguage, setInterviewLanguage] = useState("");
-  const [interviewPlatform, setInterviewPlatform] = useState("");
-  const [feedbackPreference, setFeedbackPreference] = useState("");
-  const [wantsTips, setWantsTips] = useState<boolean | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
-  const [sessionCredits, setSessionCredits] = useState<number | null>(null);
-  const [buyingSessions, setBuyingSessions] = useState(false);
-
-  // Edit modes
-  const [editingProfile, setEditingProfile] = useState(false);
-  const [editingPrefs, setEditingPrefs] = useState(false);
-
-  // React Query hooks
-  const { data: settingsProfile, refetch: refetchSettingsProfile } = useSettingsProfile();
-  const queryClient = useQueryClient();
+  const planParamHandled = useRef(false);
+  const upgradedParamHandled = useRef(false);
 
   useEffect(() => {
-    const purchased = searchParams?.get("purchased");
-    if (!purchased) return;
+    if (!profile) return;
+    setDisplayName(profile.displayName);
+    setLevel(profile.level);
+    setTargetLanguage(profile.targetLanguage);
+    setNativeLanguage(profile.nativeLanguage);
+    setDailyGoalMinutes(profile.dailyGoalMinutes);
+    setTutorId(profile.tutorId);
+  }, [profile]);
 
-    const sessions = parseInt(purchased, 10);
-    toast.success(`Payment successful! ${sessions} sessions added to your account.`);
-    fireConversion();
+  // `?plan=monthly|yearly` (set by the pro dialog's old settings link, and
+  // still useful as a deep link) opens the upgrade dialog preselected to that
+  // plan for a free user. Only applied once, so closing the dialog sticks.
+  useEffect(() => {
+    if (planParamHandled.current || !profile) return;
+    planParamHandled.current = true;
+    const plan = searchParams.get("plan");
+    if (!profile.pro.isPro && isBillingPlan(plan)) {
+      setUpgradePlan(plan);
+      setShowUpgrade(true);
+    }
+  }, [profile, searchParams]);
 
-    // Poll until session_credits reflects the purchase
+  // `?upgraded=1` (from the checkout success redirect) — the webhook may not
+  // have landed yet, so poll a few times before giving up. The welcome toast
+  // is guarded by a ref (shown once), but the polling itself is NOT gated by
+  // that ref: in React StrictMode, effects run mount → cleanup → mount, and
+  // gating the poll loop's *restart* behind the same "already handled" ref
+  // would let the first run's cleanup cancel the timer and then the second
+  // run's guard would block it from ever being scheduled again — silently
+  // dropping the poll entirely. Letting the effect body re-run freely (each
+  // run's own cleanup only cancels its own timer) keeps this correct under
+  // both StrictMode's double-invoke and normal single-invoke behavior.
+  useEffect(() => {
+    if (searchParams.get("upgraded") !== "1") return;
+
+    if (!upgradedParamHandled.current) {
+      upgradedParamHandled.current = true;
+      toast.success("Welcome to Fina Pro!");
+    }
+
     let cancelled = false;
-    const delays = [2000, 4000, 6000, 8000, 10000, 12000, 15000];
-    let timeoutId: ReturnType<typeof setTimeout>;
+    let attempts = 0;
+    let timer: ReturnType<typeof setTimeout>;
 
-    const poll = async (attemptIndex: number) => {
+    const finish = () => {
       if (cancelled) return;
-      const result = await refetchSettingsProfile();
+      router.replace("/app/settings", { scroll: false });
+    };
+
+    const poll = async () => {
       if (cancelled) return;
-      if ((result.data?.session_credits ?? 0) > (sessionCredits ?? 0)) {
-        router.replace("/app/settings");
+      attempts += 1;
+      const result = await refetch();
+      if (cancelled) return;
+      if (result.data?.pro.isPro) {
+        finish();
         return;
       }
-      if (attemptIndex + 1 < delays.length) {
-        timeoutId = setTimeout(() => poll(attemptIndex + 1), delays[attemptIndex + 1]);
+      if (attempts < 5) {
+        timer = setTimeout(poll, 2000);
+      } else {
+        toast.info("Your upgrade is processing — it can take a minute to appear.");
+        finish();
       }
     };
 
-    timeoutId = setTimeout(() => poll(0), delays[0]);
-    return () => { cancelled = true; clearTimeout(timeoutId); };
-  }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
+    timer = setTimeout(poll, 2000);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [searchParams, refetch, router]);
 
-  // Effect 1: Sync auth user (email + userId)
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        setEmail(user.email ?? "");
-        setUserId(user.id);
-      }
-    });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Effect 2: Sync profile data into form state
-  useEffect(() => {
-    if (!settingsProfile) return;
-    if (settingsProfile.full_name) setDisplayName(settingsProfile.full_name);
-    if (settingsProfile.experience_level) setExperienceLevel(settingsProfile.experience_level);
-    if (settingsProfile.interview_timeline) setTimeline(settingsProfile.interview_timeline);
-    if (settingsProfile.target_companies?.length) setTargetCompanies(settingsProfile.target_companies);
-    if (settingsProfile.email_notifications !== null && settingsProfile.email_notifications !== undefined)
-      setEmailNotifs(settingsProfile.email_notifications);
-    if (settingsProfile.match_alerts !== null && settingsProfile.match_alerts !== undefined)
-      setMatchAlerts(settingsProfile.match_alerts);
-    if (settingsProfile.interview_style) setInterviewStyle(settingsProfile.interview_style);
-    if (settingsProfile.interview_duration) setInterviewDuration(settingsProfile.interview_duration);
-    if (settingsProfile.practice_partner) setPracticePartner(settingsProfile.practice_partner);
-    if (settingsProfile.interview_language) setInterviewLanguage(settingsProfile.interview_language);
-    if (settingsProfile.interview_platform) setInterviewPlatform(settingsProfile.interview_platform);
-    if (settingsProfile.feedback_preference) setFeedbackPreference(settingsProfile.feedback_preference);
-    if (settingsProfile.wants_tips !== null && settingsProfile.wants_tips !== undefined)
-      setWantsTips(settingsProfile.wants_tips);
-    setAvatarUrl(settingsProfile.avatar_url ?? null);
-    if (settingsProfile.resume_url) {
-      const parts = settingsProfile.resume_url.split("/");
-      setResumeName(decodeURIComponent(parts[parts.length - 1]));
-    }
-    setResumeLoaded(true);
-  }, [settingsProfile]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Effect 3: Sync session_credits from profile
-  useEffect(() => {
-    if (settingsProfile?.session_credits != null) {
-      setSessionCredits(settingsProfile.session_credits);
-    }
-  }, [settingsProfile]);
-
-  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file || !userId) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image must be under 5 MB");
-      return;
-    }
-
-    setUploadingAvatar(true);
-    try {
-      const ext = file.name.split(".").pop() ?? "jpg";
-      const path = `${userId}/avatar.${ext}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(path, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("avatars").getPublicUrl(path);
-
-      const freshUrl = `${publicUrl}?t=${Date.now()}`;
-
-      await supabase
-        .from("profiles")
-        .update({ avatar_url: freshUrl })
-        .eq("id", userId);
-
-      setAvatarUrl(freshUrl);
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.settingsProfile });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.profile });
-      toast.success("Photo updated");
-    } catch {
-      toast.error("Failed to upload photo");
-    } finally {
-      setUploadingAvatar(false);
-      if (avatarInputRef.current) avatarInputRef.current.value = "";
-    }
-  }
-
-  async function handleRemoveAvatar() {
-    if (!userId) return;
-    setUploadingAvatar(true);
-    try {
-      const { data: files } = await supabase.storage
-        .from("avatars")
-        .list(userId);
-
-      if (files?.length) {
-        await supabase.storage
-          .from("avatars")
-          .remove(files.map((f) => `${userId}/${f.name}`));
-      }
-
-      await supabase
-        .from("profiles")
-        .update({ avatar_url: null })
-        .eq("id", userId);
-
-      setAvatarUrl(null);
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.settingsProfile });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.profile });
-      toast.success("Photo removed");
-    } catch {
-      toast.error("Failed to remove photo");
-    } finally {
-      setUploadingAvatar(false);
-    }
-  }
-
-
-  function addCompany(company: string) {
-    const trimmed = company.trim();
-    if (trimmed && !targetCompanies.includes(trimmed)) {
-      setTargetCompanies((prev) => [...prev, trimmed]);
-    }
-    setCompanyInput("");
-  }
-
-  function removeCompany(company: string) {
-    setTargetCompanies((prev) => prev.filter((c) => c !== company));
-  }
-
-  async function handleBuySessions(sessions = 5) {
-    setBuyingSessions(true);
-    try {
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessions }),
-      });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } catch {
-      toast.error("Could not start checkout. Please try again.");
-    } finally {
-      setBuyingSessions(false);
-    }
-  }
+  const displayNameValid = displayName.trim().length > 0 && displayName.trim().length <= 100;
 
   async function handleSave() {
+    if (!displayNameValid || saving) return;
     setSaving(true);
     try {
-      await supabase
-        .from("profiles")
-        .update({
-          full_name: displayName,
-          experience_level: experienceLevel,
-          interview_timeline: timeline,
-          target_companies: targetCompanies,
-          email_notifications: emailNotifs,
-          match_alerts: matchAlerts,
-          interview_style: interviewStyle,
-          interview_duration: interviewDuration,
-          practice_partner: practicePartner,
-          interview_language: interviewLanguage,
-          interview_platform: interviewPlatform,
-          feedback_preference: feedbackPreference,
-          wants_tips: wantsTips,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", userId);
-
-      // Keep auth display name in sync
-      await supabase.auth.updateUser({ data: { full_name: displayName } });
-
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.settingsProfile });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.profile });
+      await updateProfile.mutateAsync({
+        displayName: displayName.trim(),
+        level,
+        targetLanguage,
+        nativeLanguage,
+        dailyGoalMinutes,
+        tutorId,
+      });
       toast.success("Settings saved");
-      setEditingProfile(false);
-      setEditingPrefs(false);
-    } catch {
-      toast.error("Failed to save settings");
+    } catch (err) {
+      toast.error(err instanceof Error && err.message ? err.message : "Failed to save settings");
     } finally {
       setSaving(false);
     }
   }
 
+  async function handleManageSubscription() {
+    if (openingPortal) return;
+    setOpeningPortal(true);
+    try {
+      const res = await fetch("/api/stripe/portal", { method: "POST" });
+      const body = (await res.json().catch(() => ({}))) as { url?: string };
+      if (!res.ok || !body.url) {
+        toast.error("Could not open the billing portal. Please try again.");
+        return;
+      }
+      window.location.href = body.url;
+    } catch {
+      toast.error("Could not open the billing portal. Please try again.");
+    } finally {
+      setOpeningPortal(false);
+    }
+  }
+
   async function handleSignOut() {
+    const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/");
     router.refresh();
   }
 
-  const initials = (displayName || email)
-    .split("@")[0]
-    .slice(0, 2)
-    .toUpperCase();
+  async function handleDeleteAccount() {
+    if (deleteConfirmText !== DELETE_CONFIRM_WORD || deleting) return;
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/account", { method: "DELETE" });
+      if (!res.ok) {
+        toast.error("Failed to delete account. Please try again.");
+        return;
+      }
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      router.replace("/");
+    } catch {
+      toast.error("Failed to delete account. Please try again.");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  if (isLoading || !profile) {
+    return (
+      <div className="mx-auto flex max-w-3xl items-center justify-center py-24">
+        <Loader2 className="h-6 w-6 animate-spin text-sub" aria-hidden />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Hidden file inputs */}
-      <input
-        ref={avatarInputRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp,image/gif"
-        className="hidden"
-        onChange={handleAvatarUpload}
-      />
+    <div className="mx-auto max-w-3xl pb-16">
+      <h1 className="font-display text-3xl text-ink">Settings</h1>
+      <p className="mt-1.5 text-base text-sub">Your profile, learning preferences, and account.</p>
 
-      {/* ── Profile Card (full width, LinkedIn-style) ── */}
-      <section className="glass-card rounded-2xl overflow-hidden">
-        {/* Banner */}
-        <div
-          className="h-36 relative"
-          style={{
-            background:
-              "linear-gradient(135deg, #112715 0%, #1a3d20 40%, #2dec29 100%)",
-          }}
-        />
-
-        {/* Avatar overlapping banner */}
-        <div className="px-6 -mt-14 relative z-10">
-          <div className="relative group inline-block">
-            <div
-              className="w-28 h-28 rounded-full overflow-hidden flex items-center justify-center ring-4 ring-white"
-              style={{ background: "#2dec29", color: "#112715" }}
-            >
-              {avatarUrl ? (
-                <Image
-                  src={avatarUrl}
-                  alt="Profile photo"
-                  width={112}
-                  height={112}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-3xl font-bold">{initials}</span>
+      <div className="mt-6 flex flex-col gap-6">
+        <section id="profile" className="scroll-mt-24 rounded-2xl border border-line bg-surface p-6 sm:p-8">
+          <h2 className="font-display text-xl text-ink">Profile</h2>
+          <div className="mt-5 space-y-4">
+            <div>
+              <label htmlFor="settings-name" className="text-[11px] font-semibold uppercase tracking-[0.1em] text-sub">
+                Display name
+              </label>
+              <input
+                id="settings-name"
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                maxLength={100}
+                aria-invalid={!displayNameValid}
+                className="mt-2 w-full rounded-xl border border-line bg-surface px-4 py-3 text-sm text-ink placeholder:text-sub focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-brand"
+              />
+              {!displayNameValid && (
+                <p role="alert" className="mt-1.5 text-xs text-hot">
+                  Display name is required.
+                </p>
               )}
             </div>
-            {uploadingAvatar && (
-              <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center">
-                <Loader2 className="w-6 h-6 text-white animate-spin" />
-              </div>
-            )}
-            <button
-              onClick={() => avatarInputRef.current?.click()}
-              disabled={uploadingAvatar}
-              className="absolute bottom-1 right-1 w-8 h-8 rounded-full bg-white shadow-md border border-neutral-200 flex items-center justify-center hover:bg-neutral-50 transition"
-            >
-              <Camera className="w-4 h-4 text-neutral-600" />
-            </button>
-          </div>
-          {avatarUrl && (
-            <button
-              onClick={handleRemoveAvatar}
-              disabled={uploadingAvatar}
-              className="ml-3 text-xs text-neutral-400 hover:text-red-500 transition align-bottom"
-            >
-              Remove photo
-            </button>
-          )}
-        </div>
-
-        {/* Profile info */}
-        <div className="px-6 pt-3 pb-6">
-          {editingProfile ? (
-            <div className="space-y-4 max-w-lg">
-              <div>
-                <label className="block text-xs font-medium text-neutral-500 mb-1">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Your name"
-                  className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-secondary outline-none focus:border-primary transition"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-neutral-500 mb-1">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  readOnly
-                  className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-neutral-400 bg-neutral-50 cursor-not-allowed"
-                />
-              </div>
-              <div className="flex gap-2 pt-1">
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="px-4 py-2 rounded-2xl text-sm font-bold transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A] disabled:opacity-60 disabled:shadow-none disabled:translate-y-0"
-                  style={{ background: "#2dec29", color: "#112715" }}
-                >
-                  {saving ? "Saving..." : "Save"}
-                </button>
-                <button
-                  onClick={() => setEditingProfile(false)}
-                  className="px-4 py-2 rounded-xl text-sm font-medium text-neutral-500 hover:bg-neutral-100 transition"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
             <div>
-              <div className="flex items-start justify-between">
-                <div>
-                  <h1 className="text-xl font-bold text-secondary">
-                    {displayName || "Your Name"}
-                  </h1>
-                  <p className="text-sm text-neutral-500 mt-0.5">
-                    {experienceLabel(experienceLevel)} &middot; Interview
-                    Candidate
-                  </p>
-                </div>
-                <button
-                  onClick={() => setEditingProfile(true)}
-                  className="p-2 rounded-xl hover:bg-neutral-100 transition text-neutral-400 hover:text-neutral-600"
-                  title="Edit profile"
-                >
-                  <Pencil className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Contact / meta row */}
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-xs text-neutral-500">
-                <span className="flex items-center gap-1.5">
-                  <Mail className="w-3.5 h-3.5" />
-                  {email}
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5" />
-                  {timelineLabel(timeline)}
-                </span>
-                {targetCompanies.length > 0 && (
-                  <span className="flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5" />
-                    {targetCompanies.slice(0, 3).join(", ")}
-                    {targetCompanies.length > 3 &&
-                      ` +${targetCompanies.length - 3}`}
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Notification toggles inline */}
-          <div className="mt-5 pt-5 border-t border-neutral-100 flex flex-wrap gap-x-8 gap-y-3">
-            {[
-              {
-                id: "emailNotifs",
-                label: "Email notifications",
-                value: emailNotifs,
-                onChange: setEmailNotifs,
-              },
-              {
-                id: "matchAlerts",
-                label: "Match alerts",
-                value: matchAlerts,
-                onChange: setMatchAlerts,
-              },
-            ].map(({ id, label, value, onChange }) => (
-              <div key={id} className="flex items-center gap-3">
-                <button
-                  role="switch"
-                  aria-checked={value}
-                  onClick={() => onChange(!value)}
-                  className="relative shrink-0 w-9 h-[18px] rounded-full transition-colors duration-200"
-                  style={{ background: value ? "#2dec29" : "#e5e7eb" }}
-                >
-                  <span
-                    className="absolute top-[2px] left-[2px] w-[14px] h-[14px] bg-white rounded-full shadow transition-transform duration-200"
-                    style={{
-                      transform: value
-                        ? "translateX(18px)"
-                        : "translateX(0)",
-                    }}
-                  />
-                </button>
-                <span className="text-xs text-neutral-500">{label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Two-column grid ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Subscription — full width */}
-        <section className="glass-card rounded-2xl overflow-hidden lg:col-span-2">
-          <div className="flex items-center gap-3 px-6 py-4 border-b border-neutral-100">
-            <CreditCard className="w-4 h-4 text-neutral-400" />
-            <h2 className="font-semibold text-secondary text-sm">
-              Subscription
-            </h2>
-          </div>
-          <div className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-semibold text-secondary">
-                  {sessionCredits ?? "—"} session{sessionCredits !== 1 ? "s" : ""} remaining
-                </p>
-                {sessionCredits !== null && sessionCredits <= 0 && (
-                  <span
-                    className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                    style={{ background: "#fff7ed", color: "#c2410c" }}
-                  >
-                    Empty
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-neutral-400 mt-0.5">
-                5 for £5 · 20 for £14 · 50 for £29 · credits never expire
-              </p>
-            </div>
-            <button
-              onClick={() => handleBuySessions(5)}
-              disabled={buyingSessions}
-              className="self-start sm:self-auto px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A] disabled:opacity-60 disabled:shadow-none disabled:translate-y-0"
-              style={{ background: "#2dec29", color: "#112715" }}
-            >
-              {buyingSessions ? "Loading…" : "Buy 5 sessions — £5"}
-            </button>
-          </div>
-        </section>
-
-        {/* Left: Resume */}
-        <section className="glass-card rounded-2xl overflow-hidden">
-          <div className="flex items-center gap-3 px-6 py-4 border-b border-neutral-100">
-            <FileText className="w-4 h-4 text-neutral-400" />
-            <h2 className="font-semibold text-secondary text-sm">Resume</h2>
-          </div>
-          <div className="p-6">
-            {resumeLoaded && (
-              <ResumeUpload
-                initialFileName={resumeName}
-                onUploadSuccess={(text) => {
-                  toast.success(text ? "Resume uploaded — AI will personalise your sessions!" : "Resume saved (text extraction limited).");
-                }}
-                onDeleteSuccess={() => {
-                  setResumeName(null);
-                  toast.success("Resume removed.");
-                }}
+              <label htmlFor="settings-email" className="text-[11px] font-semibold uppercase tracking-[0.1em] text-sub">
+                Email
+              </label>
+              <input
+                id="settings-email"
+                type="email"
+                value={profile.email}
+                readOnly
+                className="mt-2 w-full cursor-not-allowed rounded-xl border border-line bg-cream px-4 py-3 text-sm text-sub"
               />
-            )}
+            </div>
           </div>
         </section>
 
-        {/* Right: Interview Preferences */}
-        <section className="glass-card rounded-2xl overflow-hidden">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100">
-            <div className="flex items-center gap-3">
-              <Briefcase className="w-4 h-4 text-neutral-400" />
-              <h2 className="font-semibold text-secondary text-sm">
-                Interview Preferences
-              </h2>
+        <section id="learning" className="scroll-mt-24 rounded-2xl border border-line bg-surface p-6 sm:p-8">
+          <h2 className="font-display text-xl text-ink">Learning</h2>
+          <div className="mt-5 space-y-5">
+            <SelectField
+              id="settings-target-language"
+              label="Target language"
+              value={targetLanguage}
+              onChange={(v) => setTargetLanguage(v as LanguageId)}
+              options={LANGUAGE_OPTIONS}
+            />
+            <SelectField
+              id="settings-level"
+              label="Level"
+              value={level}
+              onChange={(v) => setLevel(v as UserLevel)}
+              options={LEVEL_OPTIONS}
+            />
+            <SelectField
+              id="settings-native-language"
+              label="Translation language"
+              value={nativeLanguage}
+              onChange={(v) => setNativeLanguage(v as LanguageId)}
+              options={LANGUAGE_OPTIONS}
+            />
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-sub">Daily goal</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {DAILY_GOALS.map((minutes) => {
+                  const selected = dailyGoalMinutes === minutes;
+                  return (
+                    <button
+                      key={minutes}
+                      type="button"
+                      onClick={() => setDailyGoalMinutes(minutes)}
+                      aria-pressed={selected}
+                      className={`rounded-full border px-4 py-2 text-[13px] font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-brand ${
+                        selected ? "border-ink bg-ink text-cream" : "border-line bg-surface text-sub hover:border-sub/40"
+                      }`}
+                    >
+                      {minutes} min
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            {!editingPrefs && (
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-sub">Tutor</p>
+              <div className="mt-3">
+                <TutorPicker value={tutorId} onChange={setTutorId} size="sm" />
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={!displayNameValid || saving}
+            className="mt-7 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-accent-brand px-6 text-sm font-semibold text-cream transition hover:bg-accent-brand/90 disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-brand"
+          >
+            {saving && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
+            {saving ? "Saving…" : "Save changes"}
+          </button>
+        </section>
+
+        <section id="subscription" className="scroll-mt-24 rounded-2xl border border-line bg-surface p-6 sm:p-8">
+          <h2 className="font-display text-xl text-ink">Subscription</h2>
+          <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            {profile.pro.isPro ? (
+              <p className="text-sm text-ink">
+                <span className="font-semibold">Fina Pro</span> ·{" "}
+                {profile.pro.currentPeriodEnd ? `renews ${formatDate(profile.pro.currentPeriodEnd)}` : "active"}
+              </p>
+            ) : (
+              <p className="text-sm text-ink">
+                Free plan — {profile.usage.freeConversationsRemaining} free conversations and{" "}
+                {profile.usage.freeGenerationsRemaining} free word generations left
+              </p>
+            )}
+
+            {profile.pro.isPro ? (
               <button
-                onClick={() => setEditingPrefs(true)}
-                className="p-2 rounded-xl hover:bg-neutral-100 transition text-neutral-400 hover:text-neutral-600"
-                title="Edit preferences"
+                type="button"
+                onClick={handleManageSubscription}
+                disabled={openingPortal}
+                className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-line bg-surface px-5 text-sm font-semibold text-ink transition hover:border-sub/40 disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-brand"
               >
-                <Pencil className="w-4 h-4" />
+                {openingPortal && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
+                Manage subscription
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setUpgradePlan("yearly");
+                  setShowUpgrade(true);
+                }}
+                className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-ink px-5 text-sm font-semibold text-cream transition hover:bg-ink/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-brand"
+              >
+                Upgrade to Pro
               </button>
             )}
           </div>
-
-          {editingPrefs ? (
-            <div className="p-6 space-y-5">
-              <div>
-                <label className="block text-xs font-medium text-neutral-500 mb-1">
-                  Experience Level
-                </label>
-                <select
-                  value={experienceLevel}
-                  onChange={(e) => setExperienceLevel(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-secondary outline-none focus:border-primary transition bg-white"
-                >
-                  {EXPERIENCE_LEVELS.map(({ value, label }) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-neutral-500 mb-1">
-                  Interview Timeline
-                </label>
-                <select
-                  value={timeline}
-                  onChange={(e) => setTimeline(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-secondary outline-none focus:border-primary transition bg-white"
-                >
-                  {TIMELINE_OPTIONS.map(({ value, label }) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-neutral-500 mb-1">
-                  Target Companies
-                </label>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {targetCompanies.map((company) => (
-                    <span
-                      key={company}
-                      className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium"
-                      style={{ background: "#f4fdf3", color: "#112715" }}
-                    >
-                      {company}
-                      <button
-                        onClick={() => removeCompany(company)}
-                        className="hover:opacity-70 transition"
-                        aria-label={`Remove ${company}`}
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-                <input
-                  type="text"
-                  value={companyInput}
-                  onChange={(e) => setCompanyInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      addCompany(companyInput);
-                    }
-                  }}
-                  placeholder="Type a company and press Enter"
-                  className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-secondary outline-none focus:border-primary transition"
-                />
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {COMPANY_SUGGESTIONS.filter(
-                    (c) => !targetCompanies.includes(c)
-                  ).map((company) => (
-                    <button
-                      key={company}
-                      onClick={() => addCompany(company)}
-                      className="px-2.5 py-1 rounded-full text-xs border border-neutral-200 text-neutral-500 hover:border-primary hover:text-secondary transition"
-                    >
-                      + {company}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              {/* ── Onboarding preferences ── */}
-              <div className="pt-2 border-t border-neutral-100">
-                <p className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-4">
-                  Practice Preferences
-                </p>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-medium text-neutral-500 mb-1">
-                      Interview Style
-                    </label>
-                    <select
-                      value={interviewStyle}
-                      onChange={(e) => setInterviewStyle(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-secondary outline-none focus:border-primary transition bg-white"
-                    >
-                      <option value="">Select style</option>
-                      {INTERVIEW_STYLE_OPTIONS.map(({ value, label }) => (
-                        <option key={value} value={value}>{label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-neutral-500 mb-1">
-                      Session Duration
-                    </label>
-                    <select
-                      value={interviewDuration}
-                      onChange={(e) => setInterviewDuration(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-secondary outline-none focus:border-primary transition bg-white"
-                    >
-                      <option value="">Select duration</option>
-                      {DURATION_OPTIONS.map(({ value, label }) => (
-                        <option key={value} value={value}>{label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-neutral-500 mb-1">
-                      Practice With
-                    </label>
-                    <select
-                      value={practicePartner}
-                      onChange={(e) => setPracticePartner(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-secondary outline-none focus:border-primary transition bg-white"
-                    >
-                      <option value="">Select preference</option>
-                      {PRACTICE_PARTNER_OPTIONS.map(({ value, label }) => (
-                        <option key={value} value={value}>{label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-neutral-500 mb-1">
-                      Language
-                    </label>
-                    <select
-                      value={interviewLanguage}
-                      onChange={(e) => setInterviewLanguage(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-secondary outline-none focus:border-primary transition bg-white"
-                    >
-                      <option value="">Select language</option>
-                      {LANGUAGE_OPTIONS.map(({ value, label }) => (
-                        <option key={value} value={value}>{label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-neutral-500 mb-1">
-                      Platform
-                    </label>
-                    <select
-                      value={interviewPlatform}
-                      onChange={(e) => setInterviewPlatform(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-secondary outline-none focus:border-primary transition bg-white"
-                    >
-                      <option value="">Select platform</option>
-                      {PLATFORM_OPTIONS.map(({ value, label }) => (
-                        <option key={value} value={value}>{label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-neutral-500 mb-1">
-                      Feedback Style
-                    </label>
-                    <select
-                      value={feedbackPreference}
-                      onChange={(e) => setFeedbackPreference(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-neutral-200 text-sm text-secondary outline-none focus:border-primary transition bg-white"
-                    >
-                      <option value="">Select feedback style</option>
-                      {FEEDBACK_OPTIONS.map(({ value, label }) => (
-                        <option key={value} value={value}>{label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-neutral-500 mb-2">
-                      Interview Tips
-                    </label>
-                    <div className="flex gap-2">
-                      {[
-                        { val: true, label: "Yes, please" },
-                        { val: false, label: "No thanks" },
-                      ].map(({ val, label }) => (
-                        <button
-                          key={String(val)}
-                          type="button"
-                          onClick={() => setWantsTips(val)}
-                          className="flex-1 py-2 rounded-xl border-2 text-sm font-semibold transition-all"
-                          style={{
-                            borderColor: wantsTips === val ? "#2dec29" : "#e5e7eb",
-                            background: wantsTips === val ? "rgba(45,236,41,0.1)" : "white",
-                            color: wantsTips === val ? "#112715" : "#6b7280",
-                          }}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-2 pt-1">
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="px-4 py-2 rounded-2xl text-sm font-bold transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A] disabled:opacity-60 disabled:shadow-none disabled:translate-y-0"
-                  style={{ background: "#2dec29", color: "#112715" }}
-                >
-                  {saving ? "Saving..." : "Save"}
-                </button>
-                <button
-                  onClick={() => setEditingPrefs(false)}
-                  className="px-4 py-2 rounded-xl text-sm font-medium text-neutral-500 hover:bg-neutral-100 transition"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-neutral-400">Experience</span>
-                <span className="text-sm font-medium text-secondary">
-                  {experienceLabel(experienceLevel)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-neutral-400">Timeline</span>
-                <span className="text-sm font-medium text-secondary">
-                  {timelineLabel(timeline)}
-                </span>
-              </div>
-              {interviewStyle && (
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-neutral-400">Style</span>
-                  <span className="text-sm font-medium text-secondary">
-                    {optionLabel(INTERVIEW_STYLE_OPTIONS, interviewStyle)}
-                  </span>
-                </div>
-              )}
-              {interviewDuration && (
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-neutral-400">Duration</span>
-                  <span className="text-sm font-medium text-secondary">
-                    {optionLabel(DURATION_OPTIONS, interviewDuration)}
-                  </span>
-                </div>
-              )}
-              {practicePartner && (
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-neutral-400">Practice With</span>
-                  <span className="text-sm font-medium text-secondary">
-                    {optionLabel(PRACTICE_PARTNER_OPTIONS, practicePartner)}
-                  </span>
-                </div>
-              )}
-              {interviewLanguage && (
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-neutral-400">Language</span>
-                  <span className="text-sm font-medium text-secondary">
-                    {optionLabel(LANGUAGE_OPTIONS, interviewLanguage)}
-                  </span>
-                </div>
-              )}
-              {interviewPlatform && (
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-neutral-400">Platform</span>
-                  <span className="text-sm font-medium text-secondary">
-                    {optionLabel(PLATFORM_OPTIONS, interviewPlatform)}
-                  </span>
-                </div>
-              )}
-              {feedbackPreference && (
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-neutral-400">Feedback</span>
-                  <span className="text-sm font-medium text-secondary">
-                    {optionLabel(FEEDBACK_OPTIONS, feedbackPreference)}
-                  </span>
-                </div>
-              )}
-              {wantsTips !== null && (
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-neutral-400">Tips</span>
-                  <span className="text-sm font-medium text-secondary">
-                    {wantsTips ? "Yes" : "No"}
-                  </span>
-                </div>
-              )}
-              {targetCompanies.length > 0 && (
-                <div>
-                  <span className="text-xs text-neutral-400">
-                    Target Companies
-                  </span>
-                  <div className="flex flex-wrap gap-1.5 mt-1.5">
-                    {targetCompanies.map((c) => (
-                      <span
-                        key={c}
-                        className="px-2.5 py-1 rounded-full text-xs font-medium"
-                        style={{ background: "#f4fdf3", color: "#112715" }}
-                      >
-                        {c}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
         </section>
 
-        {/* Account — full width */}
-        <section className="glass-card rounded-2xl overflow-hidden lg:col-span-2">
-          <div className="flex items-center gap-3 px-6 py-4 border-b border-neutral-100">
-            <LogOut className="w-4 h-4 text-neutral-400" />
-            <h2 className="font-semibold text-secondary text-sm">Account</h2>
-          </div>
-          <div className="p-6 flex flex-wrap items-center justify-between gap-3">
+        <section id="account" className="scroll-mt-24 rounded-2xl border border-line bg-surface p-6 sm:p-8">
+          <h2 className="font-display text-xl text-ink">Account</h2>
+          <div className="mt-5 flex flex-wrap items-center gap-3">
             <button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-2xl font-bold text-sm transition-all duration-100 shadow-[4px_4px_0px_0px_#1A1A1A] hover:brightness-95 active:translate-y-1 active:shadow-[2px_2px_0px_0px_#1A1A1A] disabled:opacity-60 disabled:shadow-none disabled:translate-y-0"
-              style={{ background: "#2dec29", color: "#112715" }}
-            >
-              <Save className="w-4 h-4" />
-              {saving ? "Saving..." : "Save Changes"}
-            </button>
-            <button
+              type="button"
               onClick={handleSignOut}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition"
+              className="rounded-full border border-line bg-surface px-5 py-2.5 text-sm font-semibold text-ink transition hover:border-sub/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-brand"
             >
-              <LogOut className="w-4 h-4" />
-              Sign Out
+              Sign out
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowDeleteDialog(true)}
+              className="rounded-full border border-hot/30 bg-surface px-5 py-2.5 text-sm font-semibold text-hot transition hover:bg-hot/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hot"
+            >
+              Delete account
             </button>
           </div>
+          <p className="mt-6 text-xs text-sub">
+            <Link href="/privacy" className="underline underline-offset-2 hover:text-ink">
+              Privacy
+            </Link>
+            <span className="mx-2">·</span>
+            <Link href="/terms" className="underline underline-offset-2 hover:text-ink">
+              Terms
+            </Link>
+          </p>
         </section>
       </div>
+
+      <ProUpgradeDialog
+        open={showUpgrade}
+        onClose={() => setShowUpgrade(false)}
+        reason="upgrade"
+        initialPlan={upgradePlan}
+      />
+
+      <Dialog
+        open={showDeleteDialog}
+        onOpenChange={(next) => {
+          setShowDeleteDialog(next);
+          if (!next) setDeleteConfirmText("");
+        }}
+      >
+        <DialogContent className="rounded-2xl border-line bg-surface text-ink sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl font-normal text-ink">Delete your account?</DialogTitle>
+            <DialogDescription className="text-sm text-sub">
+              This permanently deletes your account and everything in it — conversations, vocabulary, and progress.
+              This cannot be undone. Type {DELETE_CONFIRM_WORD} to confirm.
+            </DialogDescription>
+          </DialogHeader>
+          <div>
+            <label htmlFor="delete-confirm" className="sr-only">
+              Type {DELETE_CONFIRM_WORD} to confirm
+            </label>
+            <input
+              id="delete-confirm"
+              type="text"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder={DELETE_CONFIRM_WORD}
+              autoComplete="off"
+              className="w-full rounded-xl border border-line bg-surface px-4 py-3 text-sm text-ink placeholder:text-sub/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hot"
+            />
+          </div>
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={() => setShowDeleteDialog(false)}
+              disabled={deleting}
+              className="h-10 rounded-full px-5 text-sm font-semibold text-sub transition hover:text-ink disabled:opacity-60"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleDeleteAccount}
+              disabled={deleteConfirmText !== DELETE_CONFIRM_WORD || deleting}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-hot px-5 text-sm font-semibold text-cream transition hover:bg-hot/90 disabled:opacity-40"
+            >
+              {deleting && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
+              {deleting ? "Deleting…" : "Delete account"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
-};
-
-export default SettingsPage;
+}
