@@ -47,3 +47,46 @@ export function subscriptionToProfileFields(sub: SubscriptionLike): {
     pro_current_period_end: periodEndSeconds ? new Date(periodEndSeconds * 1000).toISOString() : null,
   };
 }
+
+/**
+ * Stripe statuses under which a subscription still grants (or is still
+ * collecting for) Fina Pro. A stored subscription in one of these states is
+ * "current" and must not be overwritten by a different subscription's event.
+ */
+export const LIVE_SUBSCRIPTION_STATUSES = ["active", "trialing", "past_due"] as const;
+
+export interface StoredSubscription {
+  stripe_subscription_id: string | null;
+  pro_status: string | null;
+}
+
+/**
+ * The stale-subscription guard, shared by the webhook and verify-purchase.
+ *
+ * A write for subscription `subId` is allowed when the profile has no
+ * subscription on file, already holds this same subscription, or holds a
+ * different one that is no longer live (canceled, expired, unpaid, or no
+ * status). The last case is what lets a returning subscriber regain Pro:
+ * after a cancel the profile still stores the old subscription id, and a
+ * guard that only compared ids would block the new subscription forever.
+ */
+export function canWriteSubscription(stored: StoredSubscription | null, subId: string): boolean {
+  if (!stored || !stored.stripe_subscription_id) return true;
+  if (stored.stripe_subscription_id === subId) return true;
+  return !(LIVE_SUBSCRIPTION_STATUSES as readonly string[]).includes(stored.pro_status ?? "");
+}
+
+/**
+ * `canWriteSubscription` as a PostgREST `.or()` filter, for writes that filter
+ * in the UPDATE itself instead of reading first. `pro_status.is.null` is
+ * listed explicitly because in SQL `NULL NOT IN (...)` is NULL, not true.
+ * Subscription ids are Stripe-issued (`sub_...`), so interpolating one is safe.
+ */
+export function subscriptionWriteGuardFilter(subId: string): string {
+  return [
+    "stripe_subscription_id.is.null",
+    `stripe_subscription_id.eq.${subId}`,
+    "pro_status.is.null",
+    `pro_status.not.in.(${LIVE_SUBSCRIPTION_STATUSES.join(",")})`,
+  ].join(",");
+}

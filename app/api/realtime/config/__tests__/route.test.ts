@@ -7,10 +7,23 @@ const { createClient } = jest.requireMock("@/lib/supabase/server");
 
 const USER = { id: "user-1" };
 
+const SESSION_ID = "session-1";
+
+function activeSession(startedAt = new Date().toISOString()) {
+  return { data: { id: SESSION_ID, started_at: startedAt }, error: null };
+}
+
 function mockSupabase(config: SupabaseMockConfig) {
-  const mock = createSupabaseMock(config);
+  const mock = createSupabaseMock({
+    ...config,
+    tables: { conversation_sessions: activeSession(), ...(config.tables ?? {}) },
+  });
   createClient.mockResolvedValue(mock);
   return mock;
+}
+
+function configRequest(query = `?sessionId=${SESSION_ID}`) {
+  return new Request(`http://localhost/api/realtime/config${query}`);
 }
 
 global.fetch = jest.fn();
@@ -34,7 +47,7 @@ describe("GET /api/realtime/config", () => {
   it("returns 401 with no authenticated user", async () => {
     mockSupabase({ user: null });
 
-    const response = await GET();
+    const response = await GET(configRequest());
 
     expect(response.status).toBe(401);
     await expect(response.json()).resolves.toEqual({ error: "Unauthorized" });
@@ -44,7 +57,7 @@ describe("GET /api/realtime/config", () => {
   it("returns iceServers but NOT the apiKey", async () => {
     mockSupabase({ user: USER });
 
-    const response = await GET();
+    const response = await GET(configRequest());
     const data = await response.json();
 
     expect(data.iceServers).toEqual([{ urls: "stun:stun.example.com" }]);
@@ -55,7 +68,7 @@ describe("GET /api/realtime/config", () => {
   it("calls Inworld ICE servers endpoint with auth header", async () => {
     mockSupabase({ user: USER });
 
-    await GET();
+    await GET(configRequest());
 
     expect(global.fetch).toHaveBeenCalledWith(
       "https://api.inworld.ai/v1/realtime/ice-servers",
@@ -71,18 +84,59 @@ describe("GET /api/realtime/config", () => {
     mockSupabase({ user: USER });
     (global.fetch as jest.Mock).mockResolvedValue({ ok: false, status: 503 });
 
-    const response = await GET();
+    const response = await GET(configRequest());
     expect(response.status).toBe(500);
 
     const data = await response.json();
     expect(data.error).toBeDefined();
   });
 
+  it("returns 403 invalid_session without a ?sessionId=, without calling Inworld", async () => {
+    mockSupabase({ user: USER });
+
+    const response = await GET(configRequest(""));
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({ error: "invalid_session" });
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("returns 403 invalid_session for an unknown session", async () => {
+    mockSupabase({ user: USER, tables: { conversation_sessions: { data: null, error: null } } });
+
+    const response = await GET(configRequest());
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({ error: "invalid_session" });
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("returns 403 session_expired for a session started more than 3 hours ago", async () => {
+    const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString();
+    mockSupabase({ user: USER, tables: { conversation_sessions: activeSession(fourHoursAgo) } });
+
+    const response = await GET(configRequest());
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({ error: "session_expired" });
+  });
+
+  it("reads the session id from the query string and scopes the lookup to the caller", async () => {
+    const mock = mockSupabase({ user: USER });
+
+    await GET(configRequest());
+
+    const builder = mock.builderFor("conversation_sessions");
+    expect(builder.eq).toHaveBeenCalledWith("id", SESSION_ID);
+    expect(builder.eq).toHaveBeenCalledWith("user_id", USER.id);
+    expect(builder.eq).toHaveBeenCalledWith("status", "active");
+  });
+
   it("returns 500 when INWORLD_API_KEY is not set", async () => {
     mockSupabase({ user: USER });
     delete process.env.INWORLD_API_KEY;
 
-    const response = await GET();
+    const response = await GET(configRequest());
     expect(response.status).toBe(500);
 
     const data = await response.json();

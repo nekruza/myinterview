@@ -161,7 +161,7 @@ describe("payment verification", () => {
 
 describe("stale-session guard", () => {
   it("does not overwrite when the profile already holds a different, current subscription", async () => {
-    seedProfileLookup({ stripe_subscription_id: "sub_other" });
+    seedProfileLookup({ stripe_subscription_id: "sub_other", pro_status: "active" });
 
     const res = await GET(verifyRequest(`?session_id=${STRIPE_SESSION_ID}`));
 
@@ -175,6 +175,43 @@ describe("stale-session guard", () => {
     await GET(verifyRequest(`?session_id=${STRIPE_SESSION_ID}`));
 
     expect(writePayload(supabaseAdmin, "profiles", "update")).toBeDefined();
+  });
+
+  it("reads both the stored subscription id and its status for the guard", async () => {
+    seedProfileLookup({ stripe_subscription_id: null, pro_status: null });
+
+    await GET(verifyRequest(`?session_id=${STRIPE_SESSION_ID}`));
+
+    expect(supabaseAdmin.builderFor("profiles").select).toHaveBeenCalledWith("stripe_subscription_id, pro_status");
+  });
+
+  it("returning subscriber: old canceled sub_1 stored, new sub_2 completes, profile moves to sub_2 active", async () => {
+    seedProfileLookup({ stripe_subscription_id: "sub_1", pro_status: "canceled" });
+    retrieveSession.mockResolvedValue(
+      completeSession({
+        subscription: { id: "sub_2", status: "active", customer: "cus_123", items: { data: [{ current_period_end: 1_700_000_000 }] } },
+      })
+    );
+
+    await GET(verifyRequest(`?session_id=${STRIPE_SESSION_ID}`));
+
+    expect(writePayload(supabaseAdmin, "profiles", "update")).toMatchObject({
+      stripe_subscription_id: "sub_2",
+      pro_status: "active",
+    });
+  });
+
+  it("stale session: stored sub_2 active, a delayed sub_1 redirect leaves the profile unchanged", async () => {
+    seedProfileLookup({ stripe_subscription_id: "sub_2", pro_status: "active" });
+    retrieveSession.mockResolvedValue(
+      completeSession({
+        subscription: { id: "sub_1", status: "active", customer: "cus_123", items: { data: [{ current_period_end: 1_700_000_000 }] } },
+      })
+    );
+
+    await GET(verifyRequest(`?session_id=${STRIPE_SESSION_ID}`));
+
+    expect(writePayload(supabaseAdmin, "profiles", "update")).toBeUndefined();
   });
 
   it("writes when the profile has no subscription on file yet", async () => {

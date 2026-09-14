@@ -24,6 +24,10 @@ import { POST } from "../route";
 const { createAdminClient } = jest.requireMock("@/lib/supabase/admin");
 
 const USER_ID = "user-1";
+
+/** The shared stale-subscription guard, as the webhook passes it to PostgREST's `.or()`. */
+const guardFor = (id: string) =>
+  `stripe_subscription_id.is.null,stripe_subscription_id.eq.${id},pro_status.is.null,pro_status.not.in.(active,trialing,past_due)`;
 const SUBSCRIPTION_ID = "sub_123";
 const CUSTOMER_ID = "cus_123";
 
@@ -184,6 +188,7 @@ describe("checkout.session.completed", () => {
       pro_current_period_end: new Date(1_700_000_000 * 1000).toISOString(),
     });
     expect(supabaseAdmin.builderFor("profiles").eq).toHaveBeenCalledWith("id", USER_ID);
+    expect(supabaseAdmin.builderFor("profiles").or).toHaveBeenCalledWith(guardFor(SUBSCRIPTION_ID));
   });
 
   it("ignores a non-subscription-mode checkout session", async () => {
@@ -250,9 +255,7 @@ describe.each(["customer.subscription.created", "customer.subscription.updated"]
     expect(supabaseAdmin.callCountFor("profiles")).toBe(2);
     const fallbackBuilder = supabaseAdmin.builderFor("profiles", 1);
     expect(fallbackBuilder.eq).toHaveBeenCalledWith("id", USER_ID);
-    expect(fallbackBuilder.or).toHaveBeenCalledWith(
-      `stripe_subscription_id.is.null,stripe_subscription_id.eq.${SUBSCRIPTION_ID}`
-    );
+    expect(fallbackBuilder.or).toHaveBeenCalledWith(guardFor(SUBSCRIPTION_ID));
   });
 
   it("does not fall back when there is no metadata.user_id", async () => {
@@ -280,7 +283,7 @@ describe.each(["customer.subscription.created", "customer.subscription.updated"]
     expect(res.status).toBe(200);
     const fallbackBuilder = supabaseAdmin.builderFor("profiles", 1);
     expect(fallbackBuilder.eq).toHaveBeenCalledWith("id", USER_ID);
-    expect(fallbackBuilder.or).toHaveBeenCalledWith(`stripe_subscription_id.is.null,stripe_subscription_id.eq.${staleId}`);
+    expect(fallbackBuilder.or).toHaveBeenCalledWith(guardFor(staleId));
   });
 
   it("returns 500 when the primary update errors, so Stripe retries", async () => {
@@ -380,5 +383,134 @@ describe("unrecognised events", () => {
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toEqual({ received: true });
     expect(supabaseAdmin.calls).toHaveLength(0);
+  });
+});
+
+/**
+ * A one-row stand-in for Postgres. The handler's `.eq()` / `.or()` filters are
+ * evaluated against the stored row (with SQL's NULL semantics for `in`), and an
+ * update is applied only when every filter matches. That exercises what the
+ * guard string actually matches, rather than only asserting it verbatim.
+ */
+function orClauseMatches(expr: string, row: Record<string, unknown>): boolean {
+  const clauses = expr.match(/[a-z_]+\.(?:not\.)?(?:is|eq|in)\.(?:\([^)]*\)|[^,]+)/g) ?? [];
+  return clauses.some((clause) => {
+    const [, col, negated, op, rawValue] = clause.match(/^([a-z_]+)\.(not\.)?(is|eq|in)\.(.+)$/)!;
+    const value = row[col] ?? null;
+    let result: boolean | null;
+    if (op === "is") result = rawValue === "null" ? value === null : null;
+    else if (value === null) result = null; // NULL = x and NULL IN (...) are NULL
+    else if (op === "eq") result = value === rawValue;
+    else result = rawValue.slice(1, -1).split(",").includes(String(value));
+    if (result === null) return false;
+    return negated ? !result : result;
+  });
+}
+
+function seedStoredProfile(row: { stripe_subscription_id: string | null; pro_status: string | null }) {
+  const stored: Record<string, unknown> = { id: USER_ID, ...row };
+  supabaseAdmin.from.mockImplementation((table: string) => {
+    const filters: Array<(r: Record<string, unknown>) => boolean> = [];
+    let payload: Record<string, unknown> | null = null;
+    const builder = {} as Record<string, jest.Mock> & { then: (a?: unknown, b?: unknown) => Promise<unknown> };
+    builder.update = jest.fn((p: Record<string, unknown>) => {
+      payload = p;
+      return builder;
+    });
+    builder.eq = jest.fn((col: string, val: unknown) => {
+      filters.push((r) => r[col] === val);
+      return builder;
+    });
+    builder.or = jest.fn((expr: string) => {
+      filters.push((r) => orClauseMatches(expr, r));
+      return builder;
+    });
+    builder.select = jest.fn(() => builder);
+    builder.then = (onFulfilled?: unknown, onRejected?: unknown) => {
+      const matched = filters.every((f) => f(stored));
+      if (matched && payload) Object.assign(stored, payload);
+      return Promise.resolve({ data: matched ? [{ id: USER_ID }] : [], error: null }).then(
+        onFulfilled as never,
+        onRejected as never
+      );
+    };
+    supabaseAdmin.calls.push({ table, builder: builder as never });
+    return builder;
+  });
+  return stored;
+}
+
+describe("returning subscribers (stale-subscription guard)", () => {
+  const OLD_SUB = "sub_1";
+  const NEW_SUB = "sub_2";
+
+  it("checkout.session.completed: old canceled sub_1 stored, new sub_2 completes, profile moves to sub_2 active", async () => {
+    const stored = seedStoredProfile({ stripe_subscription_id: OLD_SUB, pro_status: "canceled" });
+    retrieveSubscription.mockResolvedValue(activeSubscription({ id: NEW_SUB }));
+    constructEvent.mockReturnValue(checkoutCompleted({ subscription: NEW_SUB }));
+
+    const res = await POST(webhookRequest());
+
+    expect(res.status).toBe(200);
+    expect(stored).toMatchObject({ stripe_subscription_id: NEW_SUB, pro_status: "active" });
+  });
+
+  it.each(["customer.subscription.created", "customer.subscription.updated"])(
+    "%s: old canceled sub_1 stored, new sub_2 arrives via the metadata fallback, profile moves to sub_2 active",
+    async (type) => {
+      const stored = seedStoredProfile({ stripe_subscription_id: OLD_SUB, pro_status: "canceled" });
+      retrieveSubscription.mockResolvedValue(activeSubscription({ id: NEW_SUB }));
+      constructEvent.mockReturnValue(subscriptionEvent(type, { id: NEW_SUB }));
+
+      const res = await POST(webhookRequest());
+
+      expect(res.status).toBe(200);
+      expect(stored).toMatchObject({ stripe_subscription_id: NEW_SUB, pro_status: "active" });
+    }
+  );
+
+  it("a stored subscription with no status does not block a new one", async () => {
+    const stored = seedStoredProfile({ stripe_subscription_id: OLD_SUB, pro_status: null });
+    retrieveSubscription.mockResolvedValue(activeSubscription({ id: NEW_SUB }));
+    constructEvent.mockReturnValue(checkoutCompleted({ subscription: NEW_SUB }));
+
+    await POST(webhookRequest());
+
+    expect(stored).toMatchObject({ stripe_subscription_id: NEW_SUB, pro_status: "active" });
+  });
+
+  it("checkout.session.completed: stored sub_2 active, stale sub_1 completes, profile unchanged", async () => {
+    const stored = seedStoredProfile({ stripe_subscription_id: NEW_SUB, pro_status: "active" });
+    retrieveSubscription.mockResolvedValue(activeSubscription({ id: OLD_SUB, status: "canceled" }));
+    constructEvent.mockReturnValue(checkoutCompleted({ subscription: OLD_SUB }));
+
+    const res = await POST(webhookRequest());
+
+    expect(res.status).toBe(200);
+    expect(stored).toMatchObject({ stripe_subscription_id: NEW_SUB, pro_status: "active" });
+  });
+
+  it.each(["customer.subscription.updated", "customer.subscription.deleted"])(
+    "%s: stored sub_2 active, stale sub_1 event, profile unchanged",
+    async (type) => {
+      const stored = seedStoredProfile({ stripe_subscription_id: NEW_SUB, pro_status: "active" });
+      retrieveSubscription.mockResolvedValue(activeSubscription({ id: OLD_SUB, status: "canceled" }));
+      constructEvent.mockReturnValue(subscriptionEvent(type, { id: OLD_SUB, status: "canceled" }));
+
+      const res = await POST(webhookRequest());
+
+      expect(res.status).toBe(200);
+      expect(stored).toMatchObject({ stripe_subscription_id: NEW_SUB, pro_status: "active" });
+    }
+  );
+
+  it("still blocks a stale sub_1 while the stored sub_2 is past_due (still billing)", async () => {
+    const stored = seedStoredProfile({ stripe_subscription_id: NEW_SUB, pro_status: "past_due" });
+    retrieveSubscription.mockResolvedValue(activeSubscription({ id: OLD_SUB }));
+    constructEvent.mockReturnValue(checkoutCompleted({ subscription: OLD_SUB }));
+
+    await POST(webhookRequest());
+
+    expect(stored).toMatchObject({ stripe_subscription_id: NEW_SUB, pro_status: "past_due" });
   });
 });

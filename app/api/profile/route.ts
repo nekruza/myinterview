@@ -5,6 +5,7 @@ import { conversationStats, countConversations } from "@/lib/db/conversations";
 import { getCompletedLessonIds } from "@/lib/db/lessons";
 import { getFavoriteIds } from "@/lib/db/favorites";
 import { countGeneratedLessons } from "@/lib/db/generatedLessons";
+import { countGenerationEvents } from "@/lib/db/generationEvents";
 import { buildProfileSummary } from "@/lib/profile-summary";
 import { isUserLevel } from "@/lib/levels";
 import { isLanguageId } from "@/lib/languages";
@@ -23,14 +24,16 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const [row, stats, total, completedLessonIds, favoriteIds, generatedLessonsCount] = await Promise.all([
-    getProfileRow(supabase, user.id),
-    conversationStats(supabase, user.id),
-    countConversations(supabase, user.id),
-    getCompletedLessonIds(supabase, user.id),
-    getFavoriteIds(supabase, user.id),
-    countGeneratedLessons(supabase, user.id),
-  ]);
+  const [row, stats, total, completedLessonIds, favoriteIds, generatedLessonsCount, generationEventsCount] =
+    await Promise.all([
+      getProfileRow(supabase, user.id),
+      conversationStats(supabase, user.id),
+      countConversations(supabase, user.id),
+      getCompletedLessonIds(supabase, user.id),
+      getFavoriteIds(supabase, user.id),
+      countGeneratedLessons(supabase, user.id),
+      countGenerationEvents(supabase, user.id),
+    ]);
 
   const summary = buildProfileSummary({
     user: { id: user.id, email: user.email, user_metadata: user.user_metadata },
@@ -39,6 +42,7 @@ export async function GET() {
     lessonsCompleted: completedLessonIds.size,
     favoriteWords: favoriteIds.size,
     generatedLessons: generatedLessonsCount,
+    generationEvents: generationEventsCount,
   });
 
   return NextResponse.json(summary);

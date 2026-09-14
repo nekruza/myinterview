@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { streamLLM } from "@/lib/llm";
 import { getProfileRow } from "@/lib/db/profile";
-import { findExistingLesson, saveGeneratedLesson, countGeneratedLessons } from "@/lib/db/generatedLessons";
+import { findExistingLesson, saveGeneratedLesson } from "@/lib/db/generatedLessons";
+import { countGenerationEvents, recordGenerationEvent } from "@/lib/db/generationEvents";
 import { hasProAccess, FREE_GENERATIONS } from "@/lib/billing";
 import { isLanguageId, type LanguageId } from "@/lib/languages";
 import { isUserLevel, type UserLevel } from "@/lib/levels";
@@ -49,8 +50,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ lesson: existing, reused: true });
   }
 
+  // Gate on the append-only event log, not on surviving generated_lessons
+  // rows: those can be deleted, which would hand the free generations back.
   if (!hasProAccess(profileRow)) {
-    const count = await countGeneratedLessons(supabase, user.id);
+    const count = await countGenerationEvents(supabase, user.id);
     if (count >= FREE_GENERATIONS) {
       return NextResponse.json({ error: "limit_reached" }, { status: 403 });
     }
@@ -72,6 +75,14 @@ export async function POST(req: NextRequest) {
     const words = parseGeneratedWords(fullText, topic, difficulty);
     const lesson = lessonFromWords({ id: crypto.randomUUID(), topic, difficulty, words });
     const supabaseId = await saveGeneratedLesson(supabase, user.id, lesson, topic.trim().toLowerCase(), difficulty);
+
+    // The lesson is saved, so the learner gets it even if logging the
+    // generation fails. At worst, one free generation goes uncounted.
+    try {
+      await recordGenerationEvent(supabase, user.id);
+    } catch (err) {
+      console.error("[ai/vocabulary] failed to record generation event:", err);
+    }
 
     return NextResponse.json({
       lesson: { ...lesson, supabaseId, isUserGenerated: true },

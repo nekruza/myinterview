@@ -5,7 +5,7 @@ jest.mock("stripe", () => ({
   default: jest.fn().mockImplementation((key: string, opts: unknown) => ({ __key: key, __opts: opts })),
 }));
 
-import { getStripe, subscriptionToProfileFields } from "../stripe";
+import { canWriteSubscription, getStripe, subscriptionToProfileFields, subscriptionWriteGuardFilter } from "../stripe";
 
 const StripeCtor = jest.requireMock("stripe").default as jest.Mock;
 
@@ -103,5 +103,41 @@ describe("subscriptionToProfileFields", () => {
     const result = subscriptionToProfileFields(sub({ customer: null as unknown as string }));
 
     expect(result.stripe_customer_id).toBeNull();
+  });
+});
+
+describe("canWriteSubscription", () => {
+  it("allows the write when there is no stored profile", () => {
+    expect(canWriteSubscription(null, "sub_2")).toBe(true);
+  });
+
+  it("allows the write when no subscription is on file yet", () => {
+    expect(canWriteSubscription({ stripe_subscription_id: null, pro_status: null }, "sub_2")).toBe(true);
+  });
+
+  it("allows the write when the stored subscription is this one", () => {
+    expect(canWriteSubscription({ stripe_subscription_id: "sub_2", pro_status: "active" }, "sub_2")).toBe(true);
+  });
+
+  it.each(["canceled", "incomplete_expired", "unpaid", "incomplete", null])(
+    "lets a new subscription replace an old one whose status is %s",
+    (status) => {
+      expect(canWriteSubscription({ stripe_subscription_id: "sub_1", pro_status: status }, "sub_2")).toBe(true);
+    }
+  );
+
+  it.each(["active", "trialing", "past_due"])(
+    "blocks a different subscription from replacing a stored one that is still %s",
+    (status) => {
+      expect(canWriteSubscription({ stripe_subscription_id: "sub_2", pro_status: status }, "sub_1")).toBe(false);
+    }
+  );
+});
+
+describe("subscriptionWriteGuardFilter", () => {
+  it("expresses the same guard as a PostgREST .or() filter, with a null pro_status passing", () => {
+    expect(subscriptionWriteGuardFilter("sub_9")).toBe(
+      "stripe_subscription_id.is.null,stripe_subscription_id.eq.sub_9,pro_status.is.null,pro_status.not.in.(active,trialing,past_due)"
+    );
   });
 });

@@ -41,6 +41,7 @@ function mockSupabase(opts: {
   completedLessonIds?: { lesson_id: string }[];
   favoriteWordIds?: { word_id: string }[];
   generatedLessonsCount?: number;
+  generationEventsCount?: number;
 }) {
   const {
     user = USER,
@@ -50,6 +51,7 @@ function mockSupabase(opts: {
     completedLessonIds = [],
     favoriteWordIds = [],
     generatedLessonsCount = 0,
+    generationEventsCount = 0,
   } = opts;
 
   const mock = createSupabaseMock({
@@ -63,6 +65,7 @@ function mockSupabase(opts: {
       lesson_progress: { data: completedLessonIds, error: null },
       favorite_words: { data: favoriteWordIds, error: null },
       generated_lessons: { data: null, error: null, count: generatedLessonsCount },
+      vocabulary_generation_events: { data: null, error: null, count: generationEventsCount },
     },
   });
   createClient.mockResolvedValue(mock);
@@ -94,6 +97,7 @@ describe("GET /api/profile", () => {
       completedLessonIds: [{ lesson_id: "l1" }, { lesson_id: "l2" }],
       favoriteWordIds: [{ word_id: "w1" }],
       generatedLessonsCount: 1,
+      generationEventsCount: 1,
     });
 
     const res = await GET();
@@ -114,6 +118,16 @@ describe("GET /api/profile", () => {
       pro: { isPro: false },
       usage: { freeConversationsRemaining: 1, freeGenerationsRemaining: 2 },
     });
+  });
+
+  it("computes free generations from the append-only event log, not surviving lessons", async () => {
+    mockSupabase({ generatedLessonsCount: 0, generationEventsCount: 3 });
+
+    const res = await GET();
+    const body = await res.json();
+
+    expect(body.usage.freeGenerationsRemaining).toBe(0);
+    expect(body.stats.generatedLessons).toBe(0);
   });
 
   it("defaults a brand-new user with no profile row", async () => {

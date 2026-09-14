@@ -39,6 +39,7 @@ function baseInput(overrides: Partial<Parameters<typeof buildProfileSummary>[0]>
     lessonsCompleted: 3,
     favoriteWords: 7,
     generatedLessons: 2,
+    generationEvents: 2,
     now: NOW,
     ...overrides,
   };
@@ -137,16 +138,34 @@ describe("buildProfileSummary", () => {
 
     it("computes remaining free conversations/generations for a free user", () => {
       const summary = buildProfileSummary(
-        baseInput({ row: { ...ROW, pro_status: null }, conversations: { completed: 1, avgOverallScore: 80, total: 1 }, generatedLessons: 1 })
+        baseInput({ row: { ...ROW, pro_status: null }, conversations: { completed: 1, avgOverallScore: 80, total: 1 }, generationEvents: 1 })
       );
       expect(summary.usage).toEqual({ freeConversationsRemaining: 2, freeGenerationsRemaining: 2 });
     });
 
     it("floors remaining usage at zero once the free limit is exceeded", () => {
       const summary = buildProfileSummary(
-        baseInput({ row: { ...ROW, pro_status: null }, conversations: { completed: 5, avgOverallScore: 80, total: 5 }, generatedLessons: 9 })
+        baseInput({ row: { ...ROW, pro_status: null }, conversations: { completed: 5, avgOverallScore: 80, total: 5 }, generationEvents: 9 })
       );
       expect(summary.usage).toEqual({ freeConversationsRemaining: 0, freeGenerationsRemaining: 0 });
+    });
+  });
+
+  describe("free generations count events, not surviving lessons", () => {
+    it("keeps the allowance used up after the learner deletes their generated lessons", () => {
+      const summary = buildProfileSummary(
+        baseInput({ row: { ...ROW, pro_status: null }, generatedLessons: 0, generationEvents: 3 })
+      );
+      expect(summary.usage.freeGenerationsRemaining).toBe(0);
+      expect(summary.stats.generatedLessons).toBe(0);
+    });
+
+    it("does not count lessons that exist without a recorded event", () => {
+      const summary = buildProfileSummary(
+        baseInput({ row: { ...ROW, pro_status: null }, generatedLessons: 5, generationEvents: 1 })
+      );
+      expect(summary.usage.freeGenerationsRemaining).toBe(2);
+      expect(summary.stats.generatedLessons).toBe(5);
     });
   });
 

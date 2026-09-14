@@ -7,8 +7,17 @@ const { createClient } = jest.requireMock("@/lib/supabase/server");
 
 const USER = { id: "user-1" };
 
+const SESSION_ID = "session-1";
+
+function activeSession(startedAt = new Date().toISOString()) {
+  return { data: { id: SESSION_ID, started_at: startedAt }, error: null };
+}
+
 function mockSupabase(config: SupabaseMockConfig) {
-  const mock = createSupabaseMock(config);
+  const mock = createSupabaseMock({
+    ...config,
+    tables: { conversation_sessions: activeSession(), ...(config.tables ?? {}) },
+  });
   createClient.mockResolvedValue(mock);
   return mock;
 }
@@ -20,9 +29,11 @@ global.fetch = jest.fn();
 const mockFetch = global.fetch as jest.Mock;
 
 function connectRequest(body: unknown) {
+  const withSession =
+    body && typeof body === "object" && !("sessionId" in body) ? { sessionId: SESSION_ID, ...body } : body;
   return new Request("http://localhost/api/realtime/connect", {
     method: "POST",
-    body: JSON.stringify(body),
+    body: JSON.stringify(withSession),
   });
 }
 
@@ -148,6 +159,47 @@ describe("POST /api/realtime/connect", () => {
       error: "INWORLD_API_KEY not configured",
     });
     expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("returns 403 invalid_session without a sessionId, without calling Inworld", async () => {
+    const response = await POST(connectRequest({ sdp: "offer", sessionId: undefined }));
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({ error: "invalid_session" });
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("returns 403 invalid_session for an unknown session", async () => {
+    mockSupabase({ user: USER, tables: { conversation_sessions: { data: null, error: null } } });
+
+    const response = await POST(connectRequest({ sdp: "offer" }));
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({ error: "invalid_session" });
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("returns 403 session_expired for a session started more than 3 hours ago", async () => {
+    const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString();
+    mockSupabase({ user: USER, tables: { conversation_sessions: activeSession(fourHoursAgo) } });
+
+    const response = await POST(connectRequest({ sdp: "offer" }));
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({ error: "session_expired" });
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("looks the session up scoped to the caller and to active sessions", async () => {
+    const mock = mockSupabase({ user: USER });
+    mockFetch.mockResolvedValue({ ok: true, text: async () => "answer" });
+
+    await POST(connectRequest({ sdp: "offer" }));
+
+    const builder = mock.builderFor("conversation_sessions");
+    expect(builder.eq).toHaveBeenCalledWith("id", SESSION_ID);
+    expect(builder.eq).toHaveBeenCalledWith("user_id", USER.id);
+    expect(builder.eq).toHaveBeenCalledWith("status", "active");
   });
 
   it("checks the API key before parsing the body", async () => {

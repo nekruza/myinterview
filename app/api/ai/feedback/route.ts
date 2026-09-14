@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { streamLLM } from "@/lib/llm";
+import { requireActiveSession } from "@/lib/db/conversations";
 import { buildAnalysisPrompt } from "@/lib/utils/buildConversationInstructions";
 import { isLanguageId, type LanguageId } from "@/lib/languages";
 import { isUserLevel, type UserLevel } from "@/lib/levels";
@@ -65,7 +66,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { messages, language, level, durationSeconds } = await req.json();
+  const { messages, language, level, durationSeconds, sessionId } = await req.json();
+
+  // Grading runs before PATCH /api/conversations marks the session completed,
+  // so the session is still active here.
+  const session = await requireActiveSession(supabase, user.id, sessionId);
+  if (!session.ok) {
+    return NextResponse.json({ error: session.error }, { status: 403 });
+  }
 
   if (!messages || !Array.isArray(messages)) {
     return NextResponse.json(NO_SPEECH_RESULT);

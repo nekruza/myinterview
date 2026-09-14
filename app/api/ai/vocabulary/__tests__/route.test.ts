@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { POST } from "../route";
-import { createSupabaseMock, type SupabaseMockConfig } from "@/test-utils/supabase-mock";
+import { createSupabaseMock, writePayload, type SupabaseMockConfig } from "@/test-utils/supabase-mock";
 
 jest.mock("@/lib/supabase/server", () => ({ createClient: jest.fn() }));
 jest.mock("@/lib/llm", () => ({ streamLLM: jest.fn() }));
@@ -165,8 +165,8 @@ describe("free-generation gate", () => {
       tables: baseTables({
         generated_lessons: [
           { data: null, error: { code: "PGRST116", message: "no rows" } }, // findExistingLesson
-          { data: null, error: null, count: 3 }, // countGeneratedLessons
         ],
+        vocabulary_generation_events: { data: null, error: null, count: 3 },
       }),
     });
 
@@ -203,7 +203,65 @@ describe("free-generation gate", () => {
       tables: baseTables({
         generated_lessons: [
           { data: null, error: { code: "PGRST116", message: "no rows" } },
-          { data: null, error: null, count: 1 },
+          { data: { id: "new-id" }, error: null },
+        ],
+        vocabulary_generation_events: { data: null, error: null, count: 1 },
+      }),
+    });
+
+    const res = await POST(vocabRequest({ topic: "greetings", difficulty: "easy" }));
+
+    expect(res.status).toBe(200);
+  });
+});
+
+describe("generation event log", () => {
+  it("gates on recorded generation events, so deleting lessons doesn't reset the limit", async () => {
+    const mock = mockSupabase({
+      user: USER,
+      tables: baseTables({
+        // The learner deleted every generated lesson: none left to count.
+        generated_lessons: [{ data: null, error: { code: "PGRST116", message: "no rows" } }],
+        vocabulary_generation_events: { data: null, error: null, count: 3 },
+      }),
+    });
+
+    const res = await POST(vocabRequest({ topic: "greetings", difficulty: "easy" }));
+
+    expect(res.status).toBe(403);
+    expect(mock.builderFor("vocabulary_generation_events").eq).toHaveBeenCalledWith("user_id", "user-1");
+    // Only findExistingLesson touched generated_lessons — nothing counted it.
+    expect(mock.callCountFor("generated_lessons")).toBe(1);
+  });
+
+  it("records one generation event after the lesson is saved", async () => {
+    const mock = mockSupabase({
+      user: USER,
+      tables: baseTables({
+        generated_lessons: [
+          { data: null, error: { code: "PGRST116", message: "no rows" } },
+          { data: { id: "new-id" }, error: null },
+        ],
+        vocabulary_generation_events: [
+          { data: null, error: null, count: 0 },
+          { data: null, error: null },
+        ],
+      }),
+    });
+
+    const res = await POST(vocabRequest({ topic: "greetings", difficulty: "easy" }));
+
+    expect(res.status).toBe(200);
+    expect(writePayload(mock, "vocabulary_generation_events", "insert")).toEqual({ user_id: "user-1" });
+  });
+
+  it("records an event for a Pro user too, without gating on it", async () => {
+    const mock = mockSupabase({
+      user: USER,
+      tables: baseTables({
+        profiles: { data: { ...PROFILE_ROW, pro_status: "active" }, error: null },
+        generated_lessons: [
+          { data: null, error: { code: "PGRST116", message: "no rows" } },
           { data: { id: "new-id" }, error: null },
         ],
       }),
@@ -212,6 +270,65 @@ describe("free-generation gate", () => {
     const res = await POST(vocabRequest({ topic: "greetings", difficulty: "easy" }));
 
     expect(res.status).toBe(200);
+    expect(mock.callCountFor("vocabulary_generation_events")).toBe(1);
+    expect(writePayload(mock, "vocabulary_generation_events", "insert")).toEqual({ user_id: "user-1" });
+  });
+
+  it("does not record an event when an existing lesson is reused", async () => {
+    const mock = mockSupabase({
+      user: USER,
+      tables: baseTables({
+        generated_lessons: { data: { id: "row-1", lesson_data: { id: "x", vocabularyWords: [] } }, error: null },
+      }),
+    });
+
+    const res = await POST(vocabRequest({ topic: "greetings", difficulty: "easy" }));
+
+    expect(res.status).toBe(200);
+    expect(mock.callCountFor("vocabulary_generation_events")).toBe(0);
+  });
+
+  it("does not record an event when the save fails", async () => {
+    const mock = mockSupabase({
+      user: USER,
+      tables: baseTables({
+        generated_lessons: [
+          { data: null, error: { code: "PGRST116", message: "no rows" } },
+          { data: null, error: { message: "insert failed" } },
+        ],
+      }),
+    });
+
+    const res = await POST(vocabRequest({ topic: "greetings", difficulty: "easy" }));
+
+    expect(res.status).toBe(502);
+    expect(writePayload(mock, "vocabulary_generation_events", "insert")).toBeUndefined();
+  });
+
+  it("logs but still returns the saved lesson when recording the event fails", async () => {
+    mockSupabase({
+      user: USER,
+      tables: baseTables({
+        generated_lessons: [
+          { data: null, error: { code: "PGRST116", message: "no rows" } },
+          { data: { id: "new-id" }, error: null },
+        ],
+        vocabulary_generation_events: [
+          { data: null, error: null, count: 0 },
+          { data: null, error: { message: "insert denied" } },
+        ],
+      }),
+    });
+
+    const res = await POST(vocabRequest({ topic: "greetings", difficulty: "easy" }));
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.lesson.supabaseId).toBe("new-id");
+    expect(console.error).toHaveBeenCalledWith(
+      "[ai/vocabulary] failed to record generation event:",
+      expect.objectContaining({ message: "insert denied" })
+    );
   });
 });
 
@@ -222,7 +339,6 @@ describe("happy path generation", () => {
       tables: baseTables({
         generated_lessons: [
           { data: null, error: { code: "PGRST116", message: "no rows" } },
-          { data: null, error: null, count: 0 },
           { data: { id: "new-id" }, error: null },
         ],
       }),
@@ -251,7 +367,6 @@ describe("happy path generation", () => {
       tables: baseTables({
         generated_lessons: [
           { data: null, error: { code: "PGRST116", message: "no rows" } },
-          { data: null, error: null, count: 0 },
           { data: { id: "new-id" }, error: null },
         ],
       }),
@@ -270,7 +385,6 @@ describe("happy path generation", () => {
         profiles: { data: { id: "user-1", target_language: null, user_level: null }, error: null },
         generated_lessons: [
           { data: null, error: { code: "PGRST116", message: "no rows" } },
-          { data: null, error: null, count: 0 },
           { data: { id: "new-id" }, error: null },
         ],
       }),
@@ -290,7 +404,6 @@ describe("failure handling", () => {
       tables: baseTables({
         generated_lessons: [
           { data: null, error: { code: "PGRST116", message: "no rows" } },
-          { data: null, error: null, count: 0 },
         ],
       }),
     });
@@ -308,7 +421,6 @@ describe("failure handling", () => {
       tables: baseTables({
         generated_lessons: [
           { data: null, error: { code: "PGRST116", message: "no rows" } },
-          { data: null, error: null, count: 0 },
         ],
       }),
     });

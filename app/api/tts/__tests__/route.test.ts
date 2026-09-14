@@ -1,4 +1,13 @@
 import { POST } from "../route";
+import { createSupabaseMock } from "@/test-utils/supabase-mock";
+
+jest.mock("@/lib/supabase/server", () => ({ createClient: jest.fn() }));
+
+const { createClient } = jest.requireMock("@/lib/supabase/server");
+
+function signedIn(user: { id: string } | null = { id: "user-1" }) {
+  createClient.mockResolvedValue(createSupabaseMock({ user }));
+}
 
 const INWORLD_URL = "https://api.inworld.ai/tts/v1/voice";
 const KOKORO_URL = "https://chutes-kokoro.chutes.ai/speak";
@@ -32,6 +41,7 @@ function kokoroOk(contentType = "audio/mpeg") {
 const ORIGINAL_ENV = { ...process.env };
 
 beforeEach(() => {
+  signedIn();
   process.env.INWORLD_API_KEY = "inworld-key";
   process.env.CHUTES_API_KEY = "chutes-key";
   delete process.env.INWORLD_VOICE_ID;
@@ -39,6 +49,18 @@ beforeEach(() => {
 
 afterEach(() => {
   process.env = { ...ORIGINAL_ENV };
+});
+
+describe("authorisation", () => {
+  it("returns 401 for a signed-out caller without calling any provider", async () => {
+    signedIn(null);
+
+    const res = await POST(ttsRequest({ text: "Hello there." }));
+
+    expect(res.status).toBe(401);
+    await expect(res.json()).resolves.toEqual({ error: "Unauthorized" });
+    expect(mockFetch()).not.toHaveBeenCalled();
+  });
 });
 
 describe("validation", () => {

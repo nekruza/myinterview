@@ -20,12 +20,19 @@ export interface BuildProfileSummaryInput {
   conversations: { completed: number; avgOverallScore: number | null; total: number };
   lessonsCompleted: number;
   favoriteWords: number;
+  /** Surviving generated_lessons rows, shown as a stat. */
   generatedLessons: number;
+  /**
+   * Rows in the append-only vocabulary_generation_events log. This, not
+   * `generatedLessons`, is what uses up the free allowance, because deleting
+   * lessons must not hand generations back.
+   */
+  generationEvents: number;
   now?: Date;
 }
 
 export function buildProfileSummary(input: BuildProfileSummaryInput): ProfileSummary {
-  const { user, row, conversations, lessonsCompleted, favoriteWords, generatedLessons } = input;
+  const { user, row, conversations, lessonsCompleted, favoriteWords, generatedLessons, generationEvents } = input;
   const now = input.now ?? new Date();
 
   const email = user.email ?? row?.email ?? "";
@@ -47,7 +54,7 @@ export function buildProfileSummary(input: BuildProfileSummaryInput): ProfileSum
   const isPro = hasProAccess(row, now);
 
   const freeConversationsRemaining = isPro ? 999 : Math.max(0, FREE_CONVERSATIONS - conversations.total);
-  const freeGenerationsRemaining = isPro ? 999 : Math.max(0, FREE_GENERATIONS - generatedLessons);
+  const freeGenerationsRemaining = isPro ? 999 : Math.max(0, FREE_GENERATIONS - generationEvents);
 
   return {
     id: user.id,

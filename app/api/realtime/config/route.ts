@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
+import { requireActiveSession } from "@/lib/db/conversations";
 
-export async function GET() {
+export async function GET(req: Request) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -8,6 +9,12 @@ export async function GET() {
 
   if (!user) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const sessionId = new URL(req.url).searchParams.get("sessionId");
+  const session = await requireActiveSession(supabase, user.id, sessionId);
+  if (!session.ok) {
+    return Response.json({ error: session.error }, { status: 403 });
   }
 
   const apiKey = process.env.INWORLD_API_KEY;

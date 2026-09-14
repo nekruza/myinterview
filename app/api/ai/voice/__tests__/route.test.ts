@@ -9,8 +9,19 @@ const { streamLLM } = jest.requireMock("@/lib/llm");
 
 const USER = { id: "user-1" };
 
+const SESSION_ID = "session-1";
+
+/** The caller's own active conversation_sessions row, started just now. */
+function activeSession(startedAt = new Date().toISOString()) {
+  return { data: { id: SESSION_ID, started_at: startedAt }, error: null };
+}
+
+/** Every call is made from a live conversation unless a test says otherwise. */
 function mockSupabase(config: SupabaseMockConfig) {
-  const mock = createSupabaseMock(config);
+  const mock = createSupabaseMock({
+    ...config,
+    tables: { conversation_sessions: activeSession(), ...(config.tables ?? {}) },
+  });
   createClient.mockResolvedValue(mock);
   return mock;
 }
@@ -29,10 +40,12 @@ function streamsThenThrows(chunks: string[], error: unknown) {
 }
 
 function voiceRequest(body: unknown) {
+  const withSession =
+    body && typeof body === "object" && !("sessionId" in body) ? { sessionId: SESSION_ID, ...body } : body;
   return new Request("http://localhost/api/ai/voice", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    body: JSON.stringify(withSession),
   });
 }
 
@@ -199,16 +212,21 @@ describe("conversation turn", () => {
     );
   });
 
-  it("reports a model failure in-band without tearing down the stream", async () => {
+  it("reports a model failure in-band with a generic message, logging the provider detail server-side", async () => {
     mockSupabase({ user: USER });
-    streamsThenThrows([], new Error("Gemini timed out"));
+    streamsThenThrows([], new Error("Gemini timed out: key sk-live-123 rejected"));
 
     const res = await POST(voiceRequest(TURN));
     const body = await res.text();
 
     expect(res.status).toBe(200);
-    expect(body).toContain('data: {"error":"Gemini timed out"}');
+    expect(body).toContain('data: {"error":"AI service error"}');
+    expect(body).not.toContain("Gemini timed out");
     expect(body).not.toContain("[DONE]");
+    expect(console.error).toHaveBeenCalledWith(
+      "[ai/voice] stream error:",
+      expect.objectContaining({ message: "Gemini timed out: key sk-live-123 rejected" })
+    );
   });
 
   it("keeps chunks emitted before the failure", async () => {
@@ -218,7 +236,8 @@ describe("conversation turn", () => {
     const body = await (await POST(voiceRequest(TURN))).text();
 
     expect(body).toContain('data: {"text":"Partial"}');
-    expect(body).toContain('data: {"error":"boom"}');
+    expect(body).toContain('data: {"error":"AI service error"}');
+    expect(body).not.toContain("boom");
   });
 
   it("falls back to a generic message for a non-Error throw", async () => {
@@ -228,6 +247,94 @@ describe("conversation turn", () => {
     const body = await (await POST(voiceRequest(TURN))).text();
 
     expect(body).toContain('data: {"error":"AI service error"}');
+  });
+});
+
+describe("message caps", () => {
+  it("keeps only the last 40 messages", async () => {
+    mockSupabase({ user: USER });
+    const messages = Array.from({ length: 50 }, (_, i) => ({ role: i % 2 ? "assistant" : "user", content: `m${i}` }));
+
+    await (await POST(voiceRequest({ ...TURN, messages }))).text();
+
+    const sent = streamLLM.mock.calls[0][0].messages;
+    expect(sent).toHaveLength(40);
+    expect(sent[0].content).toBe("m10");
+    expect(sent[39].content).toBe("m49");
+  });
+
+  it("truncates each message to 4000 characters rather than rejecting it", async () => {
+    mockSupabase({ user: USER });
+    const long = "a".repeat(5000);
+
+    const res = await POST(voiceRequest({ ...TURN, messages: [{ role: "user", content: long }] }));
+    await res.text();
+
+    expect(res.status).toBe(200);
+    expect(streamLLM.mock.calls[0][0].messages[0].content).toHaveLength(4000);
+  });
+
+  it("caps the history the hint prompt is built from as well", async () => {
+    mockSupabase({ user: USER });
+    streamsChunks([JSON.stringify({ hints: ["a"] })]);
+    const long = "b".repeat(5000);
+
+    await POST(voiceRequest({ ...TURN, isHint: true, messages: [{ role: "assistant", content: long }] }));
+
+    const transcript = streamLLM.mock.calls[0][0].messages[0].content as string;
+    expect(transcript).toBe(`Tutor: ${"b".repeat(4000)}`);
+  });
+});
+
+describe("session gating", () => {
+  it("returns 403 invalid_session without a sessionId, before calling the model", async () => {
+    mockSupabase({ user: USER });
+
+    const res = await POST(voiceRequest({ ...TURN, sessionId: undefined }));
+
+    expect(res.status).toBe(403);
+    await expect(res.json()).resolves.toEqual({ error: "invalid_session" });
+    expect(streamLLM).not.toHaveBeenCalled();
+  });
+
+  it("returns 403 invalid_session for an unknown or someone else's session", async () => {
+    mockSupabase({ user: USER, tables: { conversation_sessions: { data: null, error: null } } });
+
+    const res = await POST(voiceRequest(TURN));
+
+    expect(res.status).toBe(403);
+    await expect(res.json()).resolves.toEqual({ error: "invalid_session" });
+  });
+
+  it("returns 403 session_expired for a session started more than 3 hours ago", async () => {
+    const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString();
+    mockSupabase({ user: USER, tables: { conversation_sessions: activeSession(fourHoursAgo) } });
+
+    const res = await POST(voiceRequest(TURN));
+
+    expect(res.status).toBe(403);
+    await expect(res.json()).resolves.toEqual({ error: "session_expired" });
+    expect(streamLLM).not.toHaveBeenCalled();
+  });
+
+  it("gates hint requests too", async () => {
+    mockSupabase({ user: USER, tables: { conversation_sessions: { data: null, error: null } } });
+
+    const res = await POST(voiceRequest({ ...TURN, isHint: true }));
+
+    expect(res.status).toBe(403);
+    expect(streamLLM).not.toHaveBeenCalled();
+  });
+
+  it("looks the session up scoped to the caller and to active sessions", async () => {
+    const mock = mockSupabase({ user: USER });
+
+    await (await POST(voiceRequest(TURN))).text();
+
+    const builder = mock.builderFor("conversation_sessions");
+    expect(builder.eq).toHaveBeenCalledWith("id", SESSION_ID);
+    expect(builder.eq).toHaveBeenCalledWith("user_id", USER.id);
+    expect(builder.eq).toHaveBeenCalledWith("status", "active");
   });
 });
 

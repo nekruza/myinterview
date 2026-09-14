@@ -125,3 +125,44 @@ export async function conversationStats(
 
   return { completed, avgOverallScore };
 }
+
+/** How long after `started_at` a conversation may keep using the paid voice/AI routes. */
+export const ACTIVE_SESSION_MAX_AGE_MS = 3 * 60 * 60 * 1000;
+
+export type ActiveSessionCheck = { ok: true } | { ok: false; error: "invalid_session" | "session_expired" };
+
+/**
+ * Gate for the paid conversation routes (/api/ai/voice, /api/ai/feedback,
+ * /api/realtime/*). Starting a conversation (POST /api/conversations) is where
+ * the free allowance is enforced, so every later call must name a session the
+ * caller actually started: their own row, still `active`, and started within
+ * the last 3 hours. Without this, a free user at the limit could keep calling
+ * the voice engine directly.
+ *
+ * RLS already limits the read to the caller's rows; the `user_id` filter is
+ * kept anyway so the check doesn't silently rely on the policy.
+ */
+export async function requireActiveSession(
+  sb: SupabaseClient,
+  userId: string,
+  sessionId: unknown,
+  now: Date = new Date()
+): Promise<ActiveSessionCheck> {
+  if (typeof sessionId !== "string" || !sessionId) return { ok: false, error: "invalid_session" };
+
+  const { data, error } = await sb
+    .from("conversation_sessions")
+    .select("id, started_at")
+    .eq("id", sessionId)
+    .eq("user_id", userId)
+    .eq("status", "active")
+    .maybeSingle();
+
+  if (error || !data) return { ok: false, error: "invalid_session" };
+
+  const startedAt = Date.parse((data as { started_at: string }).started_at);
+  if (Number.isNaN(startedAt)) return { ok: false, error: "invalid_session" };
+  if (now.getTime() - startedAt > ACTIVE_SESSION_MAX_AGE_MS) return { ok: false, error: "session_expired" };
+
+  return { ok: true };
+}

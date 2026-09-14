@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
-import { getStripe, subscriptionToProfileFields } from "@/lib/stripe";
+import { canWriteSubscription, getStripe, subscriptionToProfileFields } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
@@ -32,16 +32,16 @@ export async function GET(req: NextRequest) {
         const admin = createAdminClient();
 
         // Stale-session guard: a delayed/duplicate success redirect must not
-        // clobber a *different*, presumably current, subscription that the
-        // profile already holds (e.g. the user upgraded again since this
-        // checkout session was created).
+        // clobber a *different* subscription that is still live on the
+        // profile. A different one that has ended (a returning subscriber's
+        // old, canceled subscription) does not block the write.
         const { data: profile } = await admin
           .from("profiles")
-          .select("stripe_subscription_id")
+          .select("stripe_subscription_id, pro_status")
           .eq("id", userId)
           .single();
 
-        if (!profile?.stripe_subscription_id || profile.stripe_subscription_id === sub.id) {
+        if (canWriteSubscription(profile ?? null, sub.id)) {
           const { error } = await admin.from("profiles").update(fields).eq("id", userId);
           if (error) console.error("[stripe/verify-purchase] profiles update error:", error);
         }

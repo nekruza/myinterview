@@ -5,6 +5,8 @@ import {
   listConversations,
   countConversations,
   conversationStats,
+  requireActiveSession,
+  ACTIVE_SESSION_MAX_AGE_MS,
 } from "@/lib/db/conversations";
 import type { LanguageAnalysis } from "@/lib/types/conversation";
 
@@ -166,5 +168,85 @@ describe("conversationStats", () => {
   it("throws on error", async () => {
     const mock = createSupabaseMock({ tables: { conversation_sessions: { data: null, error: { message: "boom" } } } });
     await expect(conversationStats(mock as never, "u1")).rejects.toMatchObject({ message: "boom" });
+  });
+});
+
+describe("requireActiveSession", () => {
+  const NOW = new Date("2026-09-14T12:00:00.000Z");
+  const minutesAgo = (m: number) => new Date(NOW.getTime() - m * 60_000).toISOString();
+
+  function sessionsTable(result: { data: unknown; error: unknown }) {
+    return createSupabaseMock({ tables: { conversation_sessions: result as never } });
+  }
+
+  it("allows the user's own active session started within the last 3 hours", async () => {
+    const mock = sessionsTable({ data: { id: "s1", started_at: minutesAgo(10) }, error: null });
+
+    await expect(requireActiveSession(mock as never, "u1", "s1", NOW)).resolves.toEqual({ ok: true });
+
+    const builder = mock.builderFor("conversation_sessions");
+    expect(builder.select).toHaveBeenCalledWith("id, started_at");
+    expect(builder.eq).toHaveBeenCalledWith("id", "s1");
+    expect(builder.eq).toHaveBeenCalledWith("user_id", "u1");
+    expect(builder.eq).toHaveBeenCalledWith("status", "active");
+    expect(builder.maybeSingle).toHaveBeenCalled();
+  });
+
+  it("uses a 3-hour window", () => {
+    expect(ACTIVE_SESSION_MAX_AGE_MS).toBe(3 * 60 * 60 * 1000);
+  });
+
+  it("still allows a session just inside the window", async () => {
+    const mock = sessionsTable({ data: { id: "s1", started_at: minutesAgo(179) }, error: null });
+    await expect(requireActiveSession(mock as never, "u1", "s1", NOW)).resolves.toEqual({ ok: true });
+  });
+
+  it("rejects a session older than 3 hours as expired", async () => {
+    const mock = sessionsTable({ data: { id: "s1", started_at: minutesAgo(181) }, error: null });
+    await expect(requireActiveSession(mock as never, "u1", "s1", NOW)).resolves.toEqual({
+      ok: false,
+      error: "session_expired",
+    });
+  });
+
+  it.each([undefined, null, "", 42, { id: "s1" }])(
+    "rejects a missing or non-string session id (%p) without querying",
+    async (sessionId) => {
+      const mock = sessionsTable({ data: { id: "s1", started_at: minutesAgo(1) }, error: null });
+      await expect(requireActiveSession(mock as never, "u1", sessionId, NOW)).resolves.toEqual({
+        ok: false,
+        error: "invalid_session",
+      });
+      expect(mock.callCountFor("conversation_sessions")).toBe(0);
+    }
+  );
+
+  it("rejects an unknown, someone else's, or already-completed session (no row matches)", async () => {
+    const mock = sessionsTable({ data: null, error: null });
+    await expect(requireActiveSession(mock as never, "u1", "s1", NOW)).resolves.toEqual({
+      ok: false,
+      error: "invalid_session",
+    });
+  });
+
+  it("rejects when the lookup errors (e.g. a malformed uuid)", async () => {
+    const mock = sessionsTable({ data: null, error: { message: "invalid input syntax for type uuid" } });
+    await expect(requireActiveSession(mock as never, "u1", "nope", NOW)).resolves.toEqual({
+      ok: false,
+      error: "invalid_session",
+    });
+  });
+
+  it("rejects a row whose started_at can't be parsed", async () => {
+    const mock = sessionsTable({ data: { id: "s1", started_at: "garbage" }, error: null });
+    await expect(requireActiveSession(mock as never, "u1", "s1", NOW)).resolves.toEqual({
+      ok: false,
+      error: "invalid_session",
+    });
+  });
+
+  it("defaults `now` to the current time", async () => {
+    const mock = sessionsTable({ data: { id: "s1", started_at: new Date().toISOString() }, error: null });
+    await expect(requireActiveSession(mock as never, "u1", "s1")).resolves.toEqual({ ok: true });
   });
 });

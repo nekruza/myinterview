@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { getStripe, subscriptionToProfileFields } from "@/lib/stripe";
+import { getStripe, subscriptionToProfileFields, subscriptionWriteGuardFilter } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
@@ -16,9 +16,10 @@ class WebhookHandlingError extends Error {}
 /**
  * Updates the profile whose `stripe_subscription_id` matches this
  * subscription. Falls back to updating by `id = sub.metadata.user_id`, but
- * only when that row has no subscription recorded yet or already has this
- * same one — never when it holds a *different* subscription id, which would
- * mean a stale/out-of-order event is about to clobber the current one.
+ * only when `subscriptionWriteGuardFilter` allows it: the row has no
+ * subscription recorded, already has this one, or holds a different one that
+ * is no longer live. A different subscription that is still
+ * active/trialing/past_due means a stale event would clobber the current one.
  */
 async function updateProfileForSubscription(
   admin: SupabaseClient,
@@ -44,7 +45,7 @@ async function updateProfileForSubscription(
     .from("profiles")
     .update(fields)
     .eq("id", userId)
-    .or(`stripe_subscription_id.is.null,stripe_subscription_id.eq.${sub.id}`);
+    .or(subscriptionWriteGuardFilter(sub.id));
 
   if (fallbackError) {
     console.error("[stripe/webhook] profiles update (by user id fallback) error:", fallbackError);
@@ -103,7 +104,14 @@ export async function POST(req: NextRequest) {
         const subscription = await getStripe().subscriptions.retrieve(subscriptionId);
         const fields = subscriptionToProfileFields(subscription);
 
-        const { error } = await admin.from("profiles").update(fields).eq("id", userId);
+        // Same stale-subscription guard as the metadata fallback: a delayed
+        // completion for an old checkout must not replace a different
+        // subscription that is still live on the profile.
+        const { error } = await admin
+          .from("profiles")
+          .update(fields)
+          .eq("id", userId)
+          .or(subscriptionWriteGuardFilter(subscription.id));
         if (error) {
           console.error("[stripe/webhook] profiles update (checkout.session.completed) error:", error);
           throw new WebhookHandlingError("profiles update (checkout.session.completed) failed");

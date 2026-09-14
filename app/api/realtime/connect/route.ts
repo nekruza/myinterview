@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { requireActiveSession } from "@/lib/db/conversations";
 
 export async function POST(req: Request) {
   const supabase = await createClient();
@@ -15,9 +16,14 @@ export async function POST(req: Request) {
     return Response.json({ error: "INWORLD_API_KEY not configured" }, { status: 500 });
   }
 
-  const { sdp } = await req.json() as { sdp: string };
+  const { sdp, sessionId } = await req.json() as { sdp: string; sessionId?: unknown };
   if (!sdp) {
     return Response.json({ error: "Missing SDP offer" }, { status: 400 });
+  }
+
+  const session = await requireActiveSession(supabase, user.id, sessionId);
+  if (!session.ok) {
+    return Response.json({ error: session.error }, { status: 403 });
   }
 
   const sdpRes = await fetch("https://api.inworld.ai/v1/realtime/calls", {

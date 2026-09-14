@@ -4,6 +4,7 @@ import { buildConversationInstructions, buildHintPrompt } from "@/lib/utils/buil
 import { isLanguageId, type LanguageId } from "@/lib/languages";
 import { isUserLevel, type UserLevel } from "@/lib/levels";
 import { getTutorById } from "@/lib/tutors";
+import { requireActiveSession } from "@/lib/db/conversations";
 
 export const runtime = "nodejs";
 
@@ -32,6 +33,28 @@ const FALLBACK_HINTS = [
 
 const BEGIN_RE = /^\[BEGIN\]/i;
 
+/** Only the recent history is useful to the model; older turns just cost tokens. */
+const MAX_MESSAGES = 40;
+const MAX_CONTENT_CHARS = 4000;
+
+/** Keeps the last 40 messages and truncates each to 4000 characters. Over the cap is trimmed, never rejected. */
+function capMessages(messages: unknown[]): ConversationMessage[] {
+  return messages.slice(-MAX_MESSAGES).map((m) => {
+    const raw = (m ?? {}) as Record<string, unknown>;
+    return {
+      role: String(raw.role ?? ""),
+      content: String(raw.content ?? "").slice(0, MAX_CONTENT_CHARS),
+    };
+  });
+}
+
+function jsonResponse(body: unknown, status: number) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
 function buildHintTranscript(messages: ConversationMessage[]): string {
   return messages
     .filter((m) => !(m.role === "user" && BEGIN_RE.test(m.content.trim())))
@@ -53,14 +76,18 @@ export async function POST(req: Request) {
     });
   }
 
-  const { messages, language, level, tutorId, roleplay, isHint } = await req.json();
+  const { messages: rawMessages, language, level, tutorId, roleplay, isHint, sessionId } = await req.json();
 
-  if (!messages || !Array.isArray(messages)) {
-    return new Response(JSON.stringify({ error: "Missing required fields" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+  if (!rawMessages || !Array.isArray(rawMessages)) {
+    return jsonResponse({ error: "Missing required fields" }, 400);
   }
+
+  const session = await requireActiveSession(supabase, user.id, sessionId);
+  if (!session.ok) {
+    return jsonResponse({ error: session.error }, 403);
+  }
+
+  const messages = capMessages(rawMessages);
 
   const resolvedLanguage: LanguageId = isLanguageId(language) ? language : "english";
   const resolvedLevel: UserLevel = isUserLevel(level) ? level : "beginner";
@@ -131,10 +158,11 @@ export async function POST(req: Request) {
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         controller.close();
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "AI service error";
+        // Provider error text can carry request details, so it stays in the
+        // server log and the client gets a generic message.
+        console.error("[ai/voice] stream error:", err);
         controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify({ error: message })}\n\n`)
+          encoder.encode(`data: ${JSON.stringify({ error: "AI service error" })}\n\n`)
         );
         controller.close();
       }

@@ -10,8 +10,18 @@ const { streamLLM } = jest.requireMock("@/lib/llm");
 
 const USER = { id: "user-1" };
 
+const SESSION_ID = "session-1";
+
+function activeSession(startedAt = new Date().toISOString()) {
+  return { data: { id: SESSION_ID, started_at: startedAt }, error: null };
+}
+
+/** Grading happens while the session is still active (it's completed only afterwards). */
 function mockSupabase(config: SupabaseMockConfig) {
-  const mock = createSupabaseMock(config);
+  const mock = createSupabaseMock({
+    ...config,
+    tables: { conversation_sessions: activeSession(), ...(config.tables ?? {}) },
+  });
   createClient.mockResolvedValue(mock);
   return mock;
 }
@@ -34,10 +44,12 @@ function modelThrows(error: unknown) {
 }
 
 function feedbackRequest(body: unknown) {
+  const withSession =
+    body && typeof body === "object" && !("sessionId" in body) ? { sessionId: SESSION_ID, ...body } : body;
   return new Request("http://localhost/api/ai/feedback", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    body: JSON.stringify(withSession),
   }) as unknown as NextRequest;
 }
 
@@ -85,6 +97,48 @@ describe("authorisation", () => {
 
     expect(res.status).toBe(401);
     await expect(res.json()).resolves.toEqual({ error: "Unauthorized" });
+  });
+});
+
+describe("session gating", () => {
+  it("returns 403 invalid_session without a sessionId, before calling the model", async () => {
+    mockSupabase({ user: USER });
+
+    const res = await POST(feedbackRequest({ messages: TRANSCRIPT, sessionId: undefined }));
+
+    expect(res.status).toBe(403);
+    await expect(res.json()).resolves.toEqual({ error: "invalid_session" });
+    expect(streamLLM).not.toHaveBeenCalled();
+  });
+
+  it("returns 403 invalid_session for an unknown or completed session", async () => {
+    mockSupabase({ user: USER, tables: { conversation_sessions: { data: null, error: null } } });
+
+    const res = await POST(feedbackRequest({ messages: TRANSCRIPT }));
+
+    expect(res.status).toBe(403);
+    await expect(res.json()).resolves.toEqual({ error: "invalid_session" });
+  });
+
+  it("returns 403 session_expired for a session started more than 3 hours ago", async () => {
+    const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString();
+    mockSupabase({ user: USER, tables: { conversation_sessions: activeSession(fourHoursAgo) } });
+
+    const res = await POST(feedbackRequest({ messages: TRANSCRIPT }));
+
+    expect(res.status).toBe(403);
+    await expect(res.json()).resolves.toEqual({ error: "session_expired" });
+    expect(streamLLM).not.toHaveBeenCalled();
+  });
+
+  it("looks the session up scoped to the caller", async () => {
+    const mock = mockSupabase({ user: USER });
+
+    await POST(feedbackRequest({ messages: TRANSCRIPT }));
+
+    const builder = mock.builderFor("conversation_sessions");
+    expect(builder.eq).toHaveBeenCalledWith("id", SESSION_ID);
+    expect(builder.eq).toHaveBeenCalledWith("user_id", USER.id);
   });
 });
 
