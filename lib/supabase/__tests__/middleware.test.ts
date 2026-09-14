@@ -22,7 +22,7 @@ process.env.NEXT_PUBLIC_SUPABASE_URL = "https://project.supabase.co";
 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "anon-key";
 
 function request(pathname: string, cookies: Record<string, string> = {}) {
-  const req = new NextRequest(`https://myinterview.app${pathname}`);
+  const req = new NextRequest(`https://fina.app${pathname}`);
   for (const [name, value] of Object.entries(cookies)) {
     req.cookies.set(name, value);
   }
@@ -65,10 +65,18 @@ describe("protected app routes", () => {
     expect(new URL(res.headers.get("location")!).pathname).toBe("/login");
   });
 
+  it("preserves the original path as a next param", async () => {
+    const res = await updateSession(request("/app/vocabulary"));
+
+    const location = new URL(res.headers.get("location")!);
+    expect(location.pathname).toBe("/login");
+    expect(location.searchParams.get("next")).toBe("/app/vocabulary");
+  });
+
   it("keeps the original host when redirecting", async () => {
     const res = await updateSession(request("/app/dashboard"));
 
-    expect(new URL(res.headers.get("location")!).host).toBe("myinterview.app");
+    expect(new URL(res.headers.get("location")!).host).toBe("fina.app");
   });
 
   it("lets a signed-in user through", async () => {
@@ -81,19 +89,7 @@ describe("protected app routes", () => {
 });
 
 describe("public routes", () => {
-  it("leaves the anonymous practice trial open", async () => {
-    const res = await updateSession(request("/app/practice"));
-
-    expect(res.headers.get("location")).toBeNull();
-  });
-
-  it("still protects paths nested under practice", async () => {
-    const res = await updateSession(request("/app/practice/history"));
-
-    expect(res.status).toBe(307);
-  });
-
-  it.each(["/", "/pricing", "/blog/some-post", "/login"])(
+  it.each(["/", "/pricing", "/login"])(
     "does not gate %s",
     async (pathname) => {
       const res = await updateSession(request(pathname));

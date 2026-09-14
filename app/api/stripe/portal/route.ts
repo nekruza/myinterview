@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
 import { createClient } from "@/lib/supabase/server";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2026-02-25.clover",
-});
+import { getStripe } from "@/lib/stripe";
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -23,13 +19,13 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (!profile?.stripe_customer_id) {
-    return NextResponse.json({ error: "No subscription found" }, { status: 404 });
+    return NextResponse.json({ error: "No billing account" }, { status: 404 });
   }
 
   const origin = process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
 
   try {
-    const portalSession = await stripe.billingPortal.sessions.create({
+    const portalSession = await getStripe().billingPortal.sessions.create({
       customer: profile.stripe_customer_id,
       return_url: `${origin}/app/settings`,
     });

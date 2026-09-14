@@ -472,6 +472,69 @@ describe("Chrome keepalive and safety timeout", () => {
   });
 });
 
+describe("lang parameter", () => {
+  it("includes language in the /api/tts request body when given", async () => {
+    kokoroOk();
+    const { result } = renderHook(() => useSpeechSynthesis());
+
+    act(() => {
+      void result.current.speakAsync("Hola.", "Diego", "es-ES");
+    });
+
+    await waitFor(() => expect(mockFetch()).toHaveBeenCalled());
+    expect(mockFetch()).toHaveBeenCalledWith("/api/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: "Hola.", voiceId: "Diego", language: "es-ES" }),
+    });
+  });
+
+  it("omits language from the request body when not given", async () => {
+    kokoroOk();
+    const { result } = renderHook(() => useSpeechSynthesis());
+
+    act(() => {
+      void result.current.speakAsync("Hello.", "Clive");
+    });
+
+    await waitFor(() => expect(mockFetch()).toHaveBeenCalled());
+    expect(mockFetch()).toHaveBeenCalledWith("/api/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: "Hello.", voiceId: "Clive" }),
+    });
+  });
+
+  it("picks a fallback voice matching the language and sets utterance.lang", async () => {
+    const spanishVoice = voice("Spanish Voice", "es-ES");
+    synth.getVoices.mockReturnValue([voice("English Voice", "en-US"), spanishVoice]);
+    kokoroFails();
+
+    const { result } = renderHook(() => useSpeechSynthesis());
+    act(() => {
+      void result.current.speakAsync("Hola.", undefined, "es-ES");
+    });
+
+    await waitFor(() => expect(MockUtterance.instances.length).toBeGreaterThan(0));
+    expect(MockUtterance.instances[0].voice).toBe(spanishVoice);
+    expect(MockUtterance.instances[0]).toMatchObject({ lang: "es-ES" });
+  });
+
+  it("matches a fallback voice by the language's base code (e.g. es matches es-MX)", async () => {
+    const mexicanSpanish = voice("Mexican Spanish", "es-MX");
+    synth.getVoices.mockReturnValue([voice("English Voice", "en-US"), mexicanSpanish]);
+    kokoroFails();
+
+    const { result } = renderHook(() => useSpeechSynthesis());
+    act(() => {
+      void result.current.speakAsync("Hola.", undefined, "es-ES");
+    });
+
+    await waitFor(() => expect(MockUtterance.instances.length).toBeGreaterThan(0));
+    expect(MockUtterance.instances[0].voice).toBe(mexicanSpanish);
+  });
+});
+
 describe("cancel", () => {
   it("stops Kokoro audio playback", async () => {
     kokoroOk();

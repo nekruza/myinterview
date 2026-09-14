@@ -62,10 +62,9 @@ describe("useInworldRealtime", () => {
 
     await act(async () => {
       await result.current.connect({
-        instructions: "You are Jason Mitchell",
+        instructions: "You are Luna, a friendly Spanish conversation partner.",
         voice: "Dennis",
         model: "google-ai-studio/gemini-2.5-flash",
-        interviewType: "technical",
       });
     });
 

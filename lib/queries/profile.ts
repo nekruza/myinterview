@@ -1,11 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "./keys";
-import type { UserProfile } from "@/lib/types/profile";
+import type { ProfileSummary } from "@/lib/types/profile";
 
-// ── General profile (used by AppSidebar and peer-practice) ───────────────────
-
-async function fetchProfile(): Promise<UserProfile> {
+async function fetchProfile(): Promise<ProfileSummary> {
   const res = await fetch("/api/profile");
   if (!res.ok) throw Object.assign(new Error("Failed to fetch profile"), { status: res.status });
   return res.json();
@@ -18,45 +15,27 @@ export function useProfile() {
   });
 }
 
-// ── Settings profile (extended fields not in /api/profile) ───────────────────
+async function patchProfile(updates: Record<string, unknown>): Promise<void> {
+  const res = await fetch("/api/profile", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(updates),
+  });
 
-export interface SettingsProfile {
-  full_name: string | null;
-  avatar_url: string | null;
-  resume_url: string | null;
-  experience_level: string | null;
-  interview_timeline: string | null;
-  target_companies: string[] | null;
-  email_notifications: boolean | null;
-  match_alerts: boolean | null;
-  interview_style: string | null;
-  interview_duration: string | null;
-  practice_partner: string | null;
-  interview_language: string | null;
-  interview_platform: string | null;
-  feedback_preference: string | null;
-  wants_tips: boolean | null;
-  session_credits: number | null;
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}) as { error?: string });
+    throw Object.assign(new Error(body.error ?? "Failed to update profile"), { status: res.status });
+  }
 }
 
-async function fetchSettingsProfile(): Promise<SettingsProfile | null> {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-  const { data, error } = await supabase
-    .from("profiles")
-    .select(
-      "full_name, avatar_url, resume_url, experience_level, interview_timeline, target_companies, email_notifications, match_alerts, interview_style, interview_duration, practice_partner, interview_language, interview_platform, feedback_preference, wants_tips, session_credits"
-    )
-    .eq("id", user.id)
-    .single();
-  if (error) throw Object.assign(new Error(error.message), { code: error.code });
-  return data ?? null;
-}
+/** PATCHes a subset of profile fields and invalidates the cached profile on success. */
+export function useUpdateProfile() {
+  const queryClient = useQueryClient();
 
-export function useSettingsProfile() {
-  return useQuery({
-    queryKey: QUERY_KEYS.settingsProfile,
-    queryFn: fetchSettingsProfile,
+  return useMutation({
+    mutationFn: patchProfile,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.profile });
+    },
   });
 }

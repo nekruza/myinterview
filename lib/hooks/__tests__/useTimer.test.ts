@@ -38,6 +38,18 @@ describe("useTimer", () => {
     expect(result.current.elapsed).toBe(3);
   });
 
+  it("exposes the elapsed count as `seconds` too", () => {
+    const { result } = renderHook(() => useTimer());
+
+    expect(result.current.seconds).toBe(0);
+
+    act(() => result.current.start());
+    tick(4000);
+
+    expect(result.current.seconds).toBe(4);
+    expect(result.current.seconds).toBe(result.current.elapsed);
+  });
+
   it("does not advance before a full second has passed", () => {
     const { result } = renderHook(() => useTimer());
 

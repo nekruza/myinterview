@@ -1,4 +1,15 @@
+import { createClient } from "@/lib/supabase/server";
+
 export async function POST(req: Request) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const apiKey = process.env.INWORLD_API_KEY;
   if (!apiKey) {
     return Response.json({ error: "INWORLD_API_KEY not configured" }, { status: 500 });

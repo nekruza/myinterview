@@ -14,10 +14,7 @@ jest.mock("@/lib/supabase/server", () => ({ createClient: jest.fn() }));
 
 process.env.STRIPE_SECRET_KEY = "sk_test";
 
-// The route builds its clients at module load, so it must be required after
-// the mocks and env vars above are in place.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { POST } = require("../route") as typeof import("../route");
+import { POST } from "../route";
 const { createClient } = jest.requireMock("@/lib/supabase/server");
 
 const USER = { id: "user-1" };
@@ -42,9 +39,7 @@ function portalRequest(url = "http://localhost/api/stripe/portal") {
 const ORIGINAL_APP_URL = process.env.NEXT_PUBLIC_APP_URL;
 
 beforeEach(() => {
-  createPortalSession.mockResolvedValue({
-    url: "https://billing.stripe.com/session/xyz",
-  });
+  createPortalSession.mockResolvedValue({ url: "https://billing.stripe.com/session/xyz" });
   delete process.env.NEXT_PUBLIC_APP_URL;
 });
 
@@ -73,13 +68,13 @@ describe("authorisation", () => {
 });
 
 describe("customer lookup", () => {
-  it("returns 404 when the user has never paid", async () => {
+  it("returns 404 with 'No billing account' when the user has never paid", async () => {
     withCustomer(null);
 
     const res = await POST(portalRequest());
 
     expect(res.status).toBe(404);
-    await expect(res.json()).resolves.toEqual({ error: "No subscription found" });
+    await expect(res.json()).resolves.toEqual({ error: "No billing account" });
   });
 
   it("returns 404 when the profile row is missing", async () => {
@@ -106,12 +101,10 @@ describe("portal session", () => {
     const res = await POST(portalRequest());
 
     expect(res.status).toBe(200);
-    await expect(res.json()).resolves.toEqual({
-      url: "https://billing.stripe.com/session/xyz",
-    });
+    await expect(res.json()).resolves.toEqual({ url: "https://billing.stripe.com/session/xyz" });
   });
 
-  it("opens the portal for the caller's own stripe customer", async () => {
+  it("opens the portal for the caller's own stripe customer, returning to settings", async () => {
     withCustomer("cus_123");
 
     await POST(portalRequest());
@@ -123,14 +116,12 @@ describe("portal session", () => {
   });
 
   it("prefers the configured app url for the return link", async () => {
-    process.env.NEXT_PUBLIC_APP_URL = "https://myinterview.app";
+    process.env.NEXT_PUBLIC_APP_URL = "https://fina.app";
     withCustomer("cus_123");
 
     await POST(portalRequest());
 
-    expect(createPortalSession.mock.calls[0][0].return_url).toBe(
-      "https://myinterview.app/app/settings"
-    );
+    expect(createPortalSession.mock.calls[0][0].return_url).toBe("https://fina.app/app/settings");
   });
 
   it("derives the return link from the request when nothing is configured", async () => {
@@ -138,9 +129,7 @@ describe("portal session", () => {
 
     await POST(portalRequest("https://preview.vercel.app/api/stripe/portal"));
 
-    expect(createPortalSession.mock.calls[0][0].return_url).toBe(
-      "https://preview.vercel.app/app/settings"
-    );
+    expect(createPortalSession.mock.calls[0][0].return_url).toBe("https://preview.vercel.app/app/settings");
   });
 
   it("returns 500 with the Stripe message when the portal cannot be opened", async () => {
@@ -150,9 +139,7 @@ describe("portal session", () => {
     const res = await POST(portalRequest());
 
     expect(res.status).toBe(500);
-    await expect(res.json()).resolves.toEqual({
-      error: "No configuration provided",
-    });
+    await expect(res.json()).resolves.toEqual({ error: "No configuration provided" });
   });
 
   it("returns a generic message when Stripe throws a non-Error", async () => {

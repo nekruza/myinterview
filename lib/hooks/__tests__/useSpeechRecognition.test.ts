@@ -162,6 +162,41 @@ describe("startListening", () => {
   });
 });
 
+describe("lang parameter", () => {
+  it("defaults to en-US when no lang is passed", () => {
+    const { result } = renderHook(() => useSpeechRecognition());
+
+    act(() => result.current.startListening());
+
+    expect(MockSpeechRecognition.last.lang).toBe("en-US");
+  });
+
+  it("configures recognition with the requested language", () => {
+    const { result } = renderHook(() => useSpeechRecognition("es-ES"));
+
+    act(() => result.current.startListening());
+
+    expect(MockSpeechRecognition.last.lang).toBe("es-ES");
+  });
+
+  it("updates the existing instance's lang before the next start()", () => {
+    const { result, rerender } = renderHook(
+      ({ lang }: { lang: string }) => useSpeechRecognition(lang),
+      { initialProps: { lang: "en-US" } }
+    );
+
+    act(() => result.current.startListening());
+    expect(MockSpeechRecognition.last.lang).toBe("en-US");
+    act(() => result.current.stopListening());
+
+    rerender({ lang: "fr-FR" });
+    act(() => result.current.startListening());
+
+    expect(MockSpeechRecognition.instances).toHaveLength(1);
+    expect(MockSpeechRecognition.last.lang).toBe("fr-FR");
+  });
+});
+
 describe("transcription", () => {
   it("exposes interim results on transcript", () => {
     const { result } = renderHook(() => useSpeechRecognition());

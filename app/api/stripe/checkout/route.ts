@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
 import { createClient } from "@/lib/supabase/server";
-import { SESSION_PACKS, calcPackPricePence } from "@/lib/session-limits";
-import type { PackSize } from "@/lib/session-limits";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2026-02-25.clover",
-});
-
-const VALID_PACK_SIZES = SESSION_PACKS.map((p) => p.sessions);
+import { getProfileRow } from "@/lib/db/profile";
+import { getStripe } from "@/lib/stripe";
+import { isBillingPlan, hasProAccess, PLANS } from "@/lib/billing";
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -20,53 +14,51 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await req.json().catch(() => ({}));
-  const sessions = Number(body.sessions) as PackSize;
+  const body = (await req.json().catch(() => null)) as { plan?: unknown } | null;
+  if (!body || !isBillingPlan(body.plan)) {
+    return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
+  }
+  const plan = body.plan;
 
-  if (!VALID_PACK_SIZES.includes(sessions)) {
-    return NextResponse.json(
-      { error: `Invalid pack size. Choose from: ${VALID_PACK_SIZES.join(", ")}` },
-      { status: 400 }
-    );
+  const row = await getProfileRow(supabase, user.id);
+  if (hasProAccess(row)) {
+    return NextResponse.json({ error: "already_pro" }, { status: 409 });
   }
 
-  const pricePence = calcPackPricePence(sessions);
-  const priceGbp = pricePence / 100;
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("full_name")
-    .eq("id", user.id)
-    .single();
-
   const origin = process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin;
+  const planDetails = PLANS[plan];
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    payment_method_types: ["card"],
-    line_items: [
-      {
-        price_data: {
-          currency: "gbp",
-          product_data: {
-            name: `${sessions} Interview Sessions`,
-            description: `${sessions} AI mock interview sessions · £${priceGbp} one-time`,
+  try {
+    const session = await getStripe().checkout.sessions.create({
+      mode: "subscription",
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: planDetails.currency,
+            unit_amount: planDetails.amountCents,
+            recurring: { interval: planDetails.interval },
+            product_data: {
+              name: "Fina Pro",
+              description: "Unlimited AI voice conversations and word generation",
+            },
           },
-          unit_amount: pricePence,
         },
-        quantity: 1,
-      },
-    ],
-    customer_email: user.email,
-    client_reference_id: user.id,
-    metadata: {
-      user_id: user.id,
-      full_name: profile?.full_name ?? "",
-      sessions: String(sessions),
-    },
-    success_url: `${origin}/api/stripe/verify-purchase?session_id={CHECKOUT_SESSION_ID}&sessions=${sessions}`,
-    cancel_url: `${origin}/app/settings`,
-  });
+      ],
+      customer: row?.stripe_customer_id ?? undefined,
+      customer_email: row?.stripe_customer_id ? undefined : (user.email ?? undefined),
+      client_reference_id: user.id,
+      metadata: { user_id: user.id, plan },
+      subscription_data: { metadata: { user_id: user.id, plan } },
+      allow_promotion_codes: true,
+      success_url: `${origin}/api/stripe/verify-purchase?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/app/settings?canceled=1`,
+    });
 
-  return NextResponse.json({ url: session.url });
+    return NextResponse.json({ url: session.url });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Stripe error";
+    console.error("[stripe/checkout]", message);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }

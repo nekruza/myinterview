@@ -1,4 +1,17 @@
 import { GET } from "../route";
+import { createSupabaseMock, type SupabaseMockConfig } from "@/test-utils/supabase-mock";
+
+jest.mock("@/lib/supabase/server", () => ({ createClient: jest.fn() }));
+
+const { createClient } = jest.requireMock("@/lib/supabase/server");
+
+const USER = { id: "user-1" };
+
+function mockSupabase(config: SupabaseMockConfig) {
+  const mock = createSupabaseMock(config);
+  createClient.mockResolvedValue(mock);
+  return mock;
+}
 
 global.fetch = jest.fn();
 
@@ -18,7 +31,19 @@ describe("GET /api/realtime/config", () => {
     delete process.env.INWORLD_API_KEY;
   });
 
+  it("returns 401 with no authenticated user", async () => {
+    mockSupabase({ user: null });
+
+    const response = await GET();
+
+    expect(response.status).toBe(401);
+    await expect(response.json()).resolves.toEqual({ error: "Unauthorized" });
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
   it("returns iceServers but NOT the apiKey", async () => {
+    mockSupabase({ user: USER });
+
     const response = await GET();
     const data = await response.json();
 
@@ -28,6 +53,8 @@ describe("GET /api/realtime/config", () => {
   });
 
   it("calls Inworld ICE servers endpoint with auth header", async () => {
+    mockSupabase({ user: USER });
+
     await GET();
 
     expect(global.fetch).toHaveBeenCalledWith(
@@ -41,6 +68,7 @@ describe("GET /api/realtime/config", () => {
   });
 
   it("returns 500 when Inworld ICE endpoint fails", async () => {
+    mockSupabase({ user: USER });
     (global.fetch as jest.Mock).mockResolvedValue({ ok: false, status: 503 });
 
     const response = await GET();
@@ -51,6 +79,7 @@ describe("GET /api/realtime/config", () => {
   });
 
   it("returns 500 when INWORLD_API_KEY is not set", async () => {
+    mockSupabase({ user: USER });
     delete process.env.INWORLD_API_KEY;
 
     const response = await GET();

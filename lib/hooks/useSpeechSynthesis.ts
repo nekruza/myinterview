@@ -46,9 +46,17 @@ export function useSpeechSynthesis() {
 
   // ── Web SpeechSynthesis fallback (chunked to avoid Chrome 15s bug) ──────────
 
-  const speakChunk = useCallback((text: string, onEnd: () => void) => {
+  const speakChunk = useCallback((text: string, onEnd: () => void, lang?: string) => {
     const utterance = new SpeechSynthesisUtterance(text);
-    if (voiceRef.current) utterance.voice = voiceRef.current;
+    const languageVoice = lang
+      ? window.speechSynthesis.getVoices().find((v) => v.lang.startsWith(lang.slice(0, 2)))
+      : undefined;
+    if (languageVoice) {
+      utterance.voice = languageVoice;
+    } else if (voiceRef.current) {
+      utterance.voice = voiceRef.current;
+    }
+    if (lang) utterance.lang = lang;
     utterance.rate = 1.0;
     utterance.pitch = 1.0;
     utterance.volume = 1.0;
@@ -58,7 +66,7 @@ export function useSpeechSynthesis() {
   }, []);
 
   const speakFallback = useCallback(
-    (text: string): Promise<void> => {
+    (text: string, lang?: string): Promise<void> => {
       window.speechSynthesis.cancel();
       return new Promise<void>((resolve) => {
         resolveRef.current = resolve;
@@ -101,10 +109,14 @@ export function useSpeechSynthesis() {
             done();
             return;
           }
-          speakChunk(chunks[index], () => {
-            index++;
-            speakNext();
-          });
+          speakChunk(
+            chunks[index],
+            () => {
+              index++;
+              speakNext();
+            },
+            lang
+          );
         };
         speakNext();
       });
@@ -115,7 +127,7 @@ export function useSpeechSynthesis() {
   // ── Kokoro primary + Web Speech fallback ────────────────────────────────────
 
   const speakAsync = useCallback(
-    async (text: string, voiceId?: string): Promise<void> => {
+    async (text: string, voiceId?: string, lang?: string): Promise<void> => {
       if (typeof window === "undefined") return;
 
       isCancelledRef.current = false;
@@ -126,7 +138,7 @@ export function useSpeechSynthesis() {
         const res = await fetch("/api/tts", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text, voiceId }),
+          body: JSON.stringify({ text, voiceId, language: lang }),
         });
 
         if (res.ok) {
@@ -165,7 +177,7 @@ export function useSpeechSynthesis() {
 
       // 2. Fallback: Web SpeechSynthesis
       if (!isCancelledRef.current) {
-        await speakFallback(text);
+        await speakFallback(text, lang);
       } else {
         setIsSpeaking(false);
       }

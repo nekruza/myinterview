@@ -40,7 +40,7 @@ async function collect(gen: AsyncGenerator<string>) {
 }
 
 const OPTIONS: StreamLLMOptions = {
-  systemPrompt: "You are an interviewer.",
+  systemPrompt: "You are a helpful tutor.",
   messages: [{ role: "user", content: "Hello" }],
   maxTokens: 512,
 };
@@ -99,7 +99,7 @@ describe("Gemini primary path", () => {
     await collect(streamLLM({ ...OPTIONS, temperature: 0.2 }));
 
     const body = JSON.parse(mockFetch().mock.calls[0][1].body);
-    expect(body.system_instruction.parts[0].text).toBe("You are an interviewer.");
+    expect(body.system_instruction.parts[0].text).toBe("You are a helpful tutor.");
     expect(body.generationConfig).toEqual({
       maxOutputTokens: 512,
       temperature: 0.2,
@@ -260,7 +260,7 @@ describe("fallback to OpenAI", () => {
     const body = JSON.parse(mockFetch().mock.calls[1][1].body);
     expect(body.messages[0]).toEqual({
       role: "system",
-      content: "You are an interviewer.",
+      content: "You are a helpful tutor.",
     });
     expect(body.messages[1]).toEqual({ role: "user", content: "Hello" });
     expect(body.stream).toBe(true);

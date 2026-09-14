@@ -140,6 +140,47 @@ describe("Inworld primary provider", () => {
 
     expect(JSON.parse(mockFetch().mock.calls[0][1].body).voiceId).toBe("Jason");
   });
+
+  it("uses the language's pronunciation voice when no voiceId is given", async () => {
+    mockFetch().mockResolvedValue(inworldOk());
+
+    await POST(ttsRequest({ text: "Hola.", language: "spanish" }));
+
+    expect(JSON.parse(mockFetch().mock.calls[0][1].body).voiceId).toBe("Diego");
+  });
+
+  it("prefers an explicit voiceId over the language fallback", async () => {
+    mockFetch().mockResolvedValue(inworldOk());
+
+    await POST(ttsRequest({ text: "Hola.", voiceId: "Clive", language: "spanish" }));
+
+    expect(JSON.parse(mockFetch().mock.calls[0][1].body).voiceId).toBe("Clive");
+  });
+
+  it("ignores an invalid language and falls back to the default voice", async () => {
+    mockFetch().mockResolvedValue(inworldOk());
+
+    await POST(ttsRequest({ text: "Hello.", language: "klingon" }));
+
+    expect(JSON.parse(mockFetch().mock.calls[0][1].body).voiceId).toBe("Jason");
+  });
+});
+
+describe("text length cap", () => {
+  it("accepts text right at the 600 character limit", async () => {
+    mockFetch().mockResolvedValue(inworldOk());
+
+    const res = await POST(ttsRequest({ text: "a".repeat(600) }));
+
+    expect(res.status).toBe(200);
+  });
+
+  it("returns 400 for text over 600 characters", async () => {
+    const res = await POST(ttsRequest({ text: "a".repeat(601) }));
+
+    expect(res.status).toBe(400);
+    expect(mockFetch()).not.toHaveBeenCalled();
+  });
 });
 
 describe("Kokoro fallback", () => {

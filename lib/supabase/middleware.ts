@@ -40,11 +40,10 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Protected routes: redirect to login if not authenticated.
-  // /app/practice is intentionally public (anonymous trial — 3 free sessions).
-  const isPublicAppRoute = pathname === "/app/practice";
-  if (pathname.startsWith("/app") && !user && !isPublicAppRoute) {
+  if (pathname.startsWith("/app") && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
+    url.searchParams.set("next", pathname);
     return NextResponse.redirect(url);
   }
 

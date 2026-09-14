@@ -3,27 +3,27 @@ import { QUERY_KEYS } from "../keys";
 describe("QUERY_KEYS", () => {
   it("exposes a key for every cached resource", () => {
     expect(Object.keys(QUERY_KEYS).sort()).toEqual([
-      "notifications",
-      "peerSession",
-      "peerSessions",
+      "completedLessons",
+      "conversationUsage",
+      "conversations",
+      "customRoleplays",
+      "favoriteIds",
+      "favorites",
+      "generatedLessons",
       "profile",
-      "settingsProfile",
-      "subscription",
     ]);
   });
 
   it.each([
     ["profile", ["profile"]],
-    ["settingsProfile", ["settings-profile"]],
-    ["notifications", ["notifications"]],
-    ["peerSessions", ["peer-sessions"]],
-    ["subscription", ["subscription"]],
+    ["conversations", ["conversations"]],
+    ["conversationUsage", ["conversation-usage"]],
+    ["favorites", ["favorites"]],
+    ["favoriteIds", ["favorite-ids"]],
+    ["completedLessons", ["completed-lessons"]],
+    ["customRoleplays", ["custom-roleplays"]],
   ] as const)("uses a stable array key for %s", (name, expected) => {
     expect(QUERY_KEYS[name]).toEqual(expected);
-  });
-
-  it("keeps profile and settingsProfile as separate cache entries", () => {
-    expect(QUERY_KEYS.profile).not.toEqual(QUERY_KEYS.settingsProfile);
   });
 
   it("has no duplicate keys across resources - duplicates would cross-invalidate", () => {
@@ -34,21 +34,21 @@ describe("QUERY_KEYS", () => {
     expect(new Set(staticKeys).size).toBe(staticKeys.length);
   });
 
-  describe("peerSession", () => {
-    it("scopes a single session under the peer-sessions prefix", () => {
-      expect(QUERY_KEYS.peerSession("abc-123")).toEqual(["peer-sessions", "abc-123"]);
+  describe("generatedLessons", () => {
+    it("scopes a query string under the generated-lessons prefix", () => {
+      expect(QUERY_KEYS.generatedLessons("cats")).toEqual(["generated-lessons", "cats"]);
     });
 
-    it("shares the peerSessions prefix so a list invalidation cascades", () => {
-      expect(QUERY_KEYS.peerSession("abc-123")[0]).toBe(QUERY_KEYS.peerSessions[0]);
+    it("shares the generated-lessons prefix regardless of query", () => {
+      expect(QUERY_KEYS.generatedLessons("a")[0]).toBe(QUERY_KEYS.generatedLessons("b")[0]);
     });
 
-    it("produces a different key per id", () => {
-      expect(QUERY_KEYS.peerSession("a")).not.toEqual(QUERY_KEYS.peerSession("b"));
+    it("produces a different key per query", () => {
+      expect(QUERY_KEYS.generatedLessons("a")).not.toEqual(QUERY_KEYS.generatedLessons("b"));
     });
 
-    it("is referentially stable in value for the same id", () => {
-      expect(QUERY_KEYS.peerSession("a")).toEqual(QUERY_KEYS.peerSession("a"));
+    it("is referentially stable in value for the same query", () => {
+      expect(QUERY_KEYS.generatedLessons("a")).toEqual(QUERY_KEYS.generatedLessons("a"));
     });
   });
 });

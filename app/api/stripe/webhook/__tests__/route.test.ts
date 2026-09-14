@@ -1,34 +1,31 @@
 import type { NextRequest } from "next/server";
 import { createSupabaseMock, writePayload } from "@/test-utils/supabase-mock";
 
-// The route builds its Stripe and Supabase clients at module load, so both have
-// to be mocked before `../route` is imported.
 const constructEvent = jest.fn();
+const retrieveSubscription = jest.fn();
 
 jest.mock("stripe", () => ({
   __esModule: true,
   default: jest.fn().mockImplementation(() => ({
     webhooks: { constructEvent },
+    subscriptions: { retrieve: retrieveSubscription },
   })),
 }));
 
 const supabaseAdmin = createSupabaseMock();
-jest.mock("@supabase/supabase-js", () => ({
-  createClient: jest.fn(() => supabaseAdmin),
+jest.mock("@/lib/supabase/admin", () => ({
+  createAdminClient: jest.fn(() => supabaseAdmin),
 }));
 
 process.env.STRIPE_SECRET_KEY = "sk_test";
 process.env.STRIPE_WEBHOOK_SECRET = "whsec_test";
-process.env.NEXT_PUBLIC_SUPABASE_URL = "https://project.supabase.co";
-process.env.SUPABASE_SERVICE_ROLE_KEY = "service-role-key";
 
-// The route builds its clients at module load, so it must be required after
-// the mocks and env vars above are in place.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { POST } = require("../route") as typeof import("../route");
+import { POST } from "../route";
+const { createAdminClient } = jest.requireMock("@/lib/supabase/admin");
 
 const USER_ID = "user-1";
-const STRIPE_SESSION_ID = "cs_test_123";
+const SUBSCRIPTION_ID = "sub_123";
+const CUSTOMER_ID = "cus_123";
 
 function webhookRequest(signature: string | null = "sig-abc", body = "{}") {
   const headers = new Headers();
@@ -40,39 +37,84 @@ function webhookRequest(signature: string | null = "sig-abc", body = "{}") {
   }) as unknown as NextRequest;
 }
 
+function activeSubscription(overrides: Record<string, unknown> = {}) {
+  return {
+    id: SUBSCRIPTION_ID,
+    status: "active",
+    customer: CUSTOMER_ID,
+    items: { data: [{ current_period_end: 1_700_000_000 }] },
+    metadata: { user_id: USER_ID },
+    ...overrides,
+  };
+}
+
 function checkoutCompleted(overrides: Record<string, unknown> = {}) {
   return {
     type: "checkout.session.completed",
     data: {
       object: {
-        id: STRIPE_SESSION_ID,
+        id: "cs_test_123",
+        mode: "subscription",
         client_reference_id: USER_ID,
-        metadata: { sessions: "20" },
-        customer: null,
+        subscription: SUBSCRIPTION_ID,
         ...overrides,
       },
     },
   };
 }
 
-/**
- * Reset the shared admin-client double and load it with the profile row the
- * handler will read during the idempotency check.
- */
-function seedProfile(profile: Record<string, unknown> | null) {
-  supabaseAdmin.calls.length = 0;
-  supabaseAdmin.from.mockImplementation(() => {
-    const { createQueryBuilder } = jest.requireActual<
-      typeof import("@/test-utils/supabase-mock")
-    >("@/test-utils/supabase-mock");
-    const builder = createQueryBuilder({ data: profile, error: null });
-    supabaseAdmin.calls.push({ table: "profiles", builder });
+function subscriptionEvent(type: string, overrides: Record<string, unknown> = {}) {
+  return { type, data: { object: activeSubscription(overrides) } };
+}
+
+/** Every `.from("profiles")` call matches by default (simulates a normal, matched update). */
+function seedDefaultProfilesMatch() {
+  supabaseAdmin.from.mockImplementation((table: string) => {
+    const { createQueryBuilder } = jest.requireActual<typeof import("@/test-utils/supabase-mock")>(
+      "@/test-utils/supabase-mock"
+    );
+    const builder = createQueryBuilder({ data: [{ id: USER_ID }], error: null });
+    supabaseAdmin.calls.push({ table, builder });
     return builder;
   });
 }
 
+/** Every `.from("profiles")` call returns an error (simulates a DB failure). */
+function seedProfilesError(message = "boom") {
+  supabaseAdmin.from.mockImplementation((table: string) => {
+    const { createQueryBuilder } = jest.requireActual<typeof import("@/test-utils/supabase-mock")>(
+      "@/test-utils/supabase-mock"
+    );
+    const builder = createQueryBuilder({ data: null, error: { message } });
+    supabaseAdmin.calls.push({ table, builder });
+    return builder;
+  });
+}
+
+/** Every `.from("profiles")` call matches nothing (simulates no row satisfying the filter). */
+function seedNoProfilesMatch() {
+  supabaseAdmin.from.mockImplementation((table: string) => {
+    const { createQueryBuilder } = jest.requireActual<typeof import("@/test-utils/supabase-mock")>(
+      "@/test-utils/supabase-mock"
+    );
+    const builder = createQueryBuilder({ data: [], error: null });
+    supabaseAdmin.calls.push({ table, builder });
+    return builder;
+  });
+}
+
+const ORIGINAL_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
 beforeEach(() => {
-  seedProfile({ session_credits: 5, last_stripe_session_id: null });
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "service-role-key";
+  supabaseAdmin.calls.length = 0;
+  seedDefaultProfilesMatch();
+  retrieveSubscription.mockResolvedValue(activeSubscription());
+});
+
+afterEach(() => {
+  if (ORIGINAL_SERVICE_ROLE_KEY === undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+  else process.env.SUPABASE_SERVICE_ROLE_KEY = ORIGINAL_SERVICE_ROLE_KEY;
 });
 
 describe("signature verification", () => {
@@ -95,14 +137,14 @@ describe("signature verification", () => {
     await expect(res.json()).resolves.toEqual({ error: "Invalid signature" });
   });
 
-  it("does not credit anyone when the signature is invalid", async () => {
+  it("does not touch the database when the signature is invalid", async () => {
     constructEvent.mockImplementation(() => {
       throw new Error("bad signature");
     });
 
     await POST(webhookRequest());
 
-    expect(supabaseAdmin.calls).toHaveLength(0);
+    expect(createAdminClient).not.toHaveBeenCalled();
   });
 
   it("verifies the raw body against the webhook secret", async () => {
@@ -110,226 +152,233 @@ describe("signature verification", () => {
 
     await POST(webhookRequest("sig-abc", '{"id":"evt_1"}'));
 
-    expect(constructEvent).toHaveBeenCalledWith(
-      '{"id":"evt_1"}',
-      "sig-abc",
-      "whsec_test"
-    );
+    expect(constructEvent).toHaveBeenCalledWith('{"id":"evt_1"}', "sig-abc", "whsec_test");
+  });
+});
+
+describe("missing service role key", () => {
+  it("returns 500 without touching the database", async () => {
+    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    constructEvent.mockReturnValue(checkoutCompleted());
+
+    const res = await POST(webhookRequest());
+
+    expect(res.status).toBe(500);
+    await expect(res.json()).resolves.toEqual({ error: "Server not configured" });
+    expect(createAdminClient).not.toHaveBeenCalled();
   });
 });
 
 describe("checkout.session.completed", () => {
-  it("acknowledges the event", async () => {
+  it("retrieves the subscription and updates the profile by client_reference_id", async () => {
     constructEvent.mockReturnValue(checkoutCompleted());
 
     const res = await POST(webhookRequest());
 
     expect(res.status).toBe(200);
-    await expect(res.json()).resolves.toEqual({ received: true });
-  });
-
-  it("adds the purchased credits on top of the existing balance", async () => {
-    seedProfile({ session_credits: 5, last_stripe_session_id: null });
-    constructEvent.mockReturnValue(checkoutCompleted());
-
-    await POST(webhookRequest());
-
+    expect(retrieveSubscription).toHaveBeenCalledWith(SUBSCRIPTION_ID);
     expect(writePayload(supabaseAdmin, "profiles", "update")).toEqual({
-      session_credits: 25,
-      last_stripe_session_id: STRIPE_SESSION_ID,
+      stripe_subscription_id: SUBSCRIPTION_ID,
+      stripe_customer_id: CUSTOMER_ID,
+      pro_status: "active",
+      pro_current_period_end: new Date(1_700_000_000 * 1000).toISOString(),
     });
+    expect(supabaseAdmin.builderFor("profiles").eq).toHaveBeenCalledWith("id", USER_ID);
   });
 
-  it("records the stripe session id so the credit cannot be replayed", async () => {
-    constructEvent.mockReturnValue(checkoutCompleted());
-
-    await POST(webhookRequest());
-
-    expect(
-      writePayload(supabaseAdmin, "profiles", "update").last_stripe_session_id
-    ).toBe(STRIPE_SESSION_ID);
-  });
-
-  it("credits from zero when the profile has no balance yet", async () => {
-    seedProfile({ session_credits: null, last_stripe_session_id: null });
-    constructEvent.mockReturnValue(checkoutCompleted());
-
-    await POST(webhookRequest());
-
-    expect(writePayload(supabaseAdmin, "profiles", "update").session_credits).toBe(20);
-  });
-
-  it("credits from zero when the profile row is missing entirely", async () => {
-    seedProfile(null);
-    constructEvent.mockReturnValue(checkoutCompleted());
-
-    await POST(webhookRequest());
-
-    expect(writePayload(supabaseAdmin, "profiles", "update").session_credits).toBe(20);
-  });
-
-  it.each([
-    ["5", 5],
-    ["20", 20],
-    ["50", 50],
-  ])("credits a %s-session pack", async (metadataValue, expected) => {
-    seedProfile({ session_credits: 0, last_stripe_session_id: null });
-    constructEvent.mockReturnValue(
-      checkoutCompleted({ metadata: { sessions: metadataValue } })
-    );
-
-    await POST(webhookRequest());
-
-    expect(writePayload(supabaseAdmin, "profiles", "update").session_credits).toBe(
-      expected
-    );
-  });
-});
-
-describe("idempotency", () => {
-  it("does not credit twice for the same stripe session", async () => {
-    seedProfile({
-      session_credits: 25,
-      last_stripe_session_id: STRIPE_SESSION_ID,
-    });
-    constructEvent.mockReturnValue(checkoutCompleted());
-
-    await POST(webhookRequest());
-
-    expect(writePayload(supabaseAdmin, "profiles", "update")).toBeUndefined();
-  });
-
-  it("still acknowledges a duplicate delivery so Stripe stops retrying", async () => {
-    seedProfile({
-      session_credits: 25,
-      last_stripe_session_id: STRIPE_SESSION_ID,
-    });
-    constructEvent.mockReturnValue(checkoutCompleted());
+  it("ignores a non-subscription-mode checkout session", async () => {
+    constructEvent.mockReturnValue(checkoutCompleted({ mode: "payment" }));
 
     const res = await POST(webhookRequest());
 
     expect(res.status).toBe(200);
-    await expect(res.json()).resolves.toEqual({ received: true });
+    expect(retrieveSubscription).not.toHaveBeenCalled();
+    expect(supabaseAdmin.calls).toHaveLength(0);
   });
 
-  it("credits a genuinely new purchase by the same user", async () => {
-    seedProfile({
-      session_credits: 25,
-      last_stripe_session_id: "cs_test_OLD",
-    });
-    constructEvent.mockReturnValue(checkoutCompleted());
-
-    await POST(webhookRequest());
-
-    expect(writePayload(supabaseAdmin, "profiles", "update")).toEqual({
-      session_credits: 45,
-      last_stripe_session_id: STRIPE_SESSION_ID,
-    });
-  });
-});
-
-describe("malformed checkout sessions", () => {
-  it("skips crediting when there is no user reference", async () => {
+  it("does nothing when there is no client_reference_id", async () => {
     constructEvent.mockReturnValue(checkoutCompleted({ client_reference_id: null }));
 
     const res = await POST(webhookRequest());
 
     expect(res.status).toBe(200);
-    expect(supabaseAdmin.calls).toHaveLength(0);
+    expect(retrieveSubscription).not.toHaveBeenCalled();
   });
 
-  it("skips crediting when the session count metadata is missing", async () => {
-    constructEvent.mockReturnValue(checkoutCompleted({ metadata: {} }));
-
-    await POST(webhookRequest());
-
-    expect(writePayload(supabaseAdmin, "profiles", "update")).toBeUndefined();
-  });
-
-  it("skips crediting when the session count is zero", async () => {
-    constructEvent.mockReturnValue(checkoutCompleted({ metadata: { sessions: "0" } }));
-
-    await POST(webhookRequest());
-
-    expect(writePayload(supabaseAdmin, "profiles", "update")).toBeUndefined();
-  });
-
-  it("skips crediting when the session count is not a number", async () => {
-    constructEvent.mockReturnValue(
-      checkoutCompleted({ metadata: { sessions: "twenty" } })
-    );
-
-    await POST(webhookRequest());
-
-    expect(writePayload(supabaseAdmin, "profiles", "update")).toBeUndefined();
-  });
-
-  it("does not credit a negative session count", async () => {
-    constructEvent.mockReturnValue(checkoutCompleted({ metadata: { sessions: "-5" } }));
-
-    await POST(webhookRequest());
-
-    expect(writePayload(supabaseAdmin, "profiles", "update")).toBeUndefined();
-  });
-});
-
-describe("stripe customer linkage", () => {
-  it("stores the stripe customer id on the profile", async () => {
-    constructEvent.mockReturnValue(checkoutCompleted({ customer: "cus_123" }));
-
-    await POST(webhookRequest());
-
-    // Second update on profiles is the customer linkage.
-    expect(writePayload(supabaseAdmin, "profiles", "update", 1)).toEqual({
-      stripe_customer_id: "cus_123",
-    });
-  });
-
-  it("does not write a customer id when the session has none", async () => {
-    constructEvent.mockReturnValue(checkoutCompleted({ customer: null }));
-
-    await POST(webhookRequest());
-
-    expect(writePayload(supabaseAdmin, "profiles", "update", 1)).toBeUndefined();
-  });
-
-  it("still links the customer when the credit was already applied", async () => {
-    seedProfile({
-      session_credits: 25,
-      last_stripe_session_id: STRIPE_SESSION_ID,
-    });
-    constructEvent.mockReturnValue(checkoutCompleted({ customer: "cus_123" }));
-
-    await POST(webhookRequest());
-
-    expect(writePayload(supabaseAdmin, "profiles", "update")).toEqual({
-      stripe_customer_id: "cus_123",
-    });
-  });
-});
-
-describe("other event types", () => {
-  it.each([
-    "customer.subscription.updated",
-    "customer.subscription.deleted",
-  ])("acknowledges the legacy %s event without crediting", async (type) => {
-    constructEvent.mockReturnValue({ type, data: { object: {} } });
+  it("does nothing when the session has no subscription", async () => {
+    constructEvent.mockReturnValue(checkoutCompleted({ subscription: null }));
 
     const res = await POST(webhookRequest());
 
     expect(res.status).toBe(200);
-    expect(supabaseAdmin.calls).toHaveLength(0);
+    expect(retrieveSubscription).not.toHaveBeenCalled();
+  });
+});
+
+describe.each(["customer.subscription.created", "customer.subscription.updated"])("%s", (type) => {
+  it("writes the re-retrieved subscription's fields (not the event payload's) matched by stripe_subscription_id", async () => {
+    // The event payload itself carries a stale/incomplete snapshot, but the
+    // re-retrieved subscription (what the handler must actually write) is active.
+    retrieveSubscription.mockResolvedValue(activeSubscription({ status: "active" }));
+    constructEvent.mockReturnValue(subscriptionEvent(type, { status: "incomplete" }));
+
+    const res = await POST(webhookRequest());
+
+    expect(res.status).toBe(200);
+    expect(retrieveSubscription).toHaveBeenCalledWith(SUBSCRIPTION_ID);
+    expect(writePayload(supabaseAdmin, "profiles", "update").pro_status).toBe("active");
+    expect(supabaseAdmin.builderFor("profiles").eq).toHaveBeenCalledWith("stripe_subscription_id", SUBSCRIPTION_ID);
   });
 
-  it("acknowledges an unrecognised event type", async () => {
-    constructEvent.mockReturnValue({
-      type: "payment_intent.succeeded",
-      data: { object: {} },
+  it("falls back to updating by metadata.user_id when no row matches the subscription id", async () => {
+    let call = 0;
+    supabaseAdmin.from.mockImplementation((table: string) => {
+      const { createQueryBuilder } = jest.requireActual<typeof import("@/test-utils/supabase-mock")>(
+        "@/test-utils/supabase-mock"
+      );
+      call += 1;
+      // First update (by subscription id) matches nothing; second (by user id, scoped) succeeds.
+      const builder = createQueryBuilder(call === 1 ? { data: [], error: null } : { data: [{ id: USER_ID }], error: null });
+      supabaseAdmin.calls.push({ table, builder });
+      return builder;
     });
+    constructEvent.mockReturnValue(subscriptionEvent(type));
+
+    const res = await POST(webhookRequest());
+
+    expect(res.status).toBe(200);
+    expect(supabaseAdmin.callCountFor("profiles")).toBe(2);
+    const fallbackBuilder = supabaseAdmin.builderFor("profiles", 1);
+    expect(fallbackBuilder.eq).toHaveBeenCalledWith("id", USER_ID);
+    expect(fallbackBuilder.or).toHaveBeenCalledWith(
+      `stripe_subscription_id.is.null,stripe_subscription_id.eq.${SUBSCRIPTION_ID}`
+    );
+  });
+
+  it("does not fall back when there is no metadata.user_id", async () => {
+    seedNoProfilesMatch();
+    retrieveSubscription.mockResolvedValue(activeSubscription({ metadata: {} }));
+    constructEvent.mockReturnValue(subscriptionEvent(type));
+
+    const res = await POST(webhookRequest());
+
+    expect(res.status).toBe(200);
+    expect(supabaseAdmin.callCountFor("profiles")).toBe(1);
+  });
+
+  it("scopes the fallback so a stale event for an old subscription cannot overwrite a profile that already holds a different, current one", async () => {
+    // Simulates the real Postgres filter rejecting the write: the profile's
+    // actual stripe_subscription_id is a *different* (current) subscription,
+    // so the `.or(is null, eq this stale sub)` clause matches no rows.
+    seedNoProfilesMatch();
+    const staleId = "sub_old_1";
+    retrieveSubscription.mockResolvedValue(activeSubscription({ id: staleId, metadata: { user_id: USER_ID } }));
+    constructEvent.mockReturnValue(subscriptionEvent(type, { id: staleId, metadata: { user_id: USER_ID } }));
+
+    const res = await POST(webhookRequest());
+
+    expect(res.status).toBe(200);
+    const fallbackBuilder = supabaseAdmin.builderFor("profiles", 1);
+    expect(fallbackBuilder.eq).toHaveBeenCalledWith("id", USER_ID);
+    expect(fallbackBuilder.or).toHaveBeenCalledWith(`stripe_subscription_id.is.null,stripe_subscription_id.eq.${staleId}`);
+  });
+
+  it("returns 500 when the primary update errors, so Stripe retries", async () => {
+    seedProfilesError();
+    constructEvent.mockReturnValue(subscriptionEvent(type));
+
+    const res = await POST(webhookRequest());
+
+    expect(res.status).toBe(500);
+    await expect(res.json()).resolves.toEqual({ error: "Webhook handling failed" });
+  });
+
+  it("returns 500 when re-retrieving the subscription fails, so Stripe retries", async () => {
+    retrieveSubscription.mockRejectedValue(new Error("stripe down"));
+    constructEvent.mockReturnValue(subscriptionEvent(type));
+
+    const res = await POST(webhookRequest());
+
+    expect(res.status).toBe(500);
+    await expect(res.json()).resolves.toEqual({ error: "Webhook handling failed" });
+  });
+});
+
+describe("out-of-order deliveries", () => {
+  it("an updated-then-created delivery ends as active, since both re-retrieve the same current subscription", async () => {
+    retrieveSubscription.mockResolvedValue(activeSubscription({ status: "active" }));
+
+    constructEvent.mockReturnValueOnce(subscriptionEvent("customer.subscription.updated", { status: "active" }));
+    const first = await POST(webhookRequest());
+    expect(first.status).toBe(200);
+
+    constructEvent.mockReturnValueOnce(subscriptionEvent("customer.subscription.created", { status: "incomplete" }));
+    const second = await POST(webhookRequest());
+    expect(second.status).toBe(200);
+
+    expect(writePayload(supabaseAdmin, "profiles", "update", 0).pro_status).toBe("active");
+    expect(writePayload(supabaseAdmin, "profiles", "update", 1).pro_status).toBe("active");
+  });
+});
+
+describe("customer.subscription.deleted", () => {
+  it("re-retrieves the subscription and writes its canceled status", async () => {
+    retrieveSubscription.mockResolvedValue(activeSubscription({ status: "canceled" }));
+    constructEvent.mockReturnValue(subscriptionEvent("customer.subscription.deleted", { status: "active" }));
+
+    const res = await POST(webhookRequest());
+
+    expect(res.status).toBe(200);
+    expect(retrieveSubscription).toHaveBeenCalledWith(SUBSCRIPTION_ID);
+    expect(writePayload(supabaseAdmin, "profiles", "update")).toEqual({
+      stripe_subscription_id: SUBSCRIPTION_ID,
+      stripe_customer_id: CUSTOMER_ID,
+      pro_status: "canceled",
+      pro_current_period_end: new Date(1_700_000_000 * 1000).toISOString(),
+    });
+  });
+
+  it("falls back to a canceled status derived from the event when the re-retrieve fails", async () => {
+    retrieveSubscription.mockRejectedValue(new Error("subscription not found"));
+    constructEvent.mockReturnValue(subscriptionEvent("customer.subscription.deleted", { status: "active" }));
+
+    const res = await POST(webhookRequest());
+
+    expect(res.status).toBe(200);
+    expect(writePayload(supabaseAdmin, "profiles", "update").pro_status).toBe("canceled");
+  });
+});
+
+describe("checkout.session.completed failures return 500 so Stripe retries", () => {
+  it("returns 500 when the profile update errors", async () => {
+    seedProfilesError();
+    constructEvent.mockReturnValue(checkoutCompleted());
+
+    const res = await POST(webhookRequest());
+
+    expect(res.status).toBe(500);
+    await expect(res.json()).resolves.toEqual({ error: "Webhook handling failed" });
+  });
+
+  it("returns 500 when re-retrieving the subscription fails", async () => {
+    retrieveSubscription.mockRejectedValue(new Error("stripe down"));
+    constructEvent.mockReturnValue(checkoutCompleted());
+
+    const res = await POST(webhookRequest());
+
+    expect(res.status).toBe(500);
+    await expect(res.json()).resolves.toEqual({ error: "Webhook handling failed" });
+  });
+});
+
+describe("unrecognised events", () => {
+  it("acknowledges an event type it does not handle with 200 (nothing to retry)", async () => {
+    constructEvent.mockReturnValue({ type: "payment_intent.succeeded", data: { object: {} } });
 
     const res = await POST(webhookRequest());
 
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toEqual({ received: true });
+    expect(supabaseAdmin.calls).toHaveLength(0);
   });
 });

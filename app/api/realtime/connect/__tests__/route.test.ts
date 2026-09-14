@@ -1,4 +1,17 @@
 import { POST } from "../route";
+import { createSupabaseMock, type SupabaseMockConfig } from "@/test-utils/supabase-mock";
+
+jest.mock("@/lib/supabase/server", () => ({ createClient: jest.fn() }));
+
+const { createClient } = jest.requireMock("@/lib/supabase/server");
+
+const USER = { id: "user-1" };
+
+function mockSupabase(config: SupabaseMockConfig) {
+  const mock = createSupabaseMock(config);
+  createClient.mockResolvedValue(mock);
+  return mock;
+}
 
 const INWORLD_CALLS_URL = "https://api.inworld.ai/v1/realtime/calls";
 
@@ -16,10 +29,21 @@ function connectRequest(body: unknown) {
 describe("POST /api/realtime/connect", () => {
   beforeEach(() => {
     process.env.INWORLD_API_KEY = "test-key-123";
+    mockSupabase({ user: USER });
   });
 
   afterEach(() => {
     delete process.env.INWORLD_API_KEY;
+  });
+
+  it("returns 401 with no authenticated user", async () => {
+    mockSupabase({ user: null });
+
+    const response = await POST(connectRequest({ sdp: "offer" }));
+
+    expect(response.status).toBe(401);
+    await expect(response.json()).resolves.toEqual({ error: "Unauthorized" });
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 
   it("proxies the SDP offer to Inworld and returns the SDP answer", async () => {

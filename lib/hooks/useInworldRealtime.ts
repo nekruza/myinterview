@@ -1,13 +1,12 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import type { Message } from "@/lib/practice-data";
+import type { Message } from "@/lib/types/conversation";
 
 export interface RealtimeConfig {
   instructions: string;
   voice: string;
   model: string;
-  interviewType: "technical" | "behavioural" | "case";
   hybridMode?: boolean;
 }
 

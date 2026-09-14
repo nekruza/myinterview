@@ -1,15 +1,21 @@
 // TTS proxy — primary: Inworld TTS 1.5 Mini, fallback: Chutes AI Kokoro.
 // Returns 503 on failure so the client can fall back to Web SpeechSynthesis.
 
+import { isLanguageId, pronunciationVoice } from "@/lib/languages";
+
 export const runtime = "nodejs";
+
+const MAX_TEXT_LENGTH = 600;
 
 export async function POST(req: Request) {
   let text: string;
   let voiceId: string | undefined;
+  let language: string | undefined;
   try {
     const body = await req.json();
     text = body.text;
     voiceId = typeof body.voiceId === "string" ? body.voiceId : undefined;
+    language = typeof body.language === "string" ? body.language : undefined;
   } catch {
     return new Response(JSON.stringify({ error: "Invalid request body" }), {
       status: 400,
@@ -24,6 +30,18 @@ export async function POST(req: Request) {
     });
   }
 
+  if (text.length > MAX_TEXT_LENGTH) {
+    return new Response(JSON.stringify({ error: "Text too long" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // Prefer an explicit voiceId; otherwise fall back to the target language's
+  // pronunciation voice when one is given.
+  const languageVoiceId =
+    !voiceId && language && isLanguageId(language) ? pronunciationVoice(language) : undefined;
+
   // ── Primary: Inworld TTS 1.5 Mini ──────────────────────────────────────────
   const inworldKey = process.env.INWORLD_API_KEY;
   if (inworldKey) {
@@ -36,7 +54,7 @@ export async function POST(req: Request) {
         },
         body: JSON.stringify({
           text,
-          voiceId: voiceId ?? process.env.INWORLD_VOICE_ID ?? "Jason",
+          voiceId: voiceId ?? languageVoiceId ?? process.env.INWORLD_VOICE_ID ?? "Jason",
           modelId: "inworld-tts-1.5-mini",
         }),
       });

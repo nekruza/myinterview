@@ -36,5 +36,5 @@ export function useTimer() {
     };
   }, []);
 
-  return { elapsed, formatted, start, pause, reset, isRunning };
+  return { elapsed, seconds: elapsed, formatted, start, pause, reset, isRunning };
 }

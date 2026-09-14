@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 
-export function useSpeechRecognition() {
+export function useSpeechRecognition(lang: string = "en-US") {
   const [transcript, setTranscript] = useState("");
   const [finalTranscript, setFinalTranscript] = useState("");
   const [isListening, setIsListening] = useState(false);
@@ -10,6 +10,10 @@ export function useSpeechRecognition() {
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const shouldListenRef = useRef(false);
+  const langRef = useRef(lang);
+  useEffect(() => {
+    langRef.current = lang;
+  }, [lang]);
 
   // Check support without useEffect (avoids Strict Mode issues)
   const isSupported =
@@ -29,7 +33,7 @@ export function useSpeechRecognition() {
     const recognition = new SR();
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = "en-US";
+    recognition.lang = langRef.current;
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
       let interim = "";
@@ -84,6 +88,11 @@ export function useSpeechRecognition() {
   const startListening = useCallback(() => {
     const recognition = ensureRecognition();
     if (!recognition) return;
+
+    // Apply the latest requested language before starting, in case it
+    // changed since the instance was created (e.g. the learner switched
+    // target language between sessions).
+    recognition.lang = langRef.current;
 
     setError(null);
     setTranscript("");

@@ -68,10 +68,9 @@ let stream: ReturnType<typeof micStream>;
 let getUserMedia: jest.Mock;
 
 const CONFIG: RealtimeConfig = {
-  instructions: "You are Henry, a case interviewer.",
+  instructions: "You are Henry, a Spanish conversation partner.",
   voice: "Clive",
   model: "inworld-realtime-1",
-  interviewType: "case",
 };
 
 global.fetch = jest.fn();
@@ -476,7 +475,7 @@ describe("server events", () => {
     expect(result.current.messages).toEqual([]);
   });
 
-  it("appends the candidate's speech transcript", async () => {
+  it("appends the speaker's speech transcript", async () => {
     const { result } = renderHook(() => useInworldRealtime());
     const dc = await connected(result);
 

@@ -1,456 +1,266 @@
-import { GET } from "../route";
-import { createSupabaseMock, type SupabaseMockConfig } from "@/test-utils/supabase-mock";
+import { GET, PATCH } from "../route";
+import { createSupabaseMock, writePayload, type SupabaseMockConfig } from "@/test-utils/supabase-mock";
 
 jest.mock("@/lib/supabase/server", () => ({ createClient: jest.fn() }));
 
 const { createClient } = jest.requireMock("@/lib/supabase/server");
 
-const USER = {
+const USER = { id: "user-1", email: "jane@example.com" };
+
+const PROFILE_ROW = {
   id: "user-1",
   email: "jane@example.com",
-  created_at: "2026-01-01T00:00:00.000Z",
-  user_metadata: {},
+  display_name: "Jane",
+  user_level: "intermediate",
+  current_streak: 3,
+  words_learned: 0,
+  accuracy: 0,
+  last_conversation_date: "2026-09-12",
+  weekly_activity: null,
+  target_language: "spanish",
+  learning_motivation: "travel",
+  daily_goal_minutes: 20,
+  study_plan_completed_days: null,
+  study_plan_start_date: "2026-09-01T00:00:00.000Z",
+  native_language: "french",
+  tutor_id: "henry",
+  ai_consent_at: "2026-09-01T00:00:00.000Z",
+  stripe_customer_id: null,
+  stripe_subscription_id: null,
+  pro_status: null,
+  pro_current_period_end: null,
+  created_at: "2026-08-01T00:00:00.000Z",
+  updated_at: null,
 };
 
-interface ProfileFixture {
-  profile?: Record<string, unknown> | null;
-  subscription?: Record<string, unknown> | null;
-  sessions?: Array<Record<string, unknown>>;
-  scores?: Array<Record<string, unknown>>;
-  hosted?: number | null;
-  joined?: number | null;
-  streak?: Record<string, unknown> | null;
+function mockSupabase(opts: {
   user?: SupabaseMockConfig["user"];
-}
-
-function mockProfileDb(fixture: ProfileFixture = {}) {
+  profile?: Record<string, unknown> | null;
+  conversationRows?: Record<string, unknown>[];
+  conversationsTotal?: number;
+  completedLessonIds?: { lesson_id: string }[];
+  favoriteWordIds?: { word_id: string }[];
+  generatedLessonsCount?: number;
+}) {
   const {
-    profile = null,
-    subscription = null,
-    sessions = [],
-    scores = [],
-    hosted = 0,
-    joined = 0,
-    streak = null,
     user = USER,
-  } = fixture;
+    profile = PROFILE_ROW,
+    conversationRows = [],
+    conversationsTotal = 0,
+    completedLessonIds = [],
+    favoriteWordIds = [],
+    generatedLessonsCount = 0,
+  } = opts;
 
   const mock = createSupabaseMock({
-    user: user as SupabaseMockConfig["user"],
+    user,
     tables: {
       profiles: { data: profile, error: null },
-      subscriptions: { data: subscription, error: null },
-      interview_sessions: { data: sessions, error: null },
-      progress_scores: { data: scores, error: null },
-      peer_sessions: { count: hosted, data: null, error: null },
-      peer_session_participants: { count: joined, data: null, error: null },
-      user_streaks: { data: streak, error: null },
+      conversation_sessions: [
+        { data: conversationRows, error: null }, // conversationStats
+        { data: null, error: null, count: conversationsTotal }, // countConversations
+      ],
+      lesson_progress: { data: completedLessonIds, error: null },
+      favorite_words: { data: favoriteWordIds, error: null },
+      generated_lessons: { data: null, error: null, count: generatedLessonsCount },
     },
   });
   createClient.mockResolvedValue(mock);
   return mock;
 }
 
-const completedAi = (score: number | null) => ({
-  id: `s-${Math.random()}`,
-  type: "ai",
-  status: "completed",
-  score,
-});
+function patchRequest(body: unknown) {
+  return new Request("http://localhost/api/profile", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }) as never;
+}
 
-describe("authorisation", () => {
+describe("GET /api/profile", () => {
   it("returns 401 for an anonymous caller", async () => {
-    mockProfileDb({ user: null });
+    mockSupabase({ user: null });
 
     const res = await GET();
 
     expect(res.status).toBe(401);
     await expect(res.json()).resolves.toEqual({ error: "Unauthorized" });
   });
-});
 
-describe("identity", () => {
-  it("returns the user id and email", async () => {
-    mockProfileDb();
-
-    const body = await (await GET()).json();
-
-    expect(body.id).toBe(USER.id);
-    expect(body.email).toBe(USER.email);
-  });
-
-  it("prefers the profile name", async () => {
-    mockProfileDb({ profile: { full_name: "Jane Doe" } });
-
-    expect((await (await GET()).json()).full_name).toBe("Jane Doe");
-  });
-
-  it("falls back to the auth metadata name", async () => {
-    mockProfileDb({
-      profile: null,
-      user: { ...USER, user_metadata: { full_name: "Meta Name" } } as never,
+  it("returns the full ProfileSummary for the signed-in user", async () => {
+    mockSupabase({
+      conversationRows: [{ overall_score: 80 }, { overall_score: 90 }],
+      conversationsTotal: 2,
+      completedLessonIds: [{ lesson_id: "l1" }, { lesson_id: "l2" }],
+      favoriteWordIds: [{ word_id: "w1" }],
+      generatedLessonsCount: 1,
     });
 
-    expect((await (await GET()).json()).full_name).toBe("Meta Name");
-  });
+    const res = await GET();
+    const body = await res.json();
 
-  it("falls back to the email local part as a last resort", async () => {
-    mockProfileDb({ profile: null });
-
-    expect((await (await GET()).json()).full_name).toBe("jane");
-  });
-
-  it("falls back to the auth created_at when there is no profile row", async () => {
-    mockProfileDb({ profile: null });
-
-    expect((await (await GET()).json()).created_at).toBe(USER.created_at);
-  });
-
-  it("prefers profile fields over metadata for interview context", async () => {
-    mockProfileDb({
-      profile: { experience_level: "senior", target_role: "Staff Engineer" },
-      user: { ...USER, user_metadata: { experience_level: "junior" } } as never,
-    });
-
-    const body = await (await GET()).json();
-    expect(body.experience_level).toBe("senior");
-    expect(body.target_role).toBe("Staff Engineer");
-  });
-
-  it("defaults target companies to an empty list", async () => {
-    mockProfileDb({ profile: null });
-
-    expect((await (await GET()).json()).target_companies).toEqual([]);
-  });
-});
-
-describe("session stats", () => {
-  it("counts only completed sessions", async () => {
-    mockProfileDb({
-      sessions: [
-        { type: "ai", status: "completed", score: 8 },
-        { type: "ai", status: "active", score: null },
-        { type: "peer", status: "completed", score: null },
-      ],
-    });
-
-    const body = await (await GET()).json();
-
-    expect(body.stats.total_sessions).toBe(2);
-    expect(body.stats.ai_sessions).toBe(1);
-    expect(body.stats.peer_sessions).toBe(1);
-  });
-
-  it("returns zeroed stats for a brand new user", async () => {
-    mockProfileDb();
-
-    const body = await (await GET()).json();
-
-    expect(body.stats).toMatchObject({
-      total_sessions: 0,
-      ai_sessions: 0,
-      peer_sessions: 0,
-      avg_score: null,
-      total_practice_minutes: 0,
-      current_streak: 0,
-      longest_streak: 0,
+    expect(res.status).toBe(200);
+    expect(body).toMatchObject({
+      id: "user-1",
+      email: "jane@example.com",
+      displayName: "Jane",
+      level: "intermediate",
+      targetLanguage: "spanish",
+      nativeLanguage: "french",
+      tutorId: "henry",
+      dailyGoalMinutes: 20,
+      onboarded: true,
+      stats: { conversationsCompleted: 2, avgOverallScore: 85, lessonsCompleted: 2, favoriteWords: 1, generatedLessons: 1 },
+      pro: { isPro: false },
+      usage: { freeConversationsRemaining: 1, freeGenerationsRemaining: 2 },
     });
   });
 
-  it("averages ai scores to one decimal place", async () => {
-    mockProfileDb({ sessions: [completedAi(7), completedAi(8), completedAi(8)] });
+  it("defaults a brand-new user with no profile row", async () => {
+    mockSupabase({ profile: null });
 
-    expect((await (await GET()).json()).stats.avg_score).toBe(7.7);
+    const res = await GET();
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body).toMatchObject({
+      displayName: "jane",
+      level: "beginner",
+      targetLanguage: "english",
+      nativeLanguage: "russian",
+      tutorId: "luna",
+      dailyGoalMinutes: 10,
+      onboarded: false,
+      usage: { freeConversationsRemaining: 3, freeGenerationsRemaining: 3 },
+    });
   });
 
-  it("ignores unscored sessions when averaging", async () => {
-    mockProfileDb({ sessions: [completedAi(10), completedAi(null)] });
+  it("gives a pro user unlimited (999) usage regardless of consumption", async () => {
+    mockSupabase({
+      profile: { ...PROFILE_ROW, pro_status: "active", pro_current_period_end: null },
+      conversationsTotal: 10,
+      generatedLessonsCount: 10,
+    });
 
-    expect((await (await GET()).json()).stats.avg_score).toBe(10);
-  });
+    const res = await GET();
+    const body = await res.json();
 
-  it("counts a score of zero in the average", async () => {
-    mockProfileDb({ sessions: [completedAi(0), completedAi(10)] });
-
-    expect((await (await GET()).json()).stats.avg_score).toBe(5);
-  });
-
-  it("returns a null average when nothing is scored", async () => {
-    mockProfileDb({ sessions: [completedAi(null)] });
-
-    expect((await (await GET()).json()).stats.avg_score).toBeNull();
-  });
-
-  it("estimates practice minutes at 12 per completed session", async () => {
-    mockProfileDb({ sessions: [completedAi(8), completedAi(9)] });
-
-    expect((await (await GET()).json()).stats.total_practice_minutes).toBe(24);
-  });
-
-  it("reports the streak when one exists", async () => {
-    mockProfileDb({ streak: { current_streak: 4, longest_streak: 9 } });
-
-    const body = await (await GET()).json();
-
-    expect(body.stats.current_streak).toBe(4);
-    expect(body.stats.longest_streak).toBe(9);
+    expect(body.pro.isPro).toBe(true);
+    expect(body.usage).toEqual({ freeConversationsRemaining: 999, freeGenerationsRemaining: 999 });
   });
 });
 
-describe("confidence tracking", () => {
-  const score = (competency: string, value: number, at: string) => ({
-    competency,
-    score: value,
-    assessed_at: at,
+describe("PATCH /api/profile", () => {
+  it("returns 401 for an anonymous caller", async () => {
+    mockSupabase({ user: null });
+
+    const res = await PATCH(patchRequest({ displayName: "New" }));
+
+    expect(res.status).toBe(401);
   });
 
-  it("is empty for a user with no assessments", async () => {
-    mockProfileDb();
+  it("returns 400 'Nothing to update' for an empty body", async () => {
+    mockSupabase({});
 
-    const body = await (await GET()).json();
+    const res = await PATCH(patchRequest({}));
 
-    expect(body.confidence).toEqual({
-      current_avg: null,
-      initial_avg: null,
-      trend: null,
-      by_competency: {},
-    });
-    expect(body.competency_scores).toEqual([]);
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({ error: "Nothing to update" });
   });
 
-  it("uses the latest score per competency as the current value", async () => {
-    mockProfileDb({
-      scores: [
-        score("leadership", 50, "2026-01-01"),
-        score("leadership", 80, "2026-02-01"),
-      ],
-    });
+  it("returns 400 'Nothing to update' for a malformed JSON body", async () => {
+    mockSupabase({});
+    const req = new Request("http://localhost/api/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: "not json",
+    }) as never;
 
-    const body = await (await GET()).json();
+    const res = await PATCH(req);
 
-    expect(body.confidence.by_competency).toEqual({ leadership: 80 });
-    expect(body.confidence.current_avg).toBe(80);
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({ error: "Nothing to update" });
   });
 
-  it("uses the first score per competency as the baseline", async () => {
-    mockProfileDb({
-      scores: [
-        score("leadership", 50, "2026-01-01"),
-        score("leadership", 80, "2026-02-01"),
-      ],
-    });
+  it("updates displayName with snake_case keys", async () => {
+    const mock = mockSupabase({});
 
-    expect((await (await GET()).json()).confidence.initial_avg).toBe(50);
+    const res = await PATCH(patchRequest({ displayName: "  New Name  " }));
+
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({ ok: true });
+    expect(writePayload(mock, "profiles", "update")).toEqual({ display_name: "New Name" });
   });
 
-  it("averages across competencies to one decimal place", async () => {
-    mockProfileDb({
-      scores: [
-        score("leadership", 80, "2026-02-01"),
-        score("ownership", 75, "2026-02-01"),
-      ],
-    });
-
-    expect((await (await GET()).json()).confidence.current_avg).toBe(77.5);
+  it("rejects an empty displayName", async () => {
+    mockSupabase({});
+    const res = await PATCH(patchRequest({ displayName: "   " }));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({ error: "Invalid displayName" });
   });
 
-  it("reports an improving trend when the gain exceeds 3 points", async () => {
-    mockProfileDb({
-      scores: [
-        score("leadership", 50, "2026-01-01"),
-        score("leadership", 60, "2026-02-01"),
-      ],
-    });
-
-    expect((await (await GET()).json()).confidence.trend).toBe("improving");
+  it("rejects a displayName over 100 chars", async () => {
+    mockSupabase({});
+    const res = await PATCH(patchRequest({ displayName: "a".repeat(101) }));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({ error: "Invalid displayName" });
   });
 
-  it("reports a declining trend when the drop exceeds 3 points", async () => {
-    mockProfileDb({
-      scores: [
-        score("leadership", 60, "2026-01-01"),
-        score("leadership", 50, "2026-02-01"),
-      ],
-    });
-
-    expect((await (await GET()).json()).confidence.trend).toBe("declining");
+  it("rejects an invalid level", async () => {
+    mockSupabase({});
+    const res = await PATCH(patchRequest({ level: "bogus" }));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({ error: "Invalid level" });
   });
 
-  it("reports a stable trend for movement within 3 points", async () => {
-    mockProfileDb({
-      scores: [
-        score("leadership", 50, "2026-01-01"),
-        score("leadership", 52, "2026-02-01"),
-      ],
-    });
-
-    expect((await (await GET()).json()).confidence.trend).toBe("stable");
+  it("rejects an invalid targetLanguage", async () => {
+    mockSupabase({});
+    const res = await PATCH(patchRequest({ targetLanguage: "klingon" }));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({ error: "Invalid targetLanguage" });
   });
 
-  it("reports stable when a single assessment gives no movement", async () => {
-    mockProfileDb({ scores: [score("leadership", 50, "2026-01-01")] });
-
-    expect((await (await GET()).json()).confidence.trend).toBe("stable");
+  it("rejects an invalid nativeLanguage", async () => {
+    mockSupabase({});
+    const res = await PATCH(patchRequest({ nativeLanguage: "klingon" }));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({ error: "Invalid nativeLanguage" });
   });
 
-  it("identifies the strongest and weakest competencies", async () => {
-    mockProfileDb({
-      scores: [
-        score("leadership", 90, "2026-02-01"),
-        score("ownership", 40, "2026-02-01"),
-        score("conflict", 65, "2026-02-01"),
-      ],
-    });
-
-    const body = await (await GET()).json();
-
-    expect(body.strongest_competency).toBe("leadership");
-    expect(body.weakest_competency).toBe("ownership");
+  it("rejects a dailyGoalMinutes outside {5,10,20,30}", async () => {
+    mockSupabase({});
+    const res = await PATCH(patchRequest({ dailyGoalMinutes: 15 }));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({ error: "Invalid dailyGoalMinutes" });
   });
 
-  it("leaves strongest and weakest null with no assessments", async () => {
-    mockProfileDb();
-
-    const body = await (await GET()).json();
-
-    expect(body.strongest_competency).toBeNull();
-    expect(body.weakest_competency).toBeNull();
+  it("rejects an invalid tutorId", async () => {
+    mockSupabase({});
+    const res = await PATCH(patchRequest({ tutorId: "bogus" }));
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toEqual({ error: "Invalid tutorId" });
   });
 
-  it("returns one competency_scores entry per competency with its last assessment", async () => {
-    mockProfileDb({
-      scores: [
-        score("leadership", 50, "2026-01-01"),
-        score("leadership", 80, "2026-02-01"),
-        score("ownership", 60, "2026-01-15"),
-      ],
-    });
-
-    const body = await (await GET()).json();
-
-    expect(body.competency_scores).toEqual([
-      { competency: "leadership", score: 80, last_assessed: "2026-02-01" },
-      { competency: "ownership", score: 60, last_assessed: "2026-01-15" },
-    ]);
-  });
-});
-
-describe("peer activity", () => {
-  it("reports hosted and joined counts", async () => {
-    mockProfileDb({ hosted: 3, joined: 7 });
-
-    expect((await (await GET()).json()).peer).toEqual({
-      sessions_hosted: 3,
-      sessions_joined: 7,
-    });
+  it("stops at the first invalid field", async () => {
+    mockSupabase({});
+    const res = await PATCH(patchRequest({ level: "bogus", tutorId: "also-bogus" }));
+    await expect(res.json()).resolves.toEqual({ error: "Invalid level" });
   });
 
-  it("defaults unknown counts to zero", async () => {
-    mockProfileDb({ hosted: null, joined: null });
+  it("updates multiple valid fields in one call", async () => {
+    const mock = mockSupabase({});
 
-    expect((await (await GET()).json()).peer).toEqual({
-      sessions_hosted: 0,
-      sessions_joined: 0,
-    });
-  });
-});
-
-describe("preferences and plan", () => {
-  it("defaults both notification preferences to on", async () => {
-    mockProfileDb({ profile: null });
-
-    expect((await (await GET()).json()).preferences).toEqual({
-      email_notifications: true,
-      match_alerts: true,
-    });
-  });
-
-  it("respects an explicit opt-out", async () => {
-    mockProfileDb({
-      profile: { email_notifications: false, match_alerts: false },
-    });
-
-    expect((await (await GET()).json()).preferences).toEqual({
-      email_notifications: false,
-      match_alerts: false,
-    });
-  });
-
-  it("defaults to the free plan with no subscription", async () => {
-    mockProfileDb({ subscription: null });
-
-    expect((await (await GET()).json()).plan).toBe("free");
-  });
-
-  it("reports the subscribed plan", async () => {
-    mockProfileDb({ subscription: { plan: "pro" } });
-
-    expect((await (await GET()).json()).plan).toBe("pro");
-  });
-});
-
-describe("credits and flags", () => {
-  it("reports the credit balance and usage", async () => {
-    mockProfileDb({
-      profile: {
-        session_credits: 12,
-        practice_sessions_used: 8,
-        peer_sessions_joined: 2,
-      },
-    });
-
-    const body = await (await GET()).json();
-
-    expect(body.session_credits).toBe(12);
-    expect(body.practice_sessions_used).toBe(8);
-    expect(body.peer_sessions_joined).toBe(2);
-  });
-
-  it("defaults credits and usage to zero with no profile row", async () => {
-    mockProfileDb({ profile: null });
-
-    const body = await (await GET()).json();
-
-    expect(body.session_credits).toBe(0);
-    expect(body.practice_sessions_used).toBe(0);
-    expect(body.peer_sessions_joined).toBe(0);
-  });
-
-  it("defaults isAdmin to false", async () => {
-    mockProfileDb({ profile: null });
-
-    expect((await (await GET()).json()).isAdmin).toBe(false);
-  });
-
-  it("reports an admin flag when set", async () => {
-    mockProfileDb({ profile: { isAdmin: true } });
-
-    expect((await (await GET()).json()).isAdmin).toBe(true);
-  });
-});
-
-describe("data scoping", () => {
-  it("reads every table for the caller only", async () => {
-    const db = mockProfileDb();
-
-    await GET();
-
-    for (const table of [
-      "profiles",
-      "subscriptions",
-      "interview_sessions",
-      "progress_scores",
-      "peer_session_participants",
-      "user_streaks",
-    ]) {
-      expect(db.builderFor(table).eq).toHaveBeenCalledWith(
-        table === "profiles" ? "id" : "user_id",
-        USER.id
-      );
-    }
-    expect(db.builderFor("peer_sessions").eq).toHaveBeenCalledWith(
-      "host_id",
-      USER.id
+    const res = await PATCH(
+      patchRequest({ level: "advanced", targetLanguage: "japanese", nativeLanguage: "english", dailyGoalMinutes: 30, tutorId: "jake" })
     );
+
+    expect(res.status).toBe(200);
+    expect(writePayload(mock, "profiles", "update")).toEqual({
+      user_level: "advanced",
+      target_language: "japanese",
+      native_language: "english",
+      daily_goal_minutes: 30,
+      tutor_id: "jake",
+    });
   });
 });
