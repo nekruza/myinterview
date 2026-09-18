@@ -8,7 +8,7 @@ import { PLANS } from "@/lib/billing";
 import { CONTACT_EMAIL, SITE_URL } from "@/lib/site";
 
 const DESCRIPTION =
-  "Fina is a language-learning app for speaking real roleplay conversations out loud with AI tutors, with vocabulary flashcards, AI word generation and a 30-day study plan in 9 languages.";
+  "Fina helps you speak English in real roleplay conversations with AI tutors, with vocabulary flashcards, instant feedback, AI word generation and a 30-day study plan. More languages are available too.";
 
 const toPrice = (cents: number) => (cents / 100).toFixed(2);
 

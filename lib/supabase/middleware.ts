@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isAuthDisabled } from "@/lib/auth-config";
 
 export async function updateSession(request: NextRequest) {
   // Forward the pathname as a request header so server components (layouts) can read it
@@ -10,6 +11,10 @@ export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request: { headers: requestHeaders },
   });
+
+  // Keep local development unblocked when explicitly requested. The helper
+  // also checks NODE_ENV, so this can never turn into a production bypass.
+  if (isAuthDisabled()) return supabaseResponse;
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

@@ -15,9 +15,9 @@ import {
 } from "@/components/structured-data/OrganizationSchema";
 
 export const metadata: Metadata = {
-  title: { absolute: "Fina — Speak a new language with AI tutors" },
+  title: { absolute: "Fina — Speak English with confidence" },
   description:
-    "Speak real roleplay conversations out loud with AI tutors Luna, Henry and Jake in 9 languages. Vocabulary flashcards, AI word generation and a 30-day study plan.",
+    "Practice real English conversations with AI tutors Luna, Henry and Jake. Build speaking confidence with roleplays, instant feedback, vocabulary and a 30-day plan.",
   alternates: { canonical: "/" },
 };
 

@@ -21,7 +21,7 @@ const SCORES = ["Overall", "Fluency", "Grammar", "Vocabulary", "Engagement", "Re
 
 /** Matches WORD_COUNT in app/api/ai/vocabulary/route.ts. */
 const GENERATED_WORDS = 12;
-const GENERATED_SAMPLE = ["la tienda de campaña", "la linterna", "el saco de dormir", "la fogata"];
+const GENERATED_SAMPLE = ["campsite", "lantern", "sleeping bag", "campfire"];
 
 const WEEK = ["M", "T", "W", "T", "F", "S", "S"];
 const WEEK_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -65,8 +65,8 @@ export function Features() {
     (r): r is RoleplayScenario => Boolean(r)
   );
 
-  const firstLesson = lessonsByLanguage.spanish[0];
-  const word = firstLesson.vocabularyWords.find((w) => w.word === "desayuno") ?? firstLesson.vocabularyWords[0];
+  const firstLesson = lessonsByLanguage.english[0];
+  const word = firstLesson.vocabularyWords.find((w) => w.word === "breakfast") ?? firstLesson.vocabularyWords[0];
 
   const today = STUDY_PLAN_30[EXAMPLE_TODAY];
 
@@ -74,7 +74,7 @@ export function Features() {
     <section id="features" aria-labelledby="features-title" className="scroll-mt-20 px-4 py-20 sm:px-6 md:py-28">
       <div className={shell}>
         <h2 id="features-title" className={`${sectionHeading} fina-reveal max-w-[20ch]`}>
-          Speaking comes first. <em className="italic">The rest makes it stick.</em>
+          Speak English first. <em className="italic">The rest makes it stick.</em>
         </h2>
 
         <div className="mt-12 grid gap-4 md:mt-16 md:grid-cols-2 lg:grid-cols-12">
@@ -113,13 +113,13 @@ export function Features() {
 
           <Cell
             className="lg:col-span-4"
-            title="Words by topic and flashcards"
-            body="Lessons by topic in every language. Hear each word, see it in a sentence, and save favorites to review later."
+            title="English words by topic and flashcards"
+            body="English lessons by topic. Hear each word, see it in a sentence, and save favorites to review later."
           >
             <div className="rounded-[20px] border border-line bg-cream p-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p lang="es" className="font-display fina-display text-[30px] leading-none tracking-[-0.015em] text-ink">
+                <p lang="en" className="font-display fina-display text-[30px] leading-none tracking-[-0.015em] text-ink">
                     {word.word}
                   </p>
                   <p className="mt-2 text-[13px] text-sub">
@@ -131,7 +131,7 @@ export function Features() {
                 </span>
               </div>
               <p className="mt-4 border-t border-line pt-4 text-[15px] font-semibold text-ink">{word.definition}</p>
-              <p lang="es" className="mt-1 text-[14px] italic text-sub">
+              <p lang="en" className="mt-1 text-[14px] italic text-sub">
                 {word.example}
               </p>
             </div>
@@ -170,13 +170,13 @@ export function Features() {
           <Cell
             className="lg:col-span-5"
             title="AI word generation"
-            body={`Type any topic and get ${GENERATED_WORDS} words at your level, saved as a lesson you can study straight away.`}
+            body={`Type any topic and get ${GENERATED_WORDS} English words at your level, saved as a lesson you can study straight away.`}
           >
             <div className="flex items-center justify-between rounded-full border border-line bg-cream px-4 py-2.5 text-[15px] text-ink">
               Camping trip
               <Sparkles aria-hidden="true" strokeWidth={1.75} className="h-4 w-4 text-sub" />
             </div>
-            <ul lang="es" className="mt-3 flex flex-wrap gap-2">
+            <ul lang="en" className="mt-3 flex flex-wrap gap-2">
               {GENERATED_SAMPLE.map((w) => (
                 <li key={w} className="rounded-full bg-cream px-3 py-1.5 text-[13px] text-ink">
                   {w}
@@ -194,14 +194,14 @@ export function Features() {
             body="Tap a line to see it in your language. Stuck? A hint gives you four things you could say next."
           >
             <p
-              lang="fr"
+              lang="en"
               className="w-fit rounded-[20px] rounded-tl-md bg-accent-soft px-4 py-3 font-display fina-display text-[18px] leading-snug text-ink"
             >
-              On se retrouve à quelle heure&nbsp;?
+              Could you say that again?
             </p>
             <p className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-line bg-cream px-3 py-1 text-xs text-sub">
               <Languages aria-hidden="true" strokeWidth={1.75} className="h-3.5 w-3.5 shrink-0" />
-              What time shall we meet?
+              Translation and hints are one tap away.
             </p>
           </Cell>
 

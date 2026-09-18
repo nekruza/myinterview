@@ -232,6 +232,7 @@ See `.env.example` for the authoritative, commented list. Summary:
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | yes | Fina Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | yes | Fina Supabase anon key |
+| `NEXT_PUBLIC_FINA_AUTH_DISABLED` | no | Development-only auth bypass when set to `true`; ignored in production |
 | `SUPABASE_SERVICE_ROLE_KEY` | yes for billing + deletion | Stripe webhook, verify-purchase, and auth-user deletion |
 | `GOOGLE_GEMINI_API_KEY` | yes | Primary LLM for conversation turns, hints, feedback, translation, vocabulary |
 | `OPENAI_API_KEY` | yes | LLM fallback when the Gemini stream throws |
@@ -243,6 +244,12 @@ See `.env.example` for the authoritative, commented list. Summary:
 | `STRIPE_WEBHOOK_SECRET` | for payments | Verifies `/api/stripe/webhook` signatures |
 | `NEXT_PUBLIC_APP_URL` | no | Absolute origin for Stripe URLs and `metadataBase`; falls back to the request origin |
 | `NEXT_PUBLIC_MIXPANEL_TOKEN` | no | Enables Mixpanel; analytics is a no-op when unset |
+
+For a temporary local UI preview without signing in, set
+`NEXT_PUBLIC_FINA_AUTH_DISABLED=true` in `.env.local` and restart the dev
+server. This only works in `NODE_ENV=development`; production builds ignore
+the flag. Supabase RLS remains enabled, so persistence and account actions
+still require a real authenticated session.
 
 Apply `supabase/migrations/20260913000000_fina_web.sql` by hand in the Supabase SQL editor before running the app against a fresh project state — see [Known Limitations](#known-limitations).
 

@@ -88,6 +88,34 @@ describe("protected app routes", () => {
   });
 });
 
+describe("temporary development auth bypass", () => {
+  const testEnv = process.env as Record<string, string | undefined>;
+  const previousNodeEnv = process.env.NODE_ENV;
+  const previousAuthFlag = process.env.NEXT_PUBLIC_FINA_AUTH_DISABLED;
+
+  beforeEach(() => {
+    testEnv.NODE_ENV = "development";
+    testEnv.NEXT_PUBLIC_FINA_AUTH_DISABLED = "true";
+    getUser.mockClear();
+    createServerClient.mockClear();
+  });
+
+  afterAll(() => {
+    testEnv.NODE_ENV = previousNodeEnv;
+    if (previousAuthFlag === undefined) delete testEnv.NEXT_PUBLIC_FINA_AUTH_DISABLED;
+    else testEnv.NEXT_PUBLIC_FINA_AUTH_DISABLED = previousAuthFlag;
+  });
+
+  it("lets a signed-out visitor reach protected routes without contacting Supabase", async () => {
+    const res = await updateSession(request("/app/dashboard"));
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get("location")).toBeNull();
+    expect(createServerClient).not.toHaveBeenCalled();
+    expect(getUser).not.toHaveBeenCalled();
+  });
+});
+
 describe("public routes", () => {
   it.each(["/", "/pricing", "/login"])(
     "does not gate %s",

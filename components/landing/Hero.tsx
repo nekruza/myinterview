@@ -11,16 +11,21 @@ import { ctaPrimary, ctaSecondary, shell } from "./styles";
 /** Staggered entrance delay for `.fina-rise` (disabled under prefers-reduced-motion). */
 const rise = (seconds: number) => ({ "--rise-delay": `${seconds}s` }) as CSSProperties;
 
-const REPLY_SUGGESTIONS = ["Grande, por favor.", "Pequeño, gracias."];
+const REPLY_SUGGESTIONS = ["A latte, please.", "A small coffee, thanks."];
+
+const ENGLISH_FIRST_LANGUAGES = [
+  getLanguage("english"),
+  ...LANGUAGES.filter((language) => language.id !== "english"),
+];
 
 /**
  * Static, hand-built preview of a real Fina conversation: Luna running the
- * "Coffee Shop Order" roleplay in Spanish, with the translation chip and the
- * "Your turn" state that shows reply suggestions. Nothing in it is interactive.
+ * "Coffee Shop Order" roleplay in English, with the help chip and the "Your
+ * turn" state that shows reply suggestions. Nothing in it is interactive.
  */
 function ConversationPreview() {
   const luna = getTutorById("luna");
-  const spanish = getLanguage("spanish");
+  const english = getLanguage("english");
   const scenario = getRoleplayById("food-cafe-1");
 
   return (
@@ -44,42 +49,42 @@ function ConversationPreview() {
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-ink">{luna.name}</p>
             <p className="truncate text-xs text-sub">
-              {scenario?.title ?? "Coffee Shop Order"} · {spanish.label}
+              {scenario?.title ?? "Coffee Shop Order"} · {english.label}
             </p>
           </div>
           <span aria-hidden="true" className="text-lg leading-none">
-            {spanish.flag}
+            {english.flag}
           </span>
         </div>
 
         <div className="space-y-3 px-5 py-6">
           <div className="fina-rise max-w-[88%]" style={rise(0.45)}>
             <p
-              lang="es"
+              lang="en"
               className="w-fit rounded-[20px] rounded-tl-md bg-accent-soft px-4 py-3 font-display fina-display text-[19px] leading-snug text-ink"
             >
-              ¡Hola! ¿Qué te gustaría tomar hoy?
+              Hi! What would you like to order today?
             </p>
             <p className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-line bg-cream px-3 py-1 text-xs text-sub">
               <Languages aria-hidden="true" strokeWidth={1.75} className="h-3.5 w-3.5 shrink-0" />
-              Hi! What would you like to have today?
+              Translation and hints when you need them
             </p>
           </div>
 
           <p
-            lang="es"
+            lang="en"
             className="fina-rise ml-auto w-fit max-w-[80%] rounded-[20px] rounded-tr-md bg-ink px-4 py-3 text-[15px] leading-snug text-cream"
             style={rise(0.65)}
           >
-            Un café con leche, por favor.
+            A latte with oat milk, please.
           </p>
 
           <p
-            lang="es"
+            lang="en"
             className="fina-rise w-fit max-w-[88%] rounded-[20px] rounded-tl-md bg-accent-soft px-4 py-3 font-display fina-display text-[19px] leading-snug text-ink"
             style={rise(0.85)}
           >
-            ¡Perfecto! ¿Grande o pequeño?
+            Great choice. Small or large?
           </p>
         </div>
 
@@ -96,7 +101,7 @@ function ConversationPreview() {
               <p className="mt-0.5 text-xs text-sub">You can say:</p>
             </div>
           </div>
-          <ul lang="es" className="mt-3 flex flex-wrap gap-2">
+          <ul lang="en" className="mt-3 flex flex-wrap gap-2">
             {REPLY_SUGGESTIONS.map((suggestion) => (
               <li key={suggestion} className="rounded-full border border-line bg-surface px-3 py-1.5 text-[13px] text-ink">
                 {suggestion}
@@ -107,8 +112,8 @@ function ConversationPreview() {
       </div>
 
       <figcaption className="sr-only">
-        Example conversation: {luna.name} runs a Spanish coffee-shop roleplay, with an English translation of her line
-        and reply suggestions when it&apos;s your turn to speak.
+        Example conversation: {luna.name} runs an English coffee-shop roleplay with reply suggestions when it&apos;s your
+        turn to speak.
       </figcaption>
     </figure>
   );
@@ -129,9 +134,9 @@ export function Hero() {
             style={rise(0.08)}
           >
             {/* Two lines on desktop, matching the mobile welcome screen's break. */}
-            <span className="block">Speak a new</span>{" "}
+            <span className="block">Speak English</span>{" "}
             <span className="block">
-              language <em className="italic text-accent-brand">in 30 days.</em>
+              <em className="italic text-accent-brand">with confidence.</em>
             </span>
           </h1>
 
@@ -139,8 +144,8 @@ export function Hero() {
             className="fina-rise mt-5 max-w-[34rem] text-[18px] leading-relaxed text-sub md:text-[19px]"
             style={rise(0.16)}
           >
-            Meet Henry, Jake &amp; Luna — AI tutors who&apos;ll have real conversations with you, at your level, on your
-            schedule.
+            Practice real English conversations with Henry, Jake &amp; Luna — AI tutors who meet you at your level and
+            help you speak with confidence.
           </p>
 
           <div className="fina-rise mt-9 flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:gap-3" style={rise(0.24)}>
@@ -154,13 +159,17 @@ export function Hero() {
 
           <div className="fina-rise mt-12" style={rise(0.32)}>
             <p id="hero-languages" className="text-[13px] font-medium text-sub">
-              {LANGUAGES.length} languages to choose from
+              English-first practice for real-life situations
             </p>
             <ul aria-labelledby="hero-languages" className="mt-3 flex max-w-[34rem] flex-wrap gap-2">
-              {LANGUAGES.map((language) => (
+              {ENGLISH_FIRST_LANGUAGES.map((language, index) => (
                 <li
                   key={language.id}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface/70 px-3 py-1.5 text-[13px] font-medium text-ink"
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[13px] font-medium ${
+                    index === 0
+                      ? "border-accent-brand/40 bg-accent-soft text-accent-brand"
+                      : "border-line bg-surface/70 text-ink"
+                  }`}
                 >
                   <span aria-hidden="true">{language.flag}</span>
                   {language.label}

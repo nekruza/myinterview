@@ -1,10 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { isAuthDisabled, TEMPORARY_AUTH_USER } from "@/lib/auth-config";
 
 export async function createClient() {
   const cookieStore = await cookies();
 
-  return createServerClient(
+  const client = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -25,4 +26,12 @@ export async function createClient() {
       },
     }
   );
+
+  if (isAuthDisabled()) {
+    Object.assign(client.auth, {
+      getUser: async () => ({ data: { user: TEMPORARY_AUTH_USER }, error: null }),
+    });
+  }
+
+  return client;
 }

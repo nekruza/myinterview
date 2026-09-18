@@ -53,14 +53,14 @@ function ScenarioTicket() {
 function CorrectionNote() {
   return (
     <div className="rounded-[20px] border border-line bg-cream p-4">
-      <p lang="es" className="text-sm text-sub line-through decoration-hot decoration-2">
-        Yo soy hambre.
+      <p lang="en" className="text-sm text-sub line-through decoration-hot decoration-2">
+        I am agree.
       </p>
-      <p lang="es" className="mt-1 font-display fina-display text-[22px] leading-snug text-ink">
-        Tengo hambre.
+      <p lang="en" className="mt-1 font-display fina-display text-[22px] leading-snug text-ink">
+        I agree.
       </p>
       <p className="mt-2 text-[13px] leading-relaxed text-sub">
-        In Spanish you &ldquo;have&rdquo; hunger, so use <span lang="es">tener</span>, not <span lang="es">ser</span>.
+        In English, say <span lang="en">&ldquo;I agree&rdquo;</span>, not <span lang="en">&ldquo;I am agree.&rdquo;</span>
       </p>
     </div>
   );
@@ -69,8 +69,8 @@ function CorrectionNote() {
 export function HowItWorks() {
   const steps: { title: string; body: string; visual: ReactNode }[] = [
     {
-      title: "Pick a tutor and language",
-      body: `Practice with Luna, Henry or Jake in any of ${LANGUAGES.length} languages, starting from the level you're at today.`,
+      title: "Choose your English tutor",
+      body: "Practice with Luna, Henry or Jake in English, starting from the level you're at today.",
       visual: <TutorRoster />,
     },
     {
