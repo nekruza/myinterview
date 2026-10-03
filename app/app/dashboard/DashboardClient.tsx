@@ -159,7 +159,7 @@ export function DashboardClient() {
   const scoreHistory = getScoreHistory(sessionList);
 
   return (
-    <div className="space-y-5 pb-12 animate-fade-in">
+    <div className="space-y-5 pb-12">
       <Suspense><SignupConversionTracker /></Suspense>
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}

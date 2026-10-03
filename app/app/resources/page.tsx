@@ -14,7 +14,7 @@ export default function ResourcesPage() {
   const [featured, ...rest] = posts;
 
   return (
-    <div className="space-y-6 pb-12 animate-fade-in">
+    <div className="space-y-6 pb-12">
 
       {/* Header */}
       <div
