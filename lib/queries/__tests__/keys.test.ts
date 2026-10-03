@@ -3,6 +3,7 @@ import { QUERY_KEYS } from "../keys";
 describe("QUERY_KEYS", () => {
   it("exposes a key for every cached resource", () => {
     expect(Object.keys(QUERY_KEYS).sort()).toEqual([
+      "dashboard",
       "notifications",
       "peerSession",
       "peerSessions",
@@ -13,6 +14,7 @@ describe("QUERY_KEYS", () => {
   });
 
   it.each([
+    ["dashboard", ["dashboard"]],
     ["profile", ["profile"]],
     ["settingsProfile", ["settings-profile"]],
     ["notifications", ["notifications"]],

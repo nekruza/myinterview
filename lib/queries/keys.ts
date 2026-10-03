@@ -1,4 +1,5 @@
 export const QUERY_KEYS = {
+  dashboard: ["dashboard"] as const,
   profile: ["profile"] as const,
   settingsProfile: ["settings-profile"] as const,
   notifications: ["notifications"] as const,

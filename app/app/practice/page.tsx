@@ -17,6 +17,8 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/lib/queries/keys";
 import { VoiceCallView } from "@/components/practice/VoiceCallView";
 import { LEVELS } from "@/lib/practice-data";
 import type { Phase, Message } from "@/lib/practice-data";
@@ -51,6 +53,7 @@ interface DetailedFeedback {
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 export default function PracticePage() {
+  const queryClient = useQueryClient();
   const [phase, setPhase] = useState<Phase>("setup");
   const [interviewType, setInterviewType] = useState<InterviewType>("case");
   const [interviewerId, setInterviewerId] = useState<string>(
@@ -233,6 +236,7 @@ export default function PracticePage() {
       );
       setSessionId(data.sessionId);
       setPhase("chat");
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.dashboard });
       track("Session Started", {
         interview_type: interviewType,
         interviewer_id: interviewerId,
@@ -309,6 +313,7 @@ export default function PracticePage() {
           })),
         }),
       });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.dashboard });
       toast.success("Session saved!");
     } catch {
       track("AI Feedback Failed", { interview_type: interviewType });
@@ -322,6 +327,7 @@ export default function PracticePage() {
           competencyScores: [],
         }),
       });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.dashboard });
       toast.success("Session saved!");
     } finally {
       setFeedbackLoading(false);

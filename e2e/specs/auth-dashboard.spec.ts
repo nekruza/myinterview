@@ -122,11 +122,11 @@ test.describe("dashboard", () => {
   });
 
   /**
-   * Credits surface twice on this page from two different layers: the sidebar
-   * badge fetches GET /api/profile from the browser, while the dashboard body
-   * is a Server Component reading Postgrest from the Next.js process. Only the
-   * first is reachable from `page.route`, so the second is driven by the value
-   * encoded in the session token.
+   * Credits surface twice on this page: the sidebar badge fetches GET
+   * /api/profile, and the dashboard body fetches GET /api/dashboard. Both are
+   * mocked-able from `page.route`, but /api/dashboard is left to hit the real
+   * route, which reads Postgrest from the Next.js process, so its balance is
+   * driven by the value encoded in the session token.
    */
   async function withCredits(
     context: Parameters<typeof signIn>[0],
